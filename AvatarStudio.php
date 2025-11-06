@@ -4,7 +4,7 @@
  * Plugin Name: Avatar Studio (Multiple)
  * Plugin URI: https://divigner.com/avatar-studio
  * Description: Avatar Studio for your Interactive Avatar  
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Avanew
  * Requires at least: 6.8
  * Requires PHP: 8.0.3
@@ -530,8 +530,6 @@ function avatar_studio_create_sessions_table()
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
 }
-
-
 
 
 // --- Register custom cron schedule (every 5 minutes) ---

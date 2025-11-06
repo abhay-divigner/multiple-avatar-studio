@@ -20,14 +20,7 @@ function avatar_studio_plugin_menu()
         'avatar_studio_user_info',
         'avatar_studio_user_info_page'
     );
-    // add_submenu_page(
-    //     'avatar_studio_main',
-    //     'Avatar Export Settings',
-    //     'Avatar Export Settings',
-    //     'manage_options',
-    //     'avatar-export-settings',
-    //     'avatar_studio_render_settings_page'
-    // );
+
     // Add Sessions submenu only if Google Drive is enabled
     if (get_option('avatar_studio_enable_google_drive') == '1') {
         add_submenu_page(
@@ -41,14 +34,14 @@ function avatar_studio_plugin_menu()
     }
 
     // Add Error Logs submenu
-    add_submenu_page(
-        'avatar_studio_main', 
-        'Error Logs',
-        'Error Logs',
-        'manage_options',
-        'avatar_studio_error_logs',
-        'avatar_studio_view_error_logs'
-    );
+    // add_submenu_page(
+    //     'avatar_studio_main', 
+    //     'Error Logs',
+    //     'Error Logs',
+    //     'manage_options',
+    //     'avatar_studio_error_logs',
+    //     'avatar_studio_view_error_logs'
+    // );
 
     // --- Add settings submenu ---
 add_action('admin_menu', function() {
@@ -66,19 +59,18 @@ add_action('admin_menu', 'avatar_studio_plugin_menu');
 
 function avatar_studio_main_page()
 {
-    $pages = get_pages();
-
-    // Handle Auto Export settings save
+    // Handle Auto Export Settings Save
     if (isset($_POST['avatar_export_save_settings'])) {
         check_admin_referer('avatar_export_settings_nonce');
         update_option('avatar_auto_export_enabled', isset($_POST['avatar_auto_export_enabled']) ? 1 : 0);
         update_option('avatar_auto_export_interval', sanitize_text_field($_POST['avatar_auto_export_interval']));
-        avatar_studio_schedule_cron(); // Apply schedule changes
-        echo '<div class="updated"><p>Auto Export settings saved!</p></div>';
+        avatar_studio_schedule_cron(); // apply changes
+        echo '<div class="updated"><p>Auto Export Settings saved!</p></div>';
     }
 
-    $auto_export_enabled = get_option('avatar_auto_export_enabled', 1);
-    $auto_export_interval = get_option('avatar_auto_export_interval', 'every_5_minutes');
+    $pages = get_pages();
+    $export_enabled = get_option('avatar_auto_export_enabled', 1);
+    $export_interval = get_option('avatar_auto_export_interval', 'every_5_minutes');
     ?>
     <div class="wrap">
         <h1>Plugin Settings</h1>
@@ -192,35 +184,69 @@ function avatar_studio_main_page()
                     </tr>
                 </table>
 
-                <!-- ✅ Integrated Auto Export Settings Section -->
-                <div style="margin-top: 40px;">
-                    <h2>Avatar Transcript Auto Export Settings</h2>
-                    <table class="form-table">
-                        <?php wp_nonce_field('avatar_export_settings_nonce'); ?>
-                        <tr>
-                            <th scope="row">Enable Auto Export</th>
-                            <td>
-                                <input type="checkbox" name="avatar_auto_export_enabled" value="1" <?php checked($auto_export_enabled, 1); ?>>
-                                <p class="description">Automatically export all transcripts to Google Drive at scheduled intervals.</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Export Interval</th>
-                            <td>
-                                <select name="avatar_auto_export_interval">
-                                    <option value="every_5_minutes" <?php selected($auto_export_interval, 'every_5_minutes'); ?>>Every 5 Minutes</option>
-                                    <option value="every_15_minutes" <?php selected($auto_export_interval, 'every_15_minutes'); ?>>Every 15 Minutes</option>
-                                    <option value="hourly" <?php selected($auto_export_interval, 'hourly'); ?>>Every Hour</option>
-                                    <option value="twicedaily" <?php selected($auto_export_interval, 'twicedaily'); ?>>Twice Daily</option>
-                                    <option value="daily" <?php selected($auto_export_interval, 'daily'); ?>>Daily</option>
-                                </select>
-                                <p class="description">Choose how often to automatically export transcripts.</p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                <style>
+                    .setup-instructions {
+                        border-radius: 10px;
+                        padding: 20px 0px;
+                        max-width: 700px;
+                        margin-top: 25px;
+                        font-family: "Inter", Arial, sans-serif;
+                        color: #1a202c;
+                    }
 
-                <!-- Google Drive Setup Instructions -->
+                    .setup-instructions h3 {
+                        font-size: 1rem;
+                        margin-bottom: 25px;
+                        font-weight: 800;
+                    }
+
+                    .setup-instructions ol {
+                        counter-reset: step-counter;
+                        list-style: none;
+                        padding-left: 0px;
+                    }
+
+                    .setup-instructions li {
+                        counter-increment: step-counter;
+                        margin: 10px 0;
+                        background: #e5e3ffff;
+                        border: 1px solid #edf2f7;
+                        border-radius: 8px;
+                        padding: 12px 15px;
+                        transition: all 0.2s ease-in-out;
+                    }
+
+                    .setup-instructions li::before {
+                        content: counter(step-counter);
+                        background: #2b6cb0;
+                        color: #fff;
+                        border-radius: 50%;
+                        font-size: 0.9rem;
+                        font-weight: bold;
+                        width: 26px;
+                        height: 26px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-right: 10px;
+                    }
+
+                    .setup-instructions li:hover {
+                        background: rgba(240, 245, 253, 1)ff;
+                        transform: translateX(3px);
+                    }
+
+                    .setup-instructions a {
+                        color: #2b6cb0;
+                        text-decoration: none;
+                        font-weight: 500;
+                    }
+
+                    .setup-instructions a:hover {
+                        text-decoration: underline;
+                    }
+                </style>
+
                 <div class="setup-instructions">
                     <h3>Setup Instructions for Google Drive</h3>
                     <ol>
@@ -237,6 +263,54 @@ function avatar_studio_main_page()
 
             <?php submit_button(); ?>
         </form>
+
+        <!-- Auto Export Settings Section -->
+        <div id="auto-export-settings" style="display:none;">
+            <hr style="margin: 40px 0; border: none; border-top: 2px solid #ddd;">
+            
+            <form method="post">
+                <?php wp_nonce_field('avatar_export_settings_nonce'); ?>
+                
+                <h2>Auto Export Settings</h2>
+                <p class="description">Configure automatic transcript export to Google Drive.</p>
+                
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">Enable Auto Export</th>
+                        <td>
+                            <input 
+                                type="checkbox" 
+                                id="avatar_auto_export_enabled"
+                                name="avatar_auto_export_enabled" 
+                                value="1" 
+                                <?php checked($export_enabled, 1); ?>
+                                class="plugin-input auto-export-input"
+                            >
+                            <label for="avatar_auto_export_enabled">Automatically export all transcripts to Google Drive at scheduled intervals</label>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Export Interval</th>
+                        <td>
+                            <select 
+                                name="avatar_auto_export_interval" 
+                                id="avatar_auto_export_interval"
+                                class="plugin-input auto-export-input"
+                            >
+                                <option value="every_5_minutes" <?php selected($export_interval, 'every_5_minutes'); ?>>Every 5 Minutes</option>
+                                <option value="every_15_minutes" <?php selected($export_interval, 'every_15_minutes'); ?>>Every 15 Minutes</option>
+                                <option value="hourly" <?php selected($export_interval, 'hourly'); ?>>Every Hour</option>
+                                <option value="twicedaily" <?php selected($export_interval, 'twicedaily'); ?>>Twice Daily</option>
+                                <option value="daily" <?php selected($export_interval, 'daily'); ?>>Daily</option>
+                            </select>
+                            <p class="description">Choose how often to automatically export transcripts.</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <?php submit_button('Save Auto Export Settings', 'primary', 'avatar_export_save_settings'); ?>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -246,17 +320,22 @@ function avatar_studio_main_page()
             const googleDriveSettings = document.getElementById("google-drive-settings");
             const inputs = document.querySelectorAll(".plugin-input");
             const googleDriveInputs = document.querySelectorAll(".google-drive-input");
+            const autoExportInputs = document.querySelectorAll(".auto-export-input");
             const toggleButtons = document.querySelectorAll(".toggle-visibility");
             const googleDriveToggleButtons = document.querySelectorAll(".google-drive-toggle");
 
             function toggleInputs() {
                 const enabled = enableCheckbox.checked;
                 inputs.forEach(input => {
-                    if (!input.classList.contains('google-drive-input')) {
+                    if (!input.classList.contains('google-drive-input') && !input.classList.contains('auto-export-input')) {
                         input.disabled = !enabled;
                     }
                 });
+                
+                // Enable/disable Google Drive checkbox based on main enable
                 enableGoogleDriveCheckbox.disabled = !enabled;
+                
+                // Update Google Drive settings visibility
                 toggleGoogleDriveSettings();
             }
 
@@ -264,17 +343,38 @@ function avatar_studio_main_page()
                 const mainEnabled = enableCheckbox.checked;
                 const googleDriveEnabled = enableGoogleDriveCheckbox.checked;
                 const shouldShow = mainEnabled && googleDriveEnabled;
+                
                 googleDriveSettings.style.display = shouldShow ? 'block' : 'none';
+                
+                // Enable/disable Google Drive inputs
                 googleDriveInputs.forEach(input => input.disabled = !shouldShow);
                 googleDriveToggleButtons.forEach(btn => btn.disabled = !shouldShow);
+                
+                // Show/hide auto export settings based on Google Drive being enabled
+                toggleAutoExportSettings();
             }
 
+            function toggleAutoExportSettings() {
+                const mainEnabled = enableCheckbox.checked;
+                const googleDriveEnabled = enableGoogleDriveCheckbox.checked;
+                const shouldShow = mainEnabled && googleDriveEnabled;
+                
+                const autoExportSettings = document.getElementById("auto-export-settings");
+                autoExportSettings.style.display = shouldShow ? 'block' : 'none';
+                
+                // Enable/disable auto export inputs
+                autoExportInputs.forEach(input => input.disabled = !shouldShow);
+            }
+
+            // Initial state
             toggleInputs();
             toggleGoogleDriveSettings();
+            toggleAutoExportSettings();
 
             enableCheckbox.addEventListener("change", toggleInputs);
             enableGoogleDriveCheckbox.addEventListener("change", toggleGoogleDriveSettings);
 
+            // Visibility toggle for secrets
             toggleButtons.forEach(button => {
                 button.addEventListener("click", function () {
                     const targetId = this.dataset.target;
@@ -304,59 +404,9 @@ function avatar_studio_main_page()
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        .setup-instructions {
-            border-radius: 10px;
-            padding: 20px 0px;
-            max-width: 700px;
-            margin-top: 25px;
-            font-family: "Inter", Arial, sans-serif;
-            color: #1a202c;
-        }
-        .setup-instructions h3 {
-            font-size: 1rem;
-            margin-bottom: 25px;
-            font-weight: 800;
-        }
-        .setup-instructions ol {
-            counter-reset: step-counter;
-            list-style: none;
-            padding-left: 0px;
-        }
-        .setup-instructions li {
-            counter-increment: step-counter;
-            margin: 10px 0;
-            background: #e5e3ff;
-            border: 1px solid #edf2f7;
-            border-radius: 8px;
-            padding: 12px 15px;
-            transition: all 0.2s ease-in-out;
-        }
-        .setup-instructions li::before {
-            content: counter(step-counter);
-            background: #2b6cb0;
-            color: #fff;
-            border-radius: 50%;
-            font-size: 0.9rem;
-            font-weight: bold;
-            width: 26px;
-            height: 26px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-        }
-        .setup-instructions a {
-            color: #2b6cb0;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .setup-instructions a:hover {
-            text-decoration: underline;
-        }
     </style>
     <?php
 }
-
 
 // Sessions page
 function avatar_studio_sessions_page()
@@ -413,6 +463,13 @@ function avatar_studio_sessions_page()
                 <strong style="color: #0c4a6e; font-size: 15px;">Google Drive Connected</strong>
             </div>
             <p style="margin: 0; color: #0c4a6e; font-size: 13px;">Your account is connected and ready to export transcripts.</p>
+            <p style="margin-top: 10px; color: #0369a1; font-size: 12.5px; background: #e0f2fe; padding: 8px 10px; border-radius: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 6px;">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Please note: Google Drive exports (transcripts and perception analysis) may take a short while to appear after a session ends.
+            </p>
         </div>
 
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -548,7 +605,7 @@ function avatar_studio_sessions_page()
                                 $perception_status = $session->perception_status ?? 'not_processed';
                                 $perception_colors = [
                                     'processed' => 'green',
-                                    'unavailable' => 'yellow',
+                                    'unavailable' => 'blue',
                                     'failed' => 'red',
                                     'not_processed' => 'gray'
                                 ];
@@ -705,77 +762,88 @@ function avatar_studio_export_transcript($session)
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_sessions';
     
-    // Fetch transcript from Tavus
-
+    // Fetch transcript and analysis from Tavus
     $transcript_api_res = avatar_studio_fetch_tavus_transcript($session->session_id);
 
-    $transcript = $transcript_api_res['transcript'];
-    $analysis = $transcript_api_res['analysis'];
+    $transcript = $transcript_api_res['transcript'] ?? null;
+    $analysis = $transcript_api_res['analysis'] ?? null;
     
-    if (!$transcript) {
-        $wpdb->update(
-            $table_name,
-            ['export_status' => 'failed', 'export_error' => 'Failed to fetch transcript from Tavus'],
-            ['id' => $session->id]
-        );
-    }
-
-    if(!$analysis){
-        $wpdb->update(
-            $table_name,
-            ['export_status' => 'failed', 'export_error' => 'Failed to fetch transcript from Tavus'],
-            ['id' => $session->id]
-        );
-    }
-
-    if(!$transcript && !$analysis){
-         return false;
-    }
-
-
+    // Track success for both exports
     $uploadTranscriptStatus = false;
-    if($transcript){
-        // Upload to Google Drive
+    $uploadAnalysisStatus = false;
+    
+    // Handle Transcript Export
+    if ($transcript) {
         $uploadTranscriptStatus = avatar_studio_upload_to_google_drive($session, $transcript);
         
         if ($uploadTranscriptStatus) {
             $wpdb->update(
                 $table_name,
-                ['export_status' => 'exported', 'exported_at' => current_time('mysql')],
+                [
+                    'export_status' => 'exported', 
+                    'exported_at' => current_time('mysql')
+                ],
                 ['id' => $session->id]
             );
         } else {
             $wpdb->update(
                 $table_name,
-                ['export_status' => 'failed', 'export_error' => 'Failed to upload to Google Drive'],
+                [
+                    'export_status' => 'failed', 
+                    'export_error' => 'Failed to upload transcript to Google Drive'
+                ],
                 ['id' => $session->id]
             );
         }
+    } else {
+        $wpdb->update(
+            $table_name,
+            [
+                'export_status' => 'failed', 
+                'export_error' => 'Failed to fetch transcript from Tavus'
+            ],
+            ['id' => $session->id]
+        );
     }
 
-
-    $uploadAnalysisStatus = false;
-    if($analysis){
-        // Upload to Google Drive
+    // Handle Perception Analysis Export
+    if ($analysis) {
         $uploadAnalysisStatus = avatar_studio_upload_analysis_to_google_drive($session, $analysis);
         
         if ($uploadAnalysisStatus) {
             $wpdb->update(
                 $table_name,
-                ['export_status' => 'exported', 'exported_at' => current_time('mysql')],
+                [
+                    'perception_status' => 'processed', 
+                    'perception_updated_at' => current_time('mysql')
+                ],
                 ['id' => $session->id]
             );
         } else {
             $wpdb->update(
                 $table_name,
-                ['export_status' => 'failed', 'export_error' => 'Failed to upload to Google Drive'],
+                [
+                    'perception_status' => 'failed', 
+                    'perception_error' => 'Failed to upload perception analysis to Google Drive'
+                ],
                 ['id' => $session->id]
             );
         }
+    } else {
+        // Mark as unavailable if no analysis data
+        $wpdb->update(
+            $table_name,
+            [
+                'perception_status' => 'unavailable', 
+                'perception_error' => 'No perception analysis data available from Tavus',
+                'perception_updated_at' => current_time('mysql')
+            ],
+            ['id' => $session->id]
+        );
     }
 
+    // Return true if at least one export succeeded
     return $uploadTranscriptStatus || $uploadAnalysisStatus;
-
 }
 
 /**
@@ -973,220 +1041,283 @@ function avatar_studio_fetch_tavus_transcript($session_id, $retry_count = 0)
     return $result;
 }
 
+
+/**
+ * Generate transcript PDF using TCPDF with proper multi-page support
+ */
 function avatar_studio_generate_pdf_simple($session, $transcript_text) {
-
-      avatar_studio_log_error('Checking trscription text befrore convertion', [
-            'transcript_text' => $transcript_text,
-        ]);
-
-    $html = '<!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="UTF-8">
-        <style>
-                    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
-                    .header { text-align: center; border-bottom: 3px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-                    .header h1 { margin: 0; color: #333; }
-                    .header p { margin: 5px 0; color: #666; }
-                    .message { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #ddd; }
-                    .role { font-weight: bold; margin-bottom: 8px; font-size: 14px; }
-                    .system .role { color: #800080; }
-                    .assistant .role { color: #0064c8; }
-                    .user .role { color: #008000; }
-                    .content { margin-left: 15px; white-space: pre-wrap; word-wrap: break-word; }
-                        </style>
-                        </head>
-                        <body>
-                        <div class="header">
-                        <h1>Avatar Studio</h1>
-                        <p>Session Transcript</p>
-                        <p>Session ID: ' . htmlspecialchars($session->session_id) . '</p>
-                        <p>Generated: ' . date('F j, Y \a\t g:i A') . '</p>
-                        </div>';
-                    foreach ($transcript_text as $message) {
-                        $role = $message['role'] ?? 'unknown';
-                        $content = htmlspecialchars($message['content'] ?? '');
-                        if (empty(trim($content))) {
-                            continue;
-                        }
-                       
-                        if ($role == 'assistant' || $role == 'user') {
-                            $role_label = $role === 'assistant' ? ucfirst($role) : ucfirst($role);
-                            
-                            // Determine the alignment based on the role
-                            $alignment_style = ($role === 'user') ? 'margin-left: auto;' : 'margin-right: auto;';
-                            
-                            // Add a max-width for better chat bubble appearance (optional but recommended)
-                            $bubble_style = 'max-width: 80%; padding: 10px; border-radius: 10px; margin-bottom: 10px;';
-                            
-                            // Add background color for distinction
-                            $bg_color_style = ($role === 'user') ? 'background-color: #dcf8c6;' : 'background-color: #f1f0f0;';
-                            
-                            // The main container div uses 'display: flex' to hold the message role and content
-                            $html .= '<div style="display: flex; ' . $alignment_style . ' width: 100%;">'; // Outer container for alignment
-                            
-                            // The message bubble div itself
-                            $html .= '<div class="message ' . $role . '" style="' . $bubble_style . $bg_color_style . '">';
-                            
-                            // Role label (optional, you might want to remove this in a typical chat bubble)
-                            $html .= '<div class="role" style="font-weight: bold; margin-bottom: 5px;">' . $role_label . ':</div>';
-                            
-                            // Content
-                            $html .= '<div class="content">' . nl2br($content) . '</div>';
-                            
-                            $html .= '</div>'; // Close message bubble div
-                            $html .= '</div>'; // Close outer container div
-                        }
-                    }
-                    $html .= '</body></html>';
-                    // For download, set headers
-                    header('Content-Type: text/html; charset=utf-8');
-                    header('Content-Disposition: inline; filename="transcript-' . $session->session_id . '.html"');
-                    return $html;
-}
-
-
-function avatar_studio_generate_analysis_pdf($session, $analysis_text) {
-
-    avatar_studio_log_error('Checking analysis text before conversion', [
-        'analysis_text' => $analysis_text,
+    avatar_studio_log_error('Starting PDF generation with TCPDF', [
+        'session_id' => $session->session_id,
+        'transcript_count' => is_array($transcript_text) ? count($transcript_text) : 0
     ]);
 
-    $html = '<!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="UTF-8">
-        <style>
-            body { 
-                font-family: Arial, sans-serif; 
-                max-width: 900px; 
-                margin: 40px auto; 
-                padding: 20px; 
-                line-height: 1.8; 
-                color: #333;
-            }
-            .header { 
-                text-align: center; 
-                border-bottom: 3px solid #4A90E2; 
-                padding-bottom: 20px; 
-                margin-bottom: 30px; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 30px;
-                border-radius: 10px;
-                color: white;
-            }
-            .header h1 { 
-                margin: 0; 
-                color: white; 
-                font-size: 32px;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            }
-            .header p { 
-                margin: 5px 0; 
-                color: #f0f0f0; 
-                font-size: 14px;
-            }
-            .analysis-container {
-                background: #f8f9fa;
-                border-left: 4px solid #4A90E2;
-                padding: 25px;
-                margin: 20px 0;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .analysis-title {
-                font-size: 22px;
-                font-weight: bold;
-                color: #2c3e50;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #4A90E2;
-            }
-            .analysis-content {
-                white-space: pre-wrap;
-                word-wrap: break-word;
-                font-size: 15px;
-                line-height: 1.8;
-                color: #34495e;
-            }
-            .analysis-content ul {
-                margin: 10px 0;
-                padding-left: 25px;
-            }
-            .analysis-content li {
-                margin: 8px 0;
-            }
-            .analysis-content strong {
-                color: #2c3e50;
-            }
-            .section {
-                margin: 20px 0;
-                padding: 15px;
-                background: white;
-                border-radius: 6px;
-            }
-            .footer {
-                margin-top: 40px;
-                padding-top: 20px;
-                border-top: 2px solid #e0e0e0;
-                text-align: center;
-                color: #7f8c8d;
-                font-size: 12px;
-            }
-        </style>
-        </head>
-        <body>
-        <div class="header">
-            <h1>Avatar Studio</h1>
-            <p>Perception Analysis Report</p>
-            <p>Session ID: ' . htmlspecialchars($session->session_id) . '</p>
-            <p>Generated: ' . date('F j, Y \a\t g:i A') . '</p>
-        </div>';
-    
-    // Check if analysis is a string or needs processing
-    $analysis_content = is_string($analysis_text) ? $analysis_text : json_encode($analysis_text, JSON_PRETTY_PRINT);
-    
-    if (empty(trim($analysis_content))) {
-        $html .= '<div class="analysis-container">
-                    <div class="analysis-title">No Analysis Available</div>
-                    <div class="analysis-content">
-                        <p>No perception analysis data was found for this session.</p>
-                    </div>
-                  </div>';
-    } else {
-        // Format the analysis content with proper HTML structure
-        $formatted_content = htmlspecialchars($analysis_content);
-        
-        // Convert markdown-style formatting if present
-        $formatted_content = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $formatted_content);
-        $formatted_content = preg_replace('/\*(.+?)\*/', '<em>$1</em>', $formatted_content);
-        
-        // Convert bullet points
-        $formatted_content = preg_replace('/^\s*[\*\-]\s+(.+)$/m', '<li>$1</li>', $formatted_content);
-        $formatted_content = preg_replace('/(<li>.*<\/li>)/s', '<ul>$1</ul>', $formatted_content);
-        
-        $html .= '<div class="analysis-container">
-                    <div class="analysis-title">Visual Perception Analysis</div>
-                    <div class="section">
-                        <div class="analysis-content">' . nl2br($formatted_content) . '</div>
-                    </div>
-                  </div>';
+    if (!is_array($transcript_text)) {
+        avatar_studio_log_error('Invalid transcript data', ['session_id' => $session->session_id]);
+        return false;
     }
-    
-    // Add footer
-    $html .= '<div class="footer">
-                <p>This analysis was automatically generated by Avatar Studio</p>
-                <p>Confidential - For authorized use only</p>
-              </div>';
-    
-    $html .= '</body></html>';
-    
-    // For download, set headers
-    header('Content-Type: text/html; charset=utf-8');
-    header('Content-Disposition: inline; filename="analysis-' . $session->session_id . '.html"');
-    
-    return $html;
+
+    // Load TCPDF
+    if (!class_exists('TCPDF')) {
+        $tcpdf_path = plugin_dir_path(__FILE__) . 'lib/TCPDF/tcpdf.php';
+        if (file_exists($tcpdf_path)) {
+            require_once($tcpdf_path);
+        } else {
+            avatar_studio_log_error('TCPDF not found', ['path' => $tcpdf_path]);
+            return false;
+        }
+    }
+
+    // Remove duplicate messages
+    $transcript_text = array_map("unserialize", array_unique(array_map("serialize", $transcript_text)));
+
+    // Create new PDF document
+    $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+    // Set document information
+    $pdf->SetCreator('Avatar Studio');
+    $pdf->SetAuthor('Avatar Studio');
+    $pdf->SetTitle('Transcript - ' . $session->session_id);
+    $pdf->SetSubject('Conversation Transcript');
+
+    // Set margins
+    $pdf->SetMargins(15, 20, 15);
+    $pdf->SetHeaderMargin(5);
+    $pdf->SetFooterMargin(10);
+
+    // Set auto page breaks
+    $pdf->SetAutoPageBreak(TRUE, 15);
+
+    // Add a page
+    $pdf->AddPage();
+
+    // Set font
+    $pdf->SetFont('helvetica', '', 11);
+
+    // Build HTML content
+    $html = '<style>
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+        }
+        .header h1 { 
+            margin: 0 0 10px 0; 
+            color: #333; 
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .header p { 
+            margin: 3px 0; 
+            color: #666; 
+            font-size: 11px;
+        }
+        .message-container {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        .message-bubble {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+            display: inline-block;
+            max-width: 85%;
+        }
+        .user-message {
+            background-color: #dcf8c6;
+            margin-left: 15%;
+        }
+        .assistant-message {
+            background-color: #f1f0f0;
+            margin-right: 15%;
+        }
+        .role {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 10px;
+        }
+        .user-role {
+            color: #008000;
+        }
+        .assistant-role {
+            color: #0064c8;
+        }
+        .content {
+            font-size: 11px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+    </style>';
+
+    // Header
+    $html .= '<div class="header">
+        <h1>Avatar Studio</h1>
+        <p><strong>Session Transcript</strong></p>
+        <p>Session ID: ' . htmlspecialchars($session->session_id) . '</p>
+        <p>Generated: ' . date('F j, Y \a\t g:i A') . '</p>
+    </div>';
+
+    // Messages
+    foreach ($transcript_text as $message) {
+        $role = $message['role'] ?? 'unknown';
+        $content = $message['content'] ?? '';
+
+        if (empty(trim($content)) || !in_array($role, ['assistant', 'user'])) {
+            continue;
+        }
+
+        $role_label = ucfirst($role);
+        $message_class = ($role === 'user') ? 'user-message' : 'assistant-message';
+        $role_class = ($role === 'user') ? 'user-role' : 'assistant-role';
+
+        $html .= '<div class="message-container">';
+        $html .= '<div class="message-bubble ' . $message_class . '">';
+        $html .= '<div class="role ' . $role_class . '">' . htmlspecialchars($role_label) . ':</div>';
+        $html .= '<div class="content">' . nl2br(htmlspecialchars($content)) . '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+    }
+
+    // Write HTML content
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    // Output PDF as string
+    return $pdf->Output('', 'S');
 }
+
+/**
+ * Generate perception analysis PDF with proper multi-page support
+ */
+function avatar_studio_generate_analysis_pdf($session, $analysis_text) {
+    avatar_studio_log_error('Starting analysis PDF generation', [
+        'session_id' => $session->session_id,
+        'analysis_length' => is_string($analysis_text) ? strlen($analysis_text) : 0
+    ]);
+
+    // Load TCPDF
+    if (!class_exists('TCPDF')) {
+        $tcpdf_path = plugin_dir_path(__FILE__) . 'lib/TCPDF/tcpdf.php';
+        if (file_exists($tcpdf_path)) {
+            require_once($tcpdf_path);
+        } else {
+            avatar_studio_log_error('TCPDF not found', ['path' => $tcpdf_path]);
+            return false;
+        }
+    }
+
+    // Create new PDF document
+    $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+    // Set document information
+    $pdf->SetCreator('Avatar Studio');
+    $pdf->SetAuthor('Avatar Studio');
+    $pdf->SetTitle('Perception Analysis - ' . $session->session_id);
+    $pdf->SetSubject('Perception Analysis Report');
+
+    // Set margins
+    $pdf->SetMargins(15, 20, 15);
+    $pdf->SetHeaderMargin(5);
+    $pdf->SetFooterMargin(10);
+
+    // Set auto page breaks - CRITICAL for multi-page support
+    $pdf->SetAutoPageBreak(TRUE, 15);
+
+    // Add a page
+    $pdf->AddPage();
+
+    // Set font
+    $pdf->SetFont('helvetica', '', 11);
+
+    // Prepare analysis content
+    if (is_array($analysis_text) || is_object($analysis_text)) {
+        $analysis_content = json_encode($analysis_text, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    } else {
+        $analysis_content = $analysis_text;
+    }
+
+    // Build HTML content
+    $html = '<style>
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid #4A90E2; 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+        }
+        .header h1 { 
+            margin: 0 0 10px 0; 
+            color: #4A90E2; 
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .header h2 {
+            margin: 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .header p { 
+            margin: 3px 0; 
+            color: #666; 
+            font-size: 11px;
+        }
+        .content-section {
+            margin-top: 20px;
+        }
+        .content-section h3 {
+            color: #2c3e50;
+            border-bottom: 1px solid #4A90E2;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .analysis-content {
+            font-size: 11px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        .footer { 
+            text-align: center; 
+            color: #888; 
+            font-size: 9px; 
+            margin-top: 30px; 
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+    </style>';
+
+    // Header
+    $html .= '<div class="header">
+        <h1>Avatar Studio</h1>
+        <h2>Perception Analysis Report</h2>
+        <p><strong>Session ID:</strong> ' . htmlspecialchars($session->session_id) . '</p>
+        <p><strong>Generated:</strong> ' . date('F j, Y \a\t g:i A') . '</p>
+    </div>';
+
+    // Content section
+    $html .= '<div class="content-section">';
+    $html .= '<h3>Analysis Details</h3>';
+    $html .= '<div class="analysis-content">' . htmlspecialchars($analysis_content) . '</div>';
+    $html .= '</div>';
+
+    // Footer
+    $html .= '<div class="footer">
+        This report was automatically generated by Avatar Studio.<br>
+        All analysis data is confidential and should be handled according to your privacy policy.
+    </div>';
+
+    // Write HTML content
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    // Output PDF as string
+    return $pdf->Output('', 'S');
+}
+
 
 /**
  * Get or create Google Drive folder by name
@@ -1575,7 +1706,6 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
     
     // Sanitize avatar name for folder naming (remove special characters)
     if ($avatar_name) {
-        // Remove or replace characters that aren't allowed in folder names
         $avatar_name = preg_replace('/[<>:\"\/\\|?*]/', '_', $avatar_name);
         $avatar_name = trim($avatar_name);
     }
@@ -1590,7 +1720,7 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
         ]);
     }
     
-    avatar_studio_log_error('Using avatar name for folder', [
+    avatar_studio_log_error('Using avatar name for perception analysis folder', [
         'avatar_id' => $avatar_id,
         'avatar_name' => $avatar_name,
         'session_id' => $session->session_id ?? 'unknown',
@@ -1602,7 +1732,7 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
     $folders = avatar_studio_create_folder_hierarchy($avatar_name, $access_token);
     
     if (!$folders) {
-        avatar_studio_log_error('Failed to create folder hierarchy', [
+        avatar_studio_log_error('Failed to create folder hierarchy for perception analysis', [
             'session_id' => $session->session_id ?? 'unknown',
             'avatar_name' => $avatar_name,
             'function' => __FUNCTION__
@@ -1610,11 +1740,18 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
         return false;
     }
     
-    // Use the analysis folder for PDF upload
-    $analysis_folder_id = $folders['analysis_folder_id'];
+    // Use the perceptions folder for PDF upload
+    $perceptions_folder_id = $folders['perceptions_folder_id'];
+    
+    avatar_studio_log_error('Perception folder ID retrieved', [
+        'perceptions_folder_id' => $perceptions_folder_id,
+        'session_id' => $session->session_id ?? 'unknown',
+        'level' => 'info',
+        'function' => __FUNCTION__
+    ]);
     
     // Prepare filename
-    $filename = "analysis_{$session->session_id}_" . date('Y-m-d_H-i-s') . ".pdf";
+    $filename = "perception_analysis_{$session->session_id}_" . date('Y-m-d_H-i-s') . ".pdf";
     
     // Prepare multipart upload
     $boundary = wp_generate_password(24, false);
@@ -1622,7 +1759,7 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
     $metadata = json_encode([
         'name' => $filename,
         'mimeType' => 'application/pdf',
-        'parents' => [$analysis_folder_id]
+        'parents' => [$perceptions_folder_id]
     ]);
     
     $body = "--{$boundary}\r\n";
@@ -1644,7 +1781,7 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
     ]);
     
     if (is_wp_error($response)) {
-        avatar_studio_log_error('Google Drive analysis upload request failed', [
+        avatar_studio_log_error('Google Drive perception analysis upload request failed', [
             'session_id' => $session->session_id ?? 'unknown',
             'avatar_name' => $avatar_name,
             'filename' => $filename,
@@ -1659,11 +1796,11 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
     $response_body = wp_remote_retrieve_body($response);
     
     if ($response_code !== 200) {
-        avatar_studio_log_error('Google Drive analysis upload failed', [
+        avatar_studio_log_error('Google Drive perception analysis upload failed', [
             'session_id' => $session->session_id ?? 'unknown',
             'avatar_name' => $avatar_name,
             'filename' => $filename,
-            'analysis_folder_id' => $analysis_folder_id,
+            'perceptions_folder_id' => $perceptions_folder_id,
             'status_code' => $response_code,
             'response_body' => $response_body,
             'function' => __FUNCTION__
@@ -1673,14 +1810,14 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
     
     // Log successful upload
     $upload_data = json_decode($response_body, true);
-    avatar_studio_log_error('Google Drive analysis PDF upload successful', [
+    avatar_studio_log_error('Google Drive perception analysis PDF upload successful', [
         'session_id' => $session->session_id ?? 'unknown',
         'avatar_name' => $avatar_name,
         'filename' => $filename,
         'folder_structure' => implode(' > ', [
             $folders['root_folder_id'],
             $folders['avatar_folder_id'],
-            $folders['analysis_folder_id']
+            $folders['perceptions_folder_id']
         ]),
         'file_id' => $upload_data['id'] ?? 'unknown',
         'level' => 'info',
@@ -1689,6 +1826,74 @@ function avatar_studio_upload_analysis_to_google_drive($session, $analysis) {
     
     return true;
 }
+
+foreach ($sessions as $session) {
+    ?>
+    <tr>
+        <td><?php echo esc_html($session->session_id); ?></td>
+        <td><?php echo esc_html($session->avatar_id); ?></td>
+
+        <!-- ✅ Paste your action buttons block here -->
+        <td>
+            <?php 
+            // Transcript Export Button
+            if ($google_connected && in_array($export_status, ['failed', 'not_exported'])): 
+                $btn_text = [
+                    'exported' => '',
+                    'failed' => 'Retry Export',
+                    'not_exported' => 'Export'
+                ];
+                
+                $created_timestamp = strtotime($session->created_at);
+                $current_timestamp = current_time('timestamp');
+                $one_hour_in_seconds = 3600;
+                $time_elapsed = $current_timestamp - $created_timestamp;
+                $is_disabled = $time_elapsed < $one_hour_in_seconds;
+                
+                $remaining_seconds = $one_hour_in_seconds - $time_elapsed;
+                $remaining_minutes = ceil($remaining_seconds / 60);
+            ?>
+                <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
+                class="button button-small <?php echo $is_disabled ? 'disabled' : ''; ?>"
+                <?php if ($is_disabled): ?>
+                    style="pointer-events: none; opacity: 0.5; cursor: not-allowed;"
+                    title="Export will be available in <?php echo $remaining_minutes; ?> minute<?php echo $remaining_minutes > 1 ? 's' : ''; ?>"
+                    onclick="return false;"
+                <?php endif; ?>>
+                    <?php echo $btn_text[$export_status] ?? 'Export'; ?>
+                </a>
+            <?php endif; ?>
+            
+            <?php 
+            // Perception Export Button
+            $perception_status = $session->perception_status ?? 'not_processed';
+            if ($google_connected && in_array($perception_status, ['failed', 'not_processed', 'unavailable'])): 
+                $perception_btn_text = [
+                    'processed' => '',
+                    'failed' => 'Retry Perception',
+                    'not_processed' => 'Export Perception',
+                    'unavailable' => 'Retry Perception'
+                ];
+                
+                $is_disabled = $time_elapsed < $one_hour_in_seconds;
+            ?>
+                <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
+                class="button button-small <?php echo $is_disabled ? 'disabled' : ''; ?>"
+                <?php if ($is_disabled): ?>
+                    style="pointer-events: none; opacity: 0.5; cursor: not-allowed; margin-left: 5px;"
+                    title="Perception export will be available in <?php echo $remaining_minutes; ?> minute<?php echo $remaining_minutes > 1 ? 's' : ''; ?>"
+                    onclick="return false;"
+                <?php else: ?>
+                    style="margin-left: 5px;"
+                <?php endif; ?>>
+                    <?php echo $perception_btn_text[$perception_status] ?? 'Export Perception'; ?>
+                </a>
+            <?php endif; ?>
+        </td>
+    </tr>
+    <?php
+}
+
 
 /**
  * Helper function to refresh Google OAuth token
@@ -1904,7 +2109,7 @@ function avatar_studio_user_info_page() {
     }
 
     .avatar-user-info-wrapper {
-        max-width: 1000px;
+        max-width: 90%;
         margin: 20px auto;
     }
 
@@ -2025,8 +2230,8 @@ function avatar_studio_user_info_page() {
 
 <div class="avatar-user-info-wrapper">
     <div class="avatar-user-info-header">
-        <h1>Avatar Studio - User Info</h1>
-        <p>View and manage user interactions</p>
+        <h1>👤 Avatar Studio — User Info</h1>
+        <p>Monitor and manage user interactions efficiently.</p>
     </div>
 
     <div class="stats-grid">
@@ -2047,16 +2252,16 @@ function avatar_studio_user_info_page() {
     <div class="avatar-search-section">
         <form method="get" class="search-form-wrapper">
             <input type="hidden" name="page" value="avatar-studio-user-info">
-            <input type="search" name="s" value="<?php echo esc_attr($search); ?>" placeholder="Search by name, email, mobile...">
-            <input type="submit" value="Search">
+            <input type="search" name="s" value="<?php echo esc_attr($search); ?>" placeholder="🔍 Search by name, email, or mobile...">
+            <button type="submit" class="button-primary">Search</button>
             <?php if (!empty($search)) : ?>
-                <a href="?page=avatar-studio-user-info" class="button">Clear</a>
+                <a href="?page=avatar-studio-user-info" class="button-secondary">Clear</a>
             <?php endif; ?>
         </form>
     </div>
 
     <div class="avatar-table-section">
-        <table>
+        <table class="avatar-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -2098,7 +2303,7 @@ function avatar_studio_user_info_page() {
                         </tr>
                     <?php endforeach; ?>
                 <?php else : ?>
-                    <tr><td colspan="7" class="table-empty">No records found</td></tr>
+                    <tr><td colspan="7" class="table-empty">No records found.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -2110,18 +2315,163 @@ function avatar_studio_user_info_page() {
                 </div>
                 <div class="pagination-links">
                     <?php if ($paged>1): ?>
-                        <a href="<?php echo avatar_filter_url(['paged'=>1]); ?>">First</a>
-                        <a href="<?php echo avatar_filter_url(['paged'=>$paged-1]); ?>">Prev</a>
+                        <a href="<?php echo avatar_filter_url(['paged'=>1]); ?>" class="page-btn">« First</a>
+                        <a href="<?php echo avatar_filter_url(['paged'=>$paged-1]); ?>" class="page-btn">‹ Prev</a>
                     <?php endif; ?>
-                    <span>Page <?php echo $paged; ?> of <?php echo $total_pages; ?></span>
+                    <span class="page-current">Page <?php echo $paged; ?> of <?php echo $total_pages; ?></span>
                     <?php if ($paged<$total_pages): ?>
-                        <a href="<?php echo avatar_filter_url(['paged'=>$paged+1]); ?>">Next</a>
-                        <a href="<?php echo avatar_filter_url(['paged'=>$total_pages]); ?>">Last</a>
+                        <a href="<?php echo avatar_filter_url(['paged'=>$paged+1]); ?>" class="page-btn">Next ›</a>
+                        <a href="<?php echo avatar_filter_url(['paged'=>$total_pages]); ?>" class="page-btn">Last »</a>
                     <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
     </div>
 </div>
+
+<style>
+.avatar-user-info-wrapper {
+    font-family: "Inter", system-ui, sans-serif;
+    padding: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.avatar-user-info-header h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #1a1a1a;
+}
+.avatar-user-info-header p {
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.stats-grid {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.stat-card {
+    flex: 1;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    text-align: center;
+}
+.stat-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.avatar-search-section {
+    margin-bottom: 20px;
+}
+.search-form-wrapper {
+    display: flex;
+    gap: 10px;
+}
+.search-form-wrapper input[type="search"] {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 0.95rem;
+}
+.button-primary {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.button-primary:hover {
+    background: #1d4ed8;
+}
+.button-secondary {
+    background: #e5e7eb;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #111827;
+    transition: background 0.2s ease;
+}
+.button-secondary:hover {
+    background: #d1d5db;
+}
+
+.avatar-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+.avatar-table th {
+    background: #f3f4f6;
+    color: #374151;
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #e5e7eb;
+}
+.avatar-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+}
+.avatar-table tr:hover {
+    background: #f9fafb;
+}
+.table-empty {
+    text-align: center;
+    padding: 16px;
+    color: #9ca3af;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+}
+.pagination-info {
+    color: #6b7280;
+}
+.pagination-links {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.page-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #374151;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+.page-btn:hover {
+    background: #e5e7eb;
+}
+.page-current {
+    font-weight: 500;
+    color: #2563eb;
+}
+
+.sort-icon {
+    font-size: 0.8rem;
+    margin-left: 4px;
+    color: #6b7280;
+}
+</style>
 <?php
 }
