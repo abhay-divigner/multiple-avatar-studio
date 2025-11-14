@@ -14,7 +14,719 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
 <style>
+/* Enhanced Avatar Form Styling */
+.avatar-form {
+    max-width: 100%;
+    margin: 20px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
+}
 
+/* Collapsible Section Styles */
+.collapsible-section {
+    background: white;
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.collapsible-section:hover {
+    box-shadow: 0 8px 25px rgba(56, 177, 197, 0.15);
+}
+
+.section-header {
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
+    padding: 20px 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    user-select: none;
+}
+
+.section-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-header .toggle-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.section-header .toggle-icon svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.collapsible-section.collapsed .toggle-icon svg {
+    transform: rotate(-90deg);
+}
+
+.section-content {
+    max-height: 5000px;
+    opacity: 1;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.collapsible-section.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+}
+
+.section-body {
+    padding: 30px;
+}
+
+/* Design Preview Section - Full Width */
+#design-preview-section {
+    width: 100%;
+}
+
+#design-preview-section .preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+#design-preview-section .preview-avatar {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
+    border-radius: 12px;
+    border: 2px dashed rgba(56, 177, 197, 0.2);
+}
+
+/* Vendor Section - Full Width */
+#vendor-section .vendor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+/* Form Table Enhancements */
+.boxed {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.form-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.form-table tr {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.form-table tr:last-child {
+    border-bottom: none;
+}
+
+.form-table th {
+    padding: 16px 20px 16px 0;
+    text-align: left;
+    font-weight: 600;
+    color: #334155;
+    vertical-align: top;
+    width: 200px;
+    font-size: 14px;
+}
+
+.form-table td {
+    padding: 16px 0;
+}
+
+.form-table label {
+    font-weight: 600;
+    color: #334155;
+    font-size: 14px;
+}
+
+/* Input Enhancements */
+.regular-text,
+select,
+textarea,
+input[type="text"],
+input[type="number"],
+input[type="password"] {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.regular-text:focus,
+select:focus,
+textarea:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
+}
+
+/* Tooltip Styles */
+.tooltip-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tooltip-icon {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.2) 0%, rgba(218, 146, 44, 0.2) 100%);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    font-size: 12px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
+    background-origin: border-box;
+    background-clip: text, border-box;
+}
+
+.tooltip-icon:hover + .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.tooltip-content {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px);
+    background: #1f2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    z-index: 1000;
+    margin-bottom: 8px;
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1f2937;
+}
+
+/* Radio Button Styling */
+input[type="radio"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    margin-right: 6px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+}
+
+input[type="radio"]:checked {
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+}
+
+input[type="radio"]:hover {
+    border-color: #38b1c5;
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+}
+
+input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    border-color: transparent;
+}
+
+input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+input[type="checkbox"]:hover {
+    border-color: #38b1c5;
+}
+
+/* Select2 Enhancements */
+.select2-container--default .select2-selection--multiple {
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    min-height: 42px !important;
+    padding: 4px !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border: 2px solid transparent !important;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1) !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%) !important;
+    border: 2px solid transparent !important;
+    background-image: 
+        linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
+        linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    margin: 4px !important;
+}
+
+/* Image Uploader */
+.image-uploader-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.image-uploader-wrap .row {
+    display: flex;
+    gap: 8px;
+}
+
+.image-uploader-wrap .image-preview {
+    max-width: 200px;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    padding: 4px;
+}
+
+.image-uploader-wrap .button {
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    border: 2px solid #e5e7eb !important;
+    background: white !important;
+    transition: all 0.2s ease !important;
+    height: auto !important;
+}
+
+.image-uploader-wrap .button:hover {
+    border-color: #38b1c5 !important;
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%) !important;
+}
+
+/* Tab System */
+.avatar_studio-tabs {
+    width: 100%;
+}
+
+.avatar_studio-tab-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.avatar_studio-tab-buttons .tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.avatar_studio-tab-buttons .tab-btn:hover {
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
+}
+
+.avatar_studio-tab-buttons .tab-btn.active {
+    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+}
+
+.avatar_studio-tab-content {
+    display: none;
+}
+
+.avatar_studio-tab-content.active {
+    display: block;
+}
+
+/* Style Wrapper */
+.style-wrapper {
+    margin-bottom: 16px;
+}
+
+.style-wrapper label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #334155;
+    font-size: 13px;
+}
+
+.input-controls {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-controls input,
+.input-controls select {
+    flex: 1;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, rgba(56, 177, 197, 0.2) 0%, rgba(218, 146, 44, 0.2) 100%);
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    color: white;
+}
+
+/* Row and Column Grid */
+.row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.row.gap-0 {
+    gap: 8px;
+}
+
+.col {
+    flex: 1;
+}
+
+.col-4 {
+    flex: 0 0 calc(40% - 12px);
+}
+
+.col-5 {
+    flex: 0 0 calc(50% - 12px);
+}
+
+.col-10 {
+    flex: 0 0 100%;
+}
+
+/* Editor Wrapper */
+.editor-wrapper {
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.editor-wrapper:focus-within {
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
+}
+
+/* Submit Button */
+#saveBtn {
+    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
+    color: #fff !important;
+    padding: 12px 32px !important;
+    border-radius: 8px !important;
+    border: none !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4) !important;
+    margin-top: 24px !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+#saveBtn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+#saveBtn:hover::before {
+    left: 100%;
+}
+
+#saveBtn:hover {
+    background: linear-gradient(135deg, #2a8b9a 0%, #c17d23 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5) !important;
+}
+
+/* Vendor Logo Styling */
+.vendor-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vendor-logo-container img {
+    max-width: 80px;
+    height: auto;
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    #vendor-section .vendor-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 782px) {
+    .section-header {
+        padding: 16px 20px;
+    }
+    
+    .section-header h2 {
+        font-size: 18px;
+    }
+    
+    .section-body {
+        padding: 20px;
+    }
+    
+    .row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .col,
+    .col-4,
+    .col-5 {
+        flex: 0 0 100%;
+    }
+    
+    .form-table th,
+    .form-table td {
+        display: block;
+        width: 100%;
+        padding: 10px 0;
+    }
+    
+    .form-table th {
+        padding-bottom: 5px;
+    }
+    
+    .avatar_studio-tab-buttons {
+        flex-direction: column;
+    }
+    
+    .avatar_studio-tab-buttons .tab-btn {
+        width: 100%;
+    }
+    
+    #vendor-section .vendor-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+/* Description Text */
+.form-table p {
+    margin: 8px 0 0 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Full Width Utility */
+.full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Smooth Transitions */
+* {
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Focus Visible for Accessibility */
+*:focus-visible {
+    outline: 2px solid #38b1c5;
+    outline-offset: 2px;
+}
+
+/* Small Columns for Better Mobile View */
+.sm-col-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.sm-col-10 {
+    flex: 0 0 100%;
+}
+
+@media (min-width: 783px) {
+    .sm-col-10 {
+        flex: 0 0 calc(100% - 12px);
+    }
+}
+
+/* Margin Bottom Utility */
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+/* Active Thumbnail Row */
+.active_thumbnail-row {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(90deg, rgba(56, 177, 197, 0.2) 0%, rgba(218, 146, 44, 0.2) 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 100% 2px;
+    background-position: 0 0, 0 100%;
+    background-repeat: no-repeat;
+}
 </style>
 
 <div class="avatar-form">
@@ -34,13 +746,23 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                         <tr>
                             <th><label for="vendor">Vendor</label></th>
                             <td>
-                                <input type="radio" name="vendor" id="tavus" value="tavus" <?php echo $avatar && checked($avatar->vendor, 'tavus', true) ?>> <label for="tavus">Tavus</label>
-                                <input type="radio" name="vendor" id="heygen" value="heygen" <?php echo $avatar && checked($avatar->vendor, 'heygen', true) ?>> <label for="heygen">Heygen</label>
-
+                                <!-- Hidden input to store vendor value -->
+                                <input type="hidden" name="vendor" value="<?php echo $avatar && $avatar->vendor ? esc_attr($avatar->vendor) : ''; ?>">
+                                
+                                <!-- Display vendor as read-only text -->
+                                <!-- <strong style="text-transform: capitalize; font-size: 14px; color: #2271b1;">
+                                    <?php echo $avatar && $avatar->vendor ? ucfirst(esc_html($avatar->vendor)) : ''; ?>
+                                </strong> -->
+                                
+                                <?php if ($avatar && $avatar->vendor === 'tavus'): ?>
+                                    <span style="margin-left: 10px;"><img style="width: 60px; margin-top: -21px;" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio(v1.0.3)/assets/images/tavus_logo.png" alt="Tavus Logo"></span>
+                                <?php elseif ($avatar && $avatar->vendor === 'heygen'): ?>
+                                    <span style="margin-left: 10px;"><img style="width: 60px; margin-top: -21px;" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio(v1.0.3)/assets/images/heygen_logo.png" alt="Heygen Logo"></span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="api_key">Api Key</label></th>
+                            <th><label for="api_key">API Key</label></th>
                             <td><input type="text" name="api_key" id="api_key" class="regular-text"
                                     value="<?php echo $avatar && $avatar->api_key ? esc_attr($avatar->api_key) : '' ?>"
                                     required />
@@ -60,17 +782,28 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="avatar_id">Avatar Id/ Replica ID</label></th>
-                            <td><input type="text" name="avatar_id" id="avatar_id" class="regular-text"
+                            <th>
+                                <label for="avatar_id">
+                                    <?php echo ($avatar && $avatar->vendor === 'tavus') ? 'Replica ID' : 'Avatar Id'; ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="text" name="avatar_id" id="avatar_id" class="regular-text"
                                     value="<?php echo $avatar && $avatar->avatar_id ? esc_attr($avatar->avatar_id) : '' ?>"
                                     required />
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="knowledge_id">Knowledge ID/ Persona ID</label></th>
-                            <td><input type="text" name="knowledge_id" id="knowledge_id" class="regular-text"
+                            <th>
+                                <label for="knowledge_id">
+                                    <?php echo ($avatar && $avatar->vendor === 'tavus') ? 'Persona ID' : 'Knowledge ID'; ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="text" name="knowledge_id" id="knowledge_id" class="regular-text"
                                     value="<?php echo $avatar && $avatar->knowledge_id ? esc_attr($avatar->knowledge_id) : '' ?>"
-                                    required /></td>
+                                    required />
+                            </td>
                         </tr>
                         <tr>
                             <th><label for="preview_image">Preview/Poster Image</label></th>
@@ -180,8 +913,8 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                         </tr>
                     </table>
                 </div>
-                <div class="boxed mb-20"
-                    style=" <?php echo ($avatar && $avatar->vendor == 'tavus') ? 'display:none;' : ''; ?>;">
+                <div class="boxed mb-20">
+                    <!-- style=" <?php echo ($avatar && $avatar->vendor == 'tavus') ? 'display:none;' : ''; ?>;" -->
 
                     <table class="form-table">
                         <tr valign="top">
@@ -1870,11 +2603,27 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
         </div>
 
         <?php
-        submit_button('Save', 'primary', 'submit_button');
+        submit_button(
+            'Save',            // Button text
+            'primary',         // Button class
+            'submit_button',   // Name attribute
+            false,             // Wrap (false = no <p> wrapper)
+            array('id' => 'saveBtn') // ✅ Add your custom ID here
+        );
         ?>
+        <style>
+            #saveBtn {
+                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                color: #fff;
+                padding: 6px 18px;
+                border-radius: 6px;
+                border: none;
+            }
+            #saveBtn:hover {
+                background: linear-gradient(135deg, #38b1c5 10%, #da922c 90%);
+            }
+        </style>
     </form>
-    <hr>
-    <a href="<?php echo admin_url('admin.php?page=avatar_studio-avatars') ?>" class="button">← Back to avatars</a>
 
 </div>
 
@@ -2349,11 +3098,11 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                 showChatBoxPreview(event);
             }
         });
-        document.querySelectorAll('input[name="vendor"]').forEach(input => {
-            input.addEventListener('change', (event) => {
-                document.getElementById('avatarForm').submit();
-            });
-        });
+        // document.querySelectorAll('input[name="vendor"]').forEach(input => {
+        //     input.addEventListener('change', (event) => {
+        //         document.getElementById('avatarForm').submit();
+        //     });
+        // });
 
 
 

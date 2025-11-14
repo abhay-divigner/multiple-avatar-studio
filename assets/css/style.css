@@ -1364,6 +1364,10 @@ div#streamingStatus {
   overflow-y: scroll;
 }
 
+.manage-column {
+  /* display: inline-flex; */
+}
+
 @keyframes fadeInUp {
   from {
     transform: translateY(20px);
