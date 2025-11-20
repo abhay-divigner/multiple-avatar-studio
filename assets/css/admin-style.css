@@ -65,7 +65,7 @@
 
 .avatar-form .form-table th,
 .avatar-form .form-table td {
-  padding: 10px 10px;
+  /* padding: 10px 10px; */
 }
 
 .avatar_studio-tabs {
@@ -163,20 +163,21 @@
 }
 
 .avatar-form .clear-btn {
-  position: absolute;
-  right: -20px;
+  position: relative;
+  /* right: -20px; */
   top: calc(50% - 0px);
-  transform: translateY(-50%);
+  /* transform: translateY(-50%); */
   cursor: pointer;
   font-size: 14px;
-  color: #fff;
+  color: #d53538;
   user-select: none;
   display: none;
   z-index: 0;
-  border-radius: 0 5px 5px 0;
+  border-radius: 4px;
   border: 1px solid #d63638;
-  padding: 4px 6px;
-  background: #d63638;
+  padding: 2px 4px;
+  background: #fff;
+  text-align: center;
 }
 
 /* .avatar-form .input-controls input:not(:placeholder-shown)+.clear-btn, */

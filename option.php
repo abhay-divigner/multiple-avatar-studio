@@ -132,6 +132,17 @@
                 background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
                 border-radius: 10px 10px 0 0;
                 position: relative;
+                cursor: pointer;
+                user-select: none;
+            }
+
+            .card-header.collapsible {
+                cursor: pointer;
+                display: flex;
+            }
+
+            .card-header.collapsible:hover {
+                background: linear-gradient(135deg, rgba(56, 177, 197, 0.12) 0%, rgba(218, 146, 44, 0.12) 100%);
             }
 
             .card-header::after {
@@ -163,8 +174,37 @@
                 box-shadow: 0 2px 8px rgba(56, 177, 197, 0.4);
             }
 
+            /* Collapse Toggle Icon */
+            .collapse-toggle {
+                margin-left: auto;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                border-radius: 50%;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                transition: transform 0.3s ease;
+                flex-shrink: 0;
+            }
+
+            .collapse-toggle.collapsed {
+                transform: rotate(180deg);
+            }
+
             .card-body {
                 padding: 30px;
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+
+            .card-body.collapsed {
+                max-height: 0;
+                padding: 0 30px;
+                opacity: 0;
             }
 
             .form-table {
@@ -176,7 +216,7 @@
                 padding: 15px 0;
                 width: 180px;
                 font-weight: 600;
-                color: #334155;
+                color: #333;
                 vertical-align: top;
             }
 
@@ -357,8 +397,13 @@
             /* api-integration */
 
             .tavus-heygen-api {
-                display: flex;
+                /* display: flex; */
                 gap: 20px;
+            }
+
+            .tavus-heygen-api .avatar-studio-card {
+                flex: 1;
+                min-width: 0;
             }
 
             /* Code Display */
@@ -656,6 +701,35 @@
                 .plugin-input select {
                     max-width: 100%;
                 }
+
+                .tavus-heygen-api {
+                    flex-direction: column;
+                }
+            }
+            /* Responsive adjustments */
+            @media screen and (max-width: 1200px) {
+                td > div[style*="grid-template-columns"] {
+                    grid-template-columns: 1fr !important;
+                    gap: 16px !important;
+                }
+            }
+            
+            @media screen and (max-width: 782px) {
+                .form-table th {
+                    display: block;
+                    width: 100% !important;
+                    padding-bottom: 0;
+                }
+                
+                .form-table td {
+                    display: block;
+                    width: 100%;
+                    padding-top: 8px;
+                }
+                
+                td > div[style*="grid-template-columns"] {
+                    grid-template-columns: 1fr !important;
+                }
             }
         </style>
 
@@ -680,7 +754,7 @@
                     <div class="card-body">
                         <table class="form-table">
                             <tr valign="top">
-                                <th scope="row">Plugin Status</th>
+                                <th style="line-height: 1.5;" scope="row">Plugin Status</th>
                                 <td>
                                     <label class="toggle-label">
                                         <div class="toggle-switch">
@@ -705,13 +779,14 @@
                 <!-- Tavus API Settings -->
                 <div class="tavus-heygen-api">
                     <div class="avatar-studio-card">
-                        <div class="card-header">
+                        <div class="card-header collapsible" data-target="tavus-api-body">
                             <h2>Tavus API Configuration</h2>
+                            <span class="collapse-toggle">−</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" id="tavus-api-body">
                             <table class="form-table">
                                 <tr valign="top">
-                                    <th id="api-key-config" scope="row">API Key</th>
+                                    <th style="line-height: 3.3;" id="api-key-config" scope="row">API Key</th>
                                     <td>
                                         <div class="input-wrapper">
                                             <input 
@@ -736,13 +811,14 @@
 
                     <!-- Heygen API Settings -->
                     <div class="avatar-studio-card">
-                        <div class="card-header">
+                        <div class="card-header collapsible" data-target="heygen-api-body">
                             <h2>Heygen API Configuration</h2>
+                            <span class="collapse-toggle">−</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" id="heygen-api-body">
                             <table class="form-table">
                                 <tr valign="top">
-                                    <th id="api-key-config" scope="row">API Key</th>
+                                    <th style="line-height: 3.3;" id="api-key-config" scope="row">API Key</th>
                                     <td>
                                         <div class="input-wrapper">
                                             <input 
@@ -768,13 +844,14 @@
 
                 <!-- Google Drive Integration -->
                 <div class="avatar-studio-card">
-                    <div class="card-header">
+                    <div class="card-header collapsible" data-target="google-drive-body">
                         <h2>Google Drive Integration</h2>
+                        <span class="collapse-toggle collapsed">−</span>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body collapsed" id="google-drive-body">
                         <table class="form-table">
                             <tr valign="top">
-                                <th scope="row">Enable Integration</th>
+                                <th style="line-height: 1.5;" scope="row">Enable Integration</th>
                                 <td>
                                     <label class="toggle-label">
                                         <div class="toggle-switch">
@@ -799,43 +876,51 @@
                             <hr class="section-divider">
                             
                             <table class="form-table">
+                                <!-- Client ID and Client Secret in One Row -->
                                 <tr valign="top">
-                                    <th scope="row">Client ID</th>
+                                    <th style="line-height: 3; width: 120px;" scope="row">OAuth Credentials</th>
                                     <td>
-                                        <input 
-                                            type="text" 
-                                            id="avatar_studio_google_client_id" 
-                                            name="avatar_studio_google_client_id" 
-                                            value="<?php echo esc_attr(get_option('avatar_studio_google_client_id')); ?>" 
-                                            class="plugin-input google-drive-input"
-                                            placeholder="Enter Google Client ID"
-                                        />
-                                        <p class="description">
-                                            OAuth 2.0 Client ID from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console →</a>
-                                        </p>
-                                    </td>
-                                </tr>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                            <!-- Client ID -->
+                                            <div>
+                                                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Client ID</label>
+                                                <input 
+                                                    type="text" 
+                                                    id="avatar_studio_google_client_id" 
+                                                    name="avatar_studio_google_client_id" 
+                                                    value="<?php echo esc_attr(get_option('avatar_studio_google_client_id')); ?>" 
+                                                    class="plugin-input google-drive-input"
+                                                    placeholder="Enter Google Client ID"
+                                                    style="width: 100%;"
+                                                />
+                                                <p class="description" style="margin-top: 6px;">
+                                                    OAuth 2.0 Client ID from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console →</a>
+                                                </p>
+                                            </div>
 
-                                <tr valign="top">
-                                    <th scope="row">Client Secret</th>
-                                    <td>
-                                        <div class="input-wrapper">
-                                            <input 
-                                                type="password" 
-                                                id="avatar_studio_google_client_secret" 
-                                                name="avatar_studio_google_client_secret" 
-                                                value="<?php echo esc_attr(get_option('avatar_studio_google_client_secret')); ?>" 
-                                                class="plugin-input google-drive-input"
-                                                placeholder="Enter Client Secret"
-                                            />
-                                            <button type="button" class="button toggle-visibility google-drive-toggle" data-target="avatar_studio_google_client_secret">Show</button>
+                                            <!-- Client Secret -->
+                                            <div>
+                                                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Client Secret</label>
+                                                <div class="input-wrapper" style="display: flex; gap: 8px;">
+                                                    <input 
+                                                        type="password" 
+                                                        id="avatar_studio_google_client_secret" 
+                                                        name="avatar_studio_google_client_secret" 
+                                                        value="<?php echo esc_attr(get_option('avatar_studio_google_client_secret')); ?>" 
+                                                        class="plugin-input google-drive-input"
+                                                        placeholder="Enter Client Secret"
+                                                        style="flex: 1;"
+                                                    />
+                                                    <button type="button" class="button toggle-visibility google-drive-toggle" data-target="avatar_studio_google_client_secret" style="white-space: nowrap;">Show</button>
+                                                </div>
+                                                <p class="description" style="margin-top: 6px;">OAuth 2.0 Client Secret from Google Cloud Console</p>
+                                            </div>
                                         </div>
-                                        <p class="description">OAuth 2.0 Client Secret from Google Cloud Console</p>
                                     </td>
                                 </tr>
 
                                 <tr valign="top">
-                                    <th scope="row">Redirect URI</th>
+                                    <th style="line-height: 3;" scope="row">Redirect URI</th>
                                     <td>
                                         <div class="code-display">
                                             <?php echo admin_url('admin.php?page=avatar_studio_sessions'); ?>
@@ -849,7 +934,6 @@
                                     </td>
                                 </tr>
                             </table>
-
 
                             <div class="setup-instructions">
                                 <h3>Setup Instructions</h3>
@@ -874,53 +958,59 @@
                                 </div>
                             </div>
 
-                            <!-- Auto Export Settings Integrated Here -->
+                            <!-- Auto Export Settings -->
                             <div class="auto-export-section">
                                 <h3>Automated Export Settings</h3>
                                 <p class="description" style="margin-bottom: 20px;">Configure automatic transcript export to Google Drive at scheduled intervals.</p>
                                 
                                 <table class="form-table">
+                                    <!-- Auto Export and Export Frequency in One Row -->
                                     <tr valign="top">
-                                        <th scope="row">Auto Export</th>
+                                        <th style="line-height: 1.5; width: 120px;" scope="row">Export Configuration</th>
                                         <td>
-                                            <label class="toggle-label">
-                                                <div class="toggle-switch">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        id="avatar_auto_export_enabled"
-                                                        name="avatar_auto_export_enabled" 
-                                                        value="1" 
-                                                        <?php checked($export_enabled, 1); ?>
-                                                        class="plugin-input auto-export-input"
-                                                    />
-                                                    <span class="toggle-slider"></span>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                                                <!-- Auto Export Toggle -->
+                                                <div>
+                                                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Auto Export</label>
+                                                    <label class="toggle-label">
+                                                        <div class="toggle-switch">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                id="avatar_auto_export_enabled"
+                                                                name="avatar_auto_export_enabled" 
+                                                                value="1" 
+                                                                <?php checked($export_enabled, 1); ?>
+                                                                class="plugin-input auto-export-input"
+                                                            />
+                                                            <span class="toggle-slider"></span>
+                                                        </div>
+                                                        <span>Enable Automatic Export</span>
+                                                    </label>
+                                                    <p class="description" style="margin-top: 6px;">Automatically export all transcripts to Google Drive at scheduled intervals</p>
                                                 </div>
-                                                <span>Enable Automatic Export</span>
-                                            </label>
-                                            <p class="description">Automatically export all transcripts to Google Drive at scheduled intervals</p>
-                                        </td>
-                                    </tr>
-                                    
-                                    <tr valign="top">
-                                        <th scope="row">Export Frequency</th>
-                                        <td>
-                                            <select 
-                                                name="avatar_auto_export_interval" 
-                                                id="avatar_auto_export_interval"
-                                                class="plugin-input auto-export-input"
-                                            >
-                                                <option value="every_5_minutes" <?php selected($export_interval, 'every_5_minutes'); ?>>Every 5 Minutes</option>
-                                                <option value="every_15_minutes" <?php selected($export_interval, 'every_15_minutes'); ?>>Every 15 Minutes</option>
-                                                <option value="hourly" <?php selected($export_interval, 'hourly'); ?>>Every Hour</option>
-                                                <option value="twicedaily" <?php selected($export_interval, 'twicedaily'); ?>>Twice Daily</option>
-                                                <option value="daily" <?php selected($export_interval, 'daily'); ?>>Daily</option>
-                                            </select>
-                                            <p class="description">Choose how often transcripts should be automatically exported</p>
+                                                
+                                                <!-- Export Frequency -->
+                                                <div>
+                                                    <label for="avatar_auto_export_interval" style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Export Frequency</label>
+                                                    <select 
+                                                        name="avatar_auto_export_interval" 
+                                                        id="avatar_auto_export_interval"
+                                                        class="plugin-input auto-export-input"
+                                                        style="width: 100%;"
+                                                    >
+                                                        <option value="every_5_minutes" <?php selected($export_interval, 'every_5_minutes'); ?>>Every 5 Minutes</option>
+                                                        <option value="every_15_minutes" <?php selected($export_interval, 'every_15_minutes'); ?>>Every 15 Minutes</option>
+                                                        <option value="hourly" <?php selected($export_interval, 'hourly'); ?>>Every Hour</option>
+                                                        <option value="twicedaily" <?php selected($export_interval, 'twicedaily'); ?>>Twice Daily</option>
+                                                        <option value="daily" <?php selected($export_interval, 'daily'); ?>>Daily</option>
+                                                    </select>
+                                                    <p class="description" style="margin-top: 6px;">Choose how often transcripts should be automatically exported</p>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </table>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -931,6 +1021,25 @@
 
         <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Handle expand/collapse functionality
+            document.querySelectorAll('.card-header.collapsible').forEach(function(header) {
+                header.addEventListener('click', function(e) {
+                    // Prevent collapse when clicking on child elements like toggles
+                    if (e.target.closest('.toggle-switch') || e.target.closest('.toggle-label')) {
+                        return;
+                    }
+                    
+                    const targetId = this.getAttribute('data-target');
+                    const body = document.getElementById(targetId);
+                    const toggle = this.querySelector('.collapse-toggle');
+                    
+                    if (body && toggle) {
+                        body.classList.toggle('collapsed');
+                        toggle.classList.toggle('collapsed');
+                    }
+                });
+            });
+
             // Handle password visibility toggles
             document.querySelectorAll('.toggle-visibility').forEach(function (button) {
                 button.addEventListener('click', function () {
@@ -1023,1009 +1132,1028 @@
         avatar_studio_retry_export($_GET['retry_export']);
     }
     
-
-    // Get sessions from database
-    $sessions = $wpdb->get_results("SELECT * FROM {$table_name} ORDER BY created_at DESC");
+    // Pagination setup
+    $per_page = 10;
+    $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+    $offset = ($current_page - 1) * $per_page;
+    
+    // Get total count
+    $total_sessions = $wpdb->get_var("SELECT COUNT(*) FROM {$table_name}");
+    $total_pages = ceil($total_sessions / $per_page);
+    
+    // Get sessions from database with pagination
+    $sessions = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM {$table_name} ORDER BY created_at DESC LIMIT %d OFFSET %d",
+        $per_page,
+        $offset
+    ));
     
     $google_connected = get_option('avatar_studio_google_access_token') ? true : false;
     ?>
     <style>
-    /* Main Wrapper */
-.avatar-sessions-wrapper {
-    max-width: 98%;
-    margin: 20px 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
-}
-
-/* Header */
-.avatar-sessions-header {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    color: white;
-    padding: 32px 40px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 20px rgba(56, 177, 197, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.avatar-sessions-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-    pointer-events: none;
-}
-
-.avatar-sessions-header h1 {
-    font-size: 32px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: relative;
-    z-index: 1;
-}
-
-.avatar-sessions-header p {
-    margin: 0;
-    font-size: 15px;
-    opacity: 0.95;
-    color: white;
-    position: relative;
-    z-index: 1;
-}
-
-/* Google Drive Card */
-.google-drive-card {
-    background: white;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 12px;
-    padding: 32px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-    transition: all 0.3s ease;
-}
-
-.google-drive-card:hover {
-    box-shadow: 0 8px 25px rgba(56, 177, 197, 0.15);
-    transform: translateY(-2px);
-}
-
-.drive-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    background-size: 100% 2px;
-    background-position: 0 100%;
-    background-repeat: no-repeat;
-}
-
-.drive-header h2 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Connected State */
-.drive-connected-state {
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.drive-status-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-
-.status-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.drive-status-header strong {
-    /* background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); */
-    -webkit-background-clip: text;
-    /* -webkit-text-fill-color: transparent; */
-    background-clip: text;
-    font-size: 16px;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.drive-connected-state p {
-    margin: 0;
-    color: #1e293b;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.drive-info-box {
-    margin-top: 16px;
-    display: flex;
-    align-items: start;
-    gap: 10px;
-}
-
-.drive-info-box svg {
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.drive-info-box p {
-    margin: 0;
-    color: #1e5dd1ff;
-    font-size: 13px;
-}
-
-/* Disconnected State */
-.drive-disconnected-state {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.drive-icon-wrapper {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
-    border: 3px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 50%;
-    width: 96px;
-    height: 96px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 24px;
-    box-shadow: 0 4px 20px rgba(56, 177, 197, 0.2);
-}
-
-.drive-disconnected-state h3 {
-    margin: 0 0 12px 0;
-    font-size: 20px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.drive-disconnected-state p {
-    margin: 0 0 28px 0;
-    color: #6b7280;
-    font-size: 15px;
-    max-width: 480px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.6;
-}
-
-/* Buttons */
-.drive-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4);
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.btn-primary:hover::before {
-    left: 100%;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5);
-    color: white;
-    text-decoration: none;
-}
-
-.btn-google {
-    background: linear-gradient(135deg, #4285f4 0%, #357ae8 100%);
-    border: none;
-    padding: 14px 28px;
-    font-size: 15px;
-    box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
-}
-
-.btn-google:hover {
-    background: linear-gradient(135deg, #357ae8 0%, #2a63c8 100%);
-    box-shadow: 0 6px 20px rgba(66, 133, 244, 0.5);
-}
-
-.btn-disconnect {
-    background: white;
-    color: #dc2626;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.btn-disconnect:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    text-decoration: none;
-}
-
-.drive-security-note {
-    margin: 24px 0 0 0;
-    color: #9ca3af;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-/* Sessions Section */
-.sessions-section {
-    background: white;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-}
-
-.sessions-header {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-    padding: 20px 28px;
-    position: relative;
-}
-
-.sessions-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-}
-
-.sessions-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Table */
-.sessions-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.sessions-table thead {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
-}
-
-.sessions-table th {
-    padding: 16px 20px;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 700;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%),
-        linear-gradient(90deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    background-size: 100% 100%, 100% 2px;
-    background-position: 0 0, 0 100%;
-    background-repeat: no-repeat;
-    white-space: nowrap;
-}
-
-.sessions-table tbody tr {
-    transition: all 0.3s ease;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.sessions-table tbody tr:hover {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
-    transform: scale(1.001);
-}
-
-.sessions-table tbody tr:last-child {
-    border-bottom: none;
-}
-
-.sessions-table td {
-    padding: 16px 20px;
-    color: #374151;
-    font-size: 14px;
-    vertical-align: middle;
-    text-align: center;
-}
-
-.sessions-table code {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-        linear-gradient(135deg, rgba(56, 177, 197, 0.4) 0%, rgba(218, 146, 44, 0.4) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    /* background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); */
-    -webkit-background-clip: text;
-    /* -webkit-text-fill-color: transparent; */
-    background-clip: text;
-    font-weight: 600;
-    font-family: 'Monaco', 'Courier New', monospace;
-    color: royalblue;
-}
-
-/* Copy Button Styles */
-.copy-id-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.copy-btn {
-    background: white;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 4px;
-    padding: 4px 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.copy-btn:hover {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-}
-
-.copy-btn:hover svg {
-    stroke: white;
-}
-
-.copy-btn.copied {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.copy-btn.copied svg {
-    stroke: white;
-}
-
-/* Status Badges */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.status-completed {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.status-pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-exported,
-.status-processed {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    /* background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); */
-    -webkit-background-clip: text;
-    /* -webkit-text-fill-color: transparent; */
-    background-clip: text;
-    color: green;
-}
-
-.status-failed {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.status-not-exported,
-.status-not-processed {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.status-unavailable {
-    background: #fef3c7;
-    color: #991b1b;
-}
-
-/* Action Button */
-.btn-export {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
-    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-}
-
-.btn-export:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
-    color: white;
-    text-decoration: none;
-}
-
-.btn-export.disabled {
-    background: #e5e7eb;
-    color: #9ca3af;
-    cursor: not-allowed;
-    opacity: 0.5;
-    pointer-events: none;
-    box-shadow: none;
-}
-
-.btn-user-details {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-left: 6px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 4px;
-    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-}
-
-.btn-user-details svg {
-    transition: transform 0.3s ease, stroke 0.3s ease;
-}
-
-.btn-user-details:hover {
-    background: linear-gradient(135deg, #2a8b9a 0%, #c17d23 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
-}
-
-.btn-user-details:hover svg {
-    transform: scale(1.1);
-}
-
-.btn-user-details:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(56, 177, 197, 0.3);
-}
-
-/* Modal Styles */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 999999;
-    animation: fadeIn 0.2s ease;
-}
-
-.modal-overlay.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal-content {
-    background: white;
-    border: 3px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 12px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(56, 177, 197, 0.3);
-    animation: slideUp 0.3s ease;
-    position: relative;
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    color: white;
-    padding: 24px 32px;
-    border-radius: 10px 10px 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-}
-
-.modal-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-    pointer-events: none;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #fff;
-    position: relative;
-    z-index: 1;
-}
-
-.modal-close {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    position: relative;
-    z-index: 1;
-}
-
-.modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
-}
-
-.modal-body {
-    padding: 32px;
-}
-
-.user-detail-row {
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(90deg, rgba(56, 177, 197, 0.2) 0%, rgba(218, 146, 44, 0.2) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    background-size: 100% 100%, 100% 2px;
-    background-position: 0 0, 0 100%;
-    background-repeat: no-repeat;
-}
-
-.user-detail-row:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.user-detail-label {
-    font-size: 12px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-
-.user-detail-value {
-    font-size: 15px;
-    color: #1f2937;
-    font-weight: 500;
-}
-
-.user-detail-value.empty {
-    color: #9ca3af;
-    font-style: italic;
-}
-
-.no-user-data {
-    text-align: center;
-    padding: 40px 20px;
-    color: #9ca3af;
-}
-
-.no-user-data svg {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.no-user-data p {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 500;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #9ca3af;
-}
-
-.empty-state-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.empty-state p {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 500;
-    color: #6b7280;
-}
-
-/* Pagination */
-.pagination-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
-    border-top: 2px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%),
-        linear-gradient(90deg, transparent 0%, #38b1c5 25%, #da922c 75%, transparent 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    background-size: 100% 100%, 100% 2px;
-    background-position: 0 0, 0 0;
-    background-repeat: no-repeat;
-    gap: 20px;
-}
-
-.pagination-info {
-    color: #6b7280;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.pagination-info strong {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
-}
-
-.pagination-links {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.page-btn {
-    padding: 8px 14px;
-    border-radius: 6px;
-    background: transparent;
-    color: #374151;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
-        linear-gradient(135deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-}
-
-.page-btn:hover {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(56, 177, 197, 0.3);
-}
-
-.page-current {
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: text, border-box;
-}
-
-/* Page Jump Section */
-.page-jump-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: transparent;
-    border-radius: 8px;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-}
-
-.page-jump-label {
-    font-size: 13px;
-    color: #6b7280;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.page-jump-input {
-    width: 60px;
-    padding: 6px 10px;
-    border: 2px solid #e5e7eb;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    text-align: center;
-    transition: all 0.2s ease;
-    background: white;
-}
-
-.page-jump-input:focus {
-    outline: none;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    box-shadow: 0 0 0 3px rgba(56, 177, 197, 0.1);
-}
-
-.page-jump-btn {
-    padding: 6px 14px;
-    border-radius: 6px;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    color: white;
-    border: none;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-}
-
-.page-jump-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .avatar-sessions-wrapper {
-        margin: 10px;
-    }
-
-    .avatar-sessions-header {
-        padding: 24px;
-    }
-
-    .avatar-sessions-header h1 {
-        font-size: 24px;
-    }
-
-    .google-drive-card {
-        padding: 24px;
-    }
-
-    .drive-actions {
-        flex-direction: column;
-    }
-
-    .drive-actions button,
-    .drive-actions a {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .sessions-section {
-        overflow-x: auto;
-    }
-
-    .sessions-table {
-        min-width: 1200px;
-    }
-
-    .modal-content {
-        width: 95%;
-        margin: 10px;
-    }
-
-    .modal-body {
-        padding: 24px;
-    }
-
+    /* Add these new styles for pagination */
     .pagination-wrapper {
-        flex-direction: column;
-        gap: 16px;
-        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
+        border-top: 2px solid transparent;
+        background-image: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%), linear-gradient(90deg, transparent 0%, #38b1c5 0%, #da922c 100%, transparent 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        gap: 20px;
+    }
+
+    .pagination-info {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .pagination-info strong {
+        color: #fff;
+        font-weight: 700;
     }
 
     .pagination-links {
-        width: 100%;
-        justify-content: center;
+        display: flex;
+        gap: 8px;
+        align-items: center;
         flex-wrap: wrap;
     }
 
+    .page-btn {
+        padding: 8px 14px;
+        border-radius: 6px;
+        background: #fff;
+        color: #374151;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        font-weight: 600;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .page-btn:hover {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.3);
+    }
+
+    .page-current {
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        background: transparent;
+        color: #fff;
+        border: 2px solid transparent;
+    }
+
     .page-jump-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: #fff;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+    }
+
+    .page-jump-label {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .page-jump-input {
+        width: 60px;
+        padding: 6px 10px;
+        border: 2px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .page-jump-input:focus {
+        outline: none;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        box-shadow: 0 0 0 3px rgba(56, 177, 197, 0.1);
+    }
+
+    .page-jump-btn {
+        padding: 6px 14px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        border: none;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+    }
+
+    .page-jump-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
+    }
+
+    /* Update responsive styles */
+    @media (max-width: 768px) {
+        .pagination-wrapper {
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .pagination-links {
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .page-jump-wrapper {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Rest of your existing CSS remains the same */
+    /* Main Wrapper */
+    .avatar-sessions-wrapper {
+        max-width: 98%;
+        margin: 20px 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
+    }
+
+    /* Header */
+    .avatar-sessions-header {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        padding: 32px 40px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px rgba(56, 177, 197, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-sessions-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+    }
+
+    .avatar-sessions-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .avatar-sessions-header p {
+        margin: 0;
+        font-size: 15px;
+        opacity: 0.95;
+        color: white;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Google Drive Card */
+    .google-drive-card {
+        background: white;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .google-drive-card:hover {
+        box-shadow: 0 8px 25px rgba(56, 177, 197, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .drive-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        background-size: 100% 2px;
+        background-position: 0 100%;
+        background-repeat: no-repeat;
+    }
+
+    .drive-header h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Connected State */
+    .drive-row {
+        display: flex;
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .drive-connected-state,
+    .drive-actions {
+        flex: 1;
+    }
+
+    .drive-actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    @media (max-width: 1024px) {
+        .drive-row {
+            flex-direction: column;
+        }
+
+        .drive-actions {
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+        }
+    }
+
+    .drive-connected-state {
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .drive-status-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .status-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .drive-status-header strong {
+        -webkit-background-clip: text;
+        background-clip: text;
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .drive-connected-state p {
+        margin: 0;
+        color: #1e293b;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .drive-info-box {
+        margin-top: 16px;
+        display: flex;
+        align-items: start;
+        gap: 10px;
+    }
+
+    .drive-info-box svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .drive-info-box p {
+        margin: 0;
+        color: #1e5dd1ff;
+        font-size: 13px;
+    }
+
+    /* Disconnected State */
+    .drive-disconnected-state {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .drive-icon-wrapper {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
+        border: 3px solid transparent;
+        background-image: 
+            linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 50%;
+        width: 96px;
+        height: 96px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        box-shadow: 0 4px 20px rgba(56, 177, 197, 0.2);
+    }
+
+    .drive-disconnected-state h3 {
+        margin: 0 0 12px 0;
+        font-size: 20px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .drive-disconnected-state p {
+        margin: 0 0 28px 0;
+        color: #6b7280;
+        font-size: 15px;
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    /* Buttons */
+    .drive-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4);
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
         width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-google {
+        background: linear-gradient(135deg, #4285f4 0%, #357ae8 100%);
+        border: none;
+        padding: 14px 28px;
+        font-size: 15px;
+        box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
+    }
+
+    .btn-google:hover {
+        background: linear-gradient(135deg, #357ae8 0%, #2a63c8 100%);
+        box-shadow: 0 6px 20px rgba(66, 133, 244, 0.5);
+    }
+
+    .btn-disconnect {
+        background: white;
+        color: #dc2626;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-disconnect:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        text-decoration: none;
+    }
+
+    .drive-security-note {
+        margin: 24px 0 0 0;
+        color: #9ca3af;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    /* Sessions Section */
+    .sessions-section {
+        background: white;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+    }
+
+    .sessions-header {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
+        padding: 20px 28px;
+        position: relative;
+    }
+
+    .sessions-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+    }
+
+    .sessions-header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Table */
+    .sessions-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .sessions-table thead {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
+    }
+
+    .sessions-table th {
+        padding: 16px 20px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid transparent;
+        background-image: 
+            linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%),
+            linear-gradient(90deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        background-size: 100% 100%, 100% 2px;
+        background-position: 0 0, 0 100%;
+        background-repeat: no-repeat;
+        white-space: nowrap;
+    }
+
+    .sessions-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .sessions-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
+        transform: scale(1.001);
+    }
+
+    .sessions-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .sessions-table td {
+        padding: 16px 20px;
+        color: #374151;
+        font-size: 14px;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .sessions-table code {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
+            linear-gradient(135deg, rgba(56, 177, 197, 0.4) 0%, rgba(218, 146, 44, 0.4) 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        -webkit-background-clip: text;
+        background-clip: text;
+        font-weight: 600;
+        font-family: 'Monaco', 'Courier New', monospace;
+        color: royalblue;
+    }
+
+    /* Copy Button Styles */
+    .copy-id-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .copy-btn {
+        background: white;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
     }
-}
+
+    .copy-btn:hover {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+    }
+
+    .copy-btn:hover svg {
+        stroke: white;
+    }
+
+    .copy-btn.copied {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .copy-btn.copied svg {
+        stroke: white;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-exported,
+    .status-processed {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: green;
+    }
+
+    .status-failed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-not-exported,
+    .status-not-processed {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .status-unavailable {
+        background: #fef3c7;
+        color: #991b1b;
+    }
+
+    /* Action Button */
+    .btn-export {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+    }
+
+    .btn-export:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-export.disabled {
+        background: #e5e7eb;
+        color: #9ca3af;
+        cursor: not-allowed;
+        opacity: 0.5;
+        pointer-events: none;
+        box-shadow: none;
+    }
+
+    .btn-user-details {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 38px;
+        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+    }
+
+    .btn-user-details svg {
+        transition: transform 0.3s ease, stroke 0.3s ease;
+    }
+
+    .btn-user-details:hover {
+        background: linear-gradient(135deg, #2a8b9a 0%, #c17d23 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
+    }
+
+    .btn-user-details:hover svg {
+        transform: scale(1.1);
+    }
+
+    .btn-user-details:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(56, 177, 197, 0.3);
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 999999;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background: white;
+        border: 3px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 12px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(56, 177, 197, 0.3);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 10px 10px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .modal-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #fff;
+        position: relative;
+        z-index: 1;
+    }
+
+    .modal-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+    }
+
+    .modal-body {
+        padding: 32px;
+    }
+
+    .user-detail-row {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(90deg, rgba(56, 177, 197, 0.2) 0%, rgba(218, 146, 44, 0.2) 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        background-size: 100% 100%, 100% 2px;
+        background-position: 0 0, 0 100%;
+        background-repeat: no-repeat;
+    }
+
+    .user-detail-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .user-detail-label {
+        font-size: 12px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .user-detail-value {
+        font-size: 15px;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .user-detail-value.empty {
+        color: #9ca3af;
+        font-style: italic;
+    }
+
+    .no-user-data {
+        text-align: center;
+        padding: 40px 20px;
+        color: #9ca3af;
+    }
+
+    .no-user-data svg {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .no-user-data p {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 500;
+        color: #6b7280;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .avatar-sessions-wrapper {
+            margin: 10px;
+        }
+
+        .avatar-sessions-header {
+            padding: 24px;
+        }
+
+        .avatar-sessions-header h1 {
+            font-size: 24px;
+        }
+
+        .google-drive-card {
+            padding: 24px;
+        }
+
+        .drive-actions {
+            flex-direction: column;
+        }
+
+        .drive-actions button,
+        .drive-actions a {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .sessions-section {
+            overflow-x: auto;
+        }
+
+        .sessions-table {
+            min-width: 1200px;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 10px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+    }
     </style>
 
     <div class="avatar-sessions-wrapper">
@@ -2059,45 +2187,47 @@
 
             <?php if ($google_connected): ?>
                 <!-- Connected State -->
-                <div class="drive-connected-state">
-                    <div class="drive-status-header">
-                        <div class="status-icon">
-                            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5 10l2.5 2.5L13 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                <div class="drive-row">
+                    <div class="drive-connected-state">
+                        <div class="drive-status-header">
+                            <div class="status-icon">
+                                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5 10l2.5 2.5L13 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <strong>Google Drive Connected</strong>
                         </div>
-                        <strong>Google Drive Connected</strong>
-                    </div>
-                    <p>Your account is connected and ready to export transcripts securely to your Google Drive.</p>
-                    
-                    <div class="drive-info-box">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="#0369a1" stroke-width="2"/>
-                            <path d="M12 16v-4M12 8h.01" stroke="#0369a1" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <p>Please note: Google Drive exports (transcripts and perception analysis) may take a short while to appear after a session ends.</p>
-                    </div>
-                </div>
-
-                <div class="drive-actions">
-                    <form method="post" action="" style="margin: 0;">
-                        <?php wp_nonce_field('avatar_studio_export_transcripts'); ?>
-                        <button type="submit" name="export_transcripts" class="btn-primary">
+                        <p>Your account is connected and ready to export transcripts securely to your Google Drive.</p>
+                        
+                        <div class="drive-info-box">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="#0369a1" stroke-width="2"/>
+                                <path d="M12 16v-4M12 8h.01" stroke="#0369a1" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                            Export All Transcripts
-                        </button>
-                    </form>
+                            <p>Please note: Google Drive exports (transcripts and perception analysis) may take a short while to appear after a session ends.</p>
+                        </div>
+                    </div>
 
-                    <a href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=avatar_studio_disconnect_google'), 'avatar_studio_disconnect_google'); ?>" 
-                    class="btn-disconnect" 
-                    onclick="return confirm('Are you sure you want to disconnect Google Drive? You will need to reconnect to export transcripts again.');">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Disconnect Drive
-                    </a>
+                    <div class="drive-actions">
+                        <form method="post" action="" style="margin: 0;">
+                            <?php wp_nonce_field('avatar_studio_export_transcripts'); ?>
+                            <button type="submit" name="export_transcripts" class="btn-primary">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Export All Transcripts
+                            </button>
+                        </form>
+
+                        <a href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=avatar_studio_disconnect_google'), 'avatar_studio_disconnect_google'); ?>" 
+                        class="btn-disconnect" 
+                        onclick="return confirm('Are you sure you want to disconnect Google Drive? You will need to reconnect to export transcripts again.');">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Disconnect Drive
+                        </a>
+                    </div>
                 </div>
 
             <?php else: ?>
@@ -2221,7 +2351,12 @@
                                 <!-- Actions -->
                                 <td>
                                     <?php 
-                                    $btn_text = ($export_status === 'failed') ? 'Retry' : 'Export';
+                                    $btn_text = ($export_status === 'failed') ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                        <path d="M3 3v5h5"></path>
+                                    </svg>
+                                    ' : 'Export';
                                     
                                     // Check if one hour has passed
                                     $created_timestamp = strtotime($session->created_at);
@@ -2252,12 +2387,11 @@
                                     ));
                                     ?>
                                     <button class="btn-user-details" onclick="showUserDetails(<?php echo esc_attr($session->id); ?>)">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="12" cy="7" r="4"/>
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
-                                    User Details
                                     </button>
                                     
                                     <!-- Hidden user data for JavaScript -->
@@ -2269,6 +2403,32 @@
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
+                <!-- Pagination -->
+                <div class="pagination-wrapper">
+                    <div class="pagination-info">
+                        Showing <strong><?php echo ($current_page - 1) * $per_page + 1; ?>-<?php echo min($current_page * $per_page, $total_sessions); ?></strong> of <strong><?php echo $total_sessions; ?></strong> records
+                    </div>
+                    
+                    <div class="pagination-links">
+                        <?php if ($current_page > 1): ?>
+                            <a href="<?php echo add_query_arg('paged', 1); ?>" class="page-btn">« First</a>
+                            <a href="<?php echo add_query_arg('paged', $current_page - 1); ?>" class="page-btn">‹ Previous</a>
+                        <?php endif; ?>
+
+                        <span class="page-current">Page <?php echo $current_page; ?> of <?php echo $total_pages; ?></span>
+
+                        <?php if ($current_page < $total_pages): ?>
+                            <a href="<?php echo add_query_arg('paged', $current_page + 1); ?>" class="page-btn">Next ›</a>
+                            <a href="<?php echo add_query_arg('paged', $total_pages); ?>" class="page-btn">Last »</a>
+                        <?php endif; ?>
+                    </div>
+                    <div class="page-jump-wrapper">
+                            <span class="page-jump-label">Go to page:</span>
+                            <input type="number" class="page-jump-input" id="pageJumpInput" min="1" max="<?php echo $total_pages; ?>" value="<?php echo $current_page; ?>">
+                            <button class="page-jump-btn" onclick="jumpToPage()">Go</button>
+                    </div>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -2379,6 +2539,27 @@
         const modal = document.getElementById('userDetailsModal');
         modal.classList.remove('active');
     }
+
+    function jumpToPage() {
+        const pageInput = document.getElementById('pageJumpInput');
+        const page = parseInt(pageInput.value);
+        const totalPages = <?php echo $total_pages; ?>;
+        
+        if (page >= 1 && page <= totalPages) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('paged', page);
+            window.location.href = url.toString();
+        } else {
+            alert('Please enter a valid page number between 1 and ' + totalPages);
+        }
+    }
+
+    // Handle Enter key in page jump input
+    document.getElementById('pageJumpInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            jumpToPage();
+        }
+    });
 
     // Close modal when clicking outside
     document.getElementById('userDetailsModal').addEventListener('click', function(e) {
@@ -4050,6 +4231,20 @@
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_user_info';
 
+    // Handle delete action
+    if (isset($_POST['delete_user_id']) && isset($_POST['delete_user_nonce'])) {
+        if (wp_verify_nonce($_POST['delete_user_nonce'], 'delete_user_action')) {
+            $user_id = intval($_POST['delete_user_id']);
+            $deleted = $wpdb->delete($table_name, ['id' => $user_id], ['%d']);
+            
+            if ($deleted) {
+                echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> User deleted successfully.</p></div>';
+            } else {
+                echo '<div class="notice notice-error is-dismissible"><p><strong>Error!</strong> Failed to delete user.</p></div>';
+            }
+        }
+    }
+
     $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
     $per_page = 10;
     $offset = ($paged - 1) * $per_page;
@@ -4075,7 +4270,6 @@
     $total_items = $wpdb->get_var("SELECT COUNT(*) FROM {$table_name} {$where_sql}");
     $total_pages = ceil($total_items / $per_page);
 
-    // FIX: Properly sanitize ORDER BY using allowed columns
     $data_query = $wpdb->prepare(
         "SELECT * FROM {$table_name} {$where_sql} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
         $per_page,
@@ -4083,10 +4277,9 @@
     );
     $results = $wpdb->get_results($data_query);
 
-    // FIX: Update filter URL function to preserve all parameters
     function avatar_filter_url($params = []) {
         $base_params = array_filter($_GET, function($key) {
-            return $key !== 'paged'; // Remove paged to avoid conflicts
+            return $key !== 'paged';
         }, ARRAY_FILTER_USE_KEY);
         
         $query = array_merge($base_params, $params);
@@ -4459,6 +4652,34 @@
             box-shadow: 0 4px 12px rgba(56, 177, 197, 0.2);
         }
 
+        .button-danger {
+            background: #fef3c7;
+            color: #991b1b;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .button-danger:hover {
+            background: #991b1b;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .button-danger:active {
+            transform: translateY(0);
+        }
+
         #user-search-btn {
             background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
             border: none;
@@ -4503,7 +4724,7 @@
 
         .avatar-table th {
             color: #374151;
-            text-align: left;
+            text-align: center;
             padding: 16px 20px;
             font-weight: 700;
             font-size: 13px;
@@ -4559,6 +4780,7 @@
             padding: 16px 20px;
             color: #1f2937;
             vertical-align: middle;
+            text-align: center;
         }
 
         .avatar-table td:first-child {
@@ -4608,9 +4830,6 @@
         }
 
         .pagination-info strong {
-            /* background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); */
-            /* -webkit-background-clip: text; */
-            /* -webkit-text-fill-color: transparent; */
             background-clip: text;
             font-weight: 900;
             color: #fff;
@@ -4662,8 +4881,6 @@
             background-clip: padding-box, border-box;
             background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
             -webkit-background-clip: text;
-            /* -webkit-text-fill-color: transparent; */
-            /* background-clip: text; */
             color: #fff;
         }
 
@@ -4767,6 +4984,154 @@
             color: white;
         }
 
+        /* Delete Modal Styles */
+        .delete-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .delete-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            background-image: 
+                linear-gradient(white, white),
+                linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            animation: slideUp 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .delete-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .delete-modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .delete-modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .delete-modal-body {
+            margin-bottom: 24px;
+        }
+
+        .delete-modal-text {
+            color: #6b7280;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0 0 16px 0;
+        }
+
+        .delete-user-details {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
+            padding: 16px;
+            border-radius: 8px;
+            border: 2px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .delete-user-details p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .delete-user-details strong {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .delete-modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn-cancel {
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            color: #374151;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            transform: translateY(-1px);
+        }
+
+        .modal-btn-delete {
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .modal-btn-delete:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .avatar-table {
@@ -4837,6 +5202,10 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .delete-modal-content {
+                margin: 20px;
+            }
         }
 
         /* Loading State */
@@ -4884,13 +5253,63 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* Actions column */
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
     </style>
 
     <script>
+        let deleteUserId = null;
+        let deleteUserName = '';
+        let deleteUserEmail = '';
+
+        function showDeleteModal(userId, userName, userEmail) {
+            deleteUserId = userId;
+            deleteUserName = userName;
+            deleteUserEmail = userEmail;
+            
+            document.getElementById('delete-user-name').textContent = userName;
+            document.getElementById('delete-user-email').textContent = userEmail;
+            document.getElementById('delete-user-id').textContent = userId;
+            document.getElementById('delete-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            deleteUserId = null;
+            deleteUserName = '';
+            deleteUserEmail = '';
+        }
+
+        function confirmDelete() {
+            if (deleteUserId) {
+                document.getElementById('delete-user-id-input').value = deleteUserId;
+                document.getElementById('delete-user-form').submit();
+            }
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDeleteModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'delete-modal') {
+                closeDeleteModal();
+            }
+        });
+
         function copyConversationId(id, button) {
-            // Copy to clipboard
             navigator.clipboard.writeText(id).then(function() {
-                // Change button text temporarily
                 const originalText = button.innerHTML;
                 button.innerHTML = '✓ Copied';
                 button.classList.add('copied');
@@ -4918,7 +5337,6 @@
             }
         }
 
-        // Allow Enter key to jump to page
         document.addEventListener('DOMContentLoaded', function() {
             const pageInput = document.getElementById('page-jump-input');
             if (pageInput) {
@@ -4960,15 +5378,13 @@
             </div>
         </div>
 
-        <!-- Search Section - FIXED -->
+        <!-- Search Section -->
         <div class="avatar-search-section">
             <form method="get" action="" class="search-form-wrapper">
-                <!-- Preserve the WordPress admin page parameter -->
                 <?php if (isset($_GET['page'])) : ?>
                     <input type="hidden" name="page" value="<?php echo esc_attr($_GET['page']); ?>">
                 <?php endif; ?>
                 
-                <!-- Preserve orderby and order parameters -->
                 <?php if (isset($_GET['orderby'])) : ?>
                     <input type="hidden" name="orderby" value="<?php echo esc_attr($_GET['orderby']); ?>">
                 <?php endif; ?>
@@ -5051,13 +5467,14 @@
                                 <?php endif; ?>
                             </a>
                         </th>
+                        <th style="width: 100px; text-align: center;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($results) : ?>
                         <?php foreach ($results as $row) : ?>
                             <tr>
-                                <td><strong><?php echo esc_html($row->id); ?></strong></td>
+                                <td><strong>AS<?php echo esc_html($row->id); ?></strong></td>
                                 <td><?php echo esc_html($row->full_name); ?></td>
                                 <td><?php echo esc_html($row->email); ?></td>
                                 <td><?php echo esc_html($row->mobile); ?></td>
@@ -5075,16 +5492,31 @@
                                             class="copy-btn" 
                                             onclick="copyConversationId('<?php echo esc_js($row->conversation_id); ?>', this)"
                                             title="Copy to clipboard">
-                                            📋 Copy
+                                            📋
                                         </button>
                                     </div>
                                 </td>
                                 <td><?php echo esc_html($row->created_at); ?></td>
+                                <td style="text-align: center;">
+                                    <button 
+                                        class="button-danger" 
+                                        onclick="showDeleteModal(<?php echo esc_js($row->id); ?>, '<?php echo esc_js($row->full_name); ?>', '<?php echo esc_js($row->email); ?>')"
+                                        title="Delete user">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M3 6h18"></path>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                    </button>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="7" class="table-empty">
+                            <td colspan="8" class="table-empty">
                                 <?php echo !empty($search) ? 'No users found matching your search.' : 'No user records available yet.'; ?>
                             </td>
                         </tr>
@@ -5113,7 +5545,6 @@
                         <?php endif; ?>
                     </div>
 
-                    <!-- Page Jump -->
                     <div class="page-jump-wrapper">
                         <span class="page-jump-label">Go to page:</span>
                         <input 
@@ -5131,8 +5562,45 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="delete-modal">
+        <div class="delete-modal-content">
+            <div class="delete-modal-header">
+                <div class="delete-modal-icon">⚠️</div>
+                <h2 class="delete-modal-title">Confirm Deletion</h2>
+            </div>
+            
+            <div class="delete-modal-body">
+                <p class="delete-modal-text">
+                    Are you sure you want to permanently delete this user? This action cannot be undone.
+                </p>
+                
+                <div class="delete-user-details">
+                    <p><strong>Name:</strong> <span id="delete-user-name"></span></p>
+                    <p><strong>Email:</strong> <span id="delete-user-email"></span></p>
+                    <p><strong>User ID:</strong> <span id="delete-user-id"></span></p>
+                </div>
+            </div>
+            
+            <div class="delete-modal-footer">
+                <button type="button" class="modal-btn-cancel" onclick="closeDeleteModal()">
+                    Cancel
+                </button>
+                <button type="button" class="modal-btn-delete" onclick="confirmDelete()">
+                    Delete User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden form for delete submission -->
+    <form id="delete-user-form" method="post" style="display: none;">
+        <input type="hidden" name="delete_user_id" id="delete-user-id-input">
+        <input type="hidden" name="delete_user_nonce" value="<?php echo wp_create_nonce('delete_user_action'); ?>">
+    </form>
     <?php
-    }
+}
 
 
 

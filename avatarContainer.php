@@ -526,7 +526,7 @@ global $wp_embed;
 <?php } ?>
 
 
-<div class="overlayQuestion-container" id="overlayQuestion">
+<!--    
     <div class="overlayQuestion-content">
         <div class="overlayQuestion-header">
             <h3 class="overlayQuestion-title">Ask a question</h3>
@@ -542,4 +542,4 @@ global $wp_embed;
         </div>
 
     </div>
-</div>
+</div> -->

@@ -122,14 +122,14 @@ class avatarManager
                 }
 
                 .button:hover, .button-primary:hover, #add-avatar-btn:hover {
-                    background: linear-gradient(135deg, #38b1c5 20%, #da922c 8  0%);
+                    background: linear-gradient(135deg, #38b1c5 20%, #da922c 80%);
                     transform: translateY(-2px);
                     box-shadow: 0 4px 16px rgba(56, 177, 197, 0.3);
                     color: #ffffff;
                 }
 
                 .button:before {
-                    content: '←';
+                    content: '';
                     font-weight: bold;
                 }
 
@@ -218,7 +218,7 @@ class avatarManager
                 }
 
                 .modal-subtitle {
-                    color: #6b7280;
+                    color: #333;
                     font-size: 15px;
                     margin: 0 0 40px 0;
                 }
@@ -274,7 +274,7 @@ class avatarManager
                     background: #f3f4f6;
                     border: none;
                     border-radius: 8px;
-                    color: #6b7280;
+                    color: #333;
                     font-size: 14px;
                     font-weight: 500;
                     cursor: pointer;
@@ -286,85 +286,449 @@ class avatarManager
                     color: #374151;
                 }
 
-                /* Table Styling */
-                .widefat {
-                    border: 1px solid #e5e7eb;
+                /* Enhanced Expandable Table Styling */
+                .avatar-table-wrapper {
+                    background: white;
+                    border: 2px solid transparent;
+                    background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    background-origin: border-box;
+                    background-clip: padding-box, border-box;
                     border-radius: 12px;
-                    overflow: hidden;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-                    width: 100%;
-                    display: block;
-                    overflow-x: auto;
-                    background: #ffffff;
+                    padding: 0;
+                    margin: 20px 0;
+                    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+                    transition: all 0.3s ease;
                 }
 
-                .widefat table {
+                .avatar-table {
                     width: 100%;
-                    min-width: 1200px;
                     border-collapse: collapse;
-                    background: #ffffff;
                 }
 
-                .widefat thead th {
-                    background: #f9fafb;
+                .avatar-table thead th {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
                     color: #374151;
                     font-weight: 600;
-                    padding: 14px 16px;
+                    padding: 16px 12px;
                     text-transform: uppercase;
                     font-size: 11px;
                     letter-spacing: 0.8px;
                     border-bottom: 2px solid #e5e7eb;
+                    text-align: center;
                     white-space: nowrap;
-                    text-align: left;
-                    min-width: 200px;
                 }
 
-                .widefat tbody tr {
-                    background: #ffffff;
-                    transition: background-color 0.15s ease;
-                    border-bottom: 1px solid #f3f4f6;
+                .avatar-table tbody tr.main-row {
+                    /* background: #ffffff; */
+                    transition: all 0.2s ease;
+                    /* border-bottom: 1px solid #f3f4f6; */
+                    cursor: pointer;
                 }
 
-                .widefat tbody tr:hover {
-                    background: #f9fafb;
+                .avatar-table tbody tr.main-row:hover {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
                 }
 
-                .widefat tbody td {
-                    padding: 14px 16px;
+                .avatar-table tbody tr.main-row.expanded {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
+                    border-bottom: none;
+                }
+
+                .avatar-table tbody td {
+                    padding: 16px 12px;
                     vertical-align: middle;
                     color: #1f2937;
                     font-size: 14px;
-                    line-height: 1.5;
+                    text-align: center;
                 }
 
-                /* Column Widths */
-                th#id { width: 60px; min-width: 60px; }
-                th#vendor { width: 90px; min-width: 90px; }
-                th#time_limit { width: 90px; min-width: 90px; }
-                th#preview_image { width: 120px; min-width: 100px; }
-                th#avatar_name { width: 150px; min-width: 120px; }
-                th#title { width: 200px; min-width: 150px; }
-                th#shortcode { width: 280px; min-width: 250px; }
-                th#actions { width: 200px; min-width: 180px; }
+                /* Expand Icon */
+                .expand-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 6px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    transition: all 0.3s ease;
+                }
 
-                /* Footer Fix */
-                #wpfooter {
-                    position: relative;
+                .expand-icon i {
+                    transition: transform 0.3s ease;
+                    font-size: 16px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    -webkit-text-fill-color: #ffffff;
+                }
+
+                .main-row.expanded .expand-icon {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                }
+
+                .main-row.expanded .expand-icon i {
+                    transform: rotate(180deg);
+                    -webkit-text-fill-color: #ffffff;
+                }
+
+                /* Preview Image */
+                .avatar-preview-img {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    border: 2px solid #e5e7eb;
+                    transition: all 0.3s ease;
+                }
+
+                .avatar-preview-img:hover {
+                    border-color: #38b1c5;
+                    transform: scale(1.05);
+                }
+
+                /* Vendor Badge */
+                .vendor-badge {
+                    display: inline-block;
+                    padding: 6px 14px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .vendor-badge.tavus {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(56, 177, 197, 0.25) 100%);
+                    color: #38b1c5;
+                }
+
+                .vendor-badge.heygen {
+                    background: linear-gradient(135deg, rgba(218, 146, 44, 0.15) 0%, rgba(218, 146, 44, 0.25) 100%);
+                    color: #da922c;
+                }
+
+                /* Expanded Details Row */
+                .details-row {
+                    display: none;
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.02) 0%, rgba(218, 146, 44, 0.02) 100%);
+                    border-bottom: 1px solid #e5e7eb;
+                }
+
+                .details-row.visible {
+                    display: table-row;
+                }
+
+                .details-content {
+                    padding: 24px 16px;
+                    animation: expandDown 0.3s ease;
+                }
+
+                @keyframes expandDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .details-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }
+
+                .detail-item {
+                    background: #ffffff;
+                    padding: 16px;
+                    border-radius: 8px;
+                    border: 1px solid #c6c6c6;
+                    transition: all 0.2s ease;
+                }
+
+                .detail-item:hover {
+                    border-color: #c9c9c9;
+                    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.1);
+                }
+
+                .detail-item label {
+                    display: block;
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: #333;
+                    margin-bottom: 6px;
+                }
+
+                .detail-item .value {
+                    font-size: 14px;
+                    color: #1f2937;
+                    word-break: break-word;
+                }
+
+                .shortcode-box {
+                    background: #f9fafb;
+                    padding: 12px;
+                    border-radius: 6px;
+                    font-family: monospace;
+                    font-size: 13px;
+                    color: #374151;
+                    border: 1px dashed #d1d5db;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 8px;
+                }
+
+                .shortcode-box code {
+                    flex: 1;
+                    background: transparent;
+                    padding: 0;
+                }
+
+                .copy-shortcode-btn {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    border: none;
+                    color: white;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 11px;
+                    font-weight: 600;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+
+                .copy-shortcode-btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+                }
+
+                /* Action Buttons */
+                .action-buttons {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+
+                .action-btn {
+                    padding: 8px 14px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    border: 1px solid;
+                }
+
+                .action-btn.edit {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
+                    color: #38b1c5;
+                    border-color: rgba(56, 177, 197, 0.3);
+                }
+
+                .action-btn.edit:hover {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    color: white;
+                    border-color: transparent;
+                    transform: translateY(-2px);
+                }
+
+                .action-btn.copy {
+                    background: rgba(59, 130, 246, 0.1);
+                    color: #3b82f6;
+                    border-color: rgba(59, 130, 246, 0.3);
+                }
+
+                .action-btn.copy:hover {
+                    background: #3b82f6;
+                    color: white;
+                    border-color: transparent;
+                    transform: translateY(-2px);
+                }
+
+                .action-btn.delete {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #ef4444;
+                    border-color: rgba(239, 68, 68, 0.3);
+                }
+
+                .action-btn.delete:hover {
+                    background: #ef4444;
+                    color: white;
+                    border-color: transparent;
+                    transform: translateY(-2px);
+                }
+
+                /* ID Badge */
+                .id-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    color: white;
+                    font-weight: 600;
+                    font-size: 13px;
+                }
+
+                /* Responsive Design */
+                @media screen and (max-width: 1200px) {
+                    .details-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
                 }
 
                 @media screen and (max-width: 782px) {
                     .wrap {
                         margin: 10px 10px 10px 0;
                     }
+                    
                     .avatar-studio-header {
                         padding: 20px;
                     }
+                    
+                    .avatar-studio-header h1 {
+                        font-size: 24px;
+                    }
+                    
                     .avatar-studio-content {
                         padding: 20px;
                         margin: 0 10px;
                     }
+                    
+                    .details-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .avatar-table thead th {
+                        padding: 12px 8px;
+                        font-size: 10px;
+                    }
+                    
+                    .avatar-table tbody td {
+                        padding: 12px 8px;
+                        font-size: 13px;
+                    }
+                    
+                    .avatar-preview-img {
+                        width: 50px;
+                        height: 50px;
+                    }
+                    
+                    .action-buttons {
+                        flex-direction: column;
+                    }
+                    
+                    .action-btn {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                    
+                    .vendor-options {
+                        grid-template-columns: 1fr;
+                    }
+                }
+
+                @media screen and (max-width: 600px) {
+                    .avatar-table thead th:nth-child(3),
+                    .avatar-table tbody td:nth-child(3) {
+                        display: none;
+                    }
+                    
+                    .id-badge {
+                        width: 28px;
+                        height: 28px;
+                        font-size: 12px;
+                    }
+                }
+
+                /* Footer Fix */
+                #wpfooter {
+                    position: relative;
+                }
+
+                /* Empty State */
+                .empty-state {
+                    text-align: center;
+                    padding: 60px 20px;
+                    color: #333;
+                }
+
+                .empty-state i {
+                    font-size: 64px;
+                    margin-bottom: 20px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .empty-state h3 {
+                    font-size: 20px;
+                    margin: 0 0 10px 0;
+                    color: #374151;
+                }
+
+                .empty-state p {
+                    font-size: 14px;
+                    margin: 0;
                 }
             </style>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                // Toggle expand/collapse on row click
+                $('.avatar-table').on('click', '.main-row', function(e) {
+                    // Don't toggle if clicking on action buttons
+                    if ($(e.target).closest('.action-buttons').length > 0) {
+                        return;
+                    }
+                    
+                    var $row = $(this);
+                    var $detailsRow = $row.next('.details-row');
+                    
+                    // Toggle current row
+                    $row.toggleClass('expanded');
+                    $detailsRow.toggleClass('visible');
+                    
+                    // Optional: Close other rows
+                    // $('.main-row').not($row).removeClass('expanded');
+                    // $('.details-row').not($detailsRow).removeClass('visible');
+                });
+                
+                // Copy shortcode functionality
+                $('.avatar-table').on('click', '.copy-shortcode-btn', function(e) {
+                    e.stopPropagation();
+                    var $btn = $(this);
+                    var shortcode = $btn.data('shortcode');
+                    
+                    // Create temporary input
+                    var $temp = $('<input>');
+                    $('body').append($temp);
+                    $temp.val(shortcode).select();
+                    document.execCommand('copy');
+                    $temp.remove();
+                    
+                    // Visual feedback
+                    var originalText = $btn.text();
+                    $btn.text('Copied!');
+                    setTimeout(function() {
+                        $btn.text(originalText);
+                    }, 2000);
+                });
+            });
+            </script>
             <?php
         }
     }
@@ -412,7 +776,6 @@ class avatarManager
                         <div class="vendor-icon">
                         <img style="width: 100px" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio(v1.0.3)/assets/images/tavus_logo.png" alt="Tavus Logo">
                         </div>
-
                         <strong>Tavus</strong>
                     </a>
                     
@@ -447,20 +810,163 @@ class avatarManager
         </script>
         <?php
 
-        // Avatar Table
-        require_once 'avatar-table.php';
-        $table = new Avatar_Studio_Avatars_Table();
-        $table->prepare_items();
+        // Get avatars from database
+        $avatars = $wpdb->get_results("
+            SELECT * FROM {$wpdb->prefix}avatar_studio_avatars 
+            ORDER BY id DESC
+        ");
 
-        echo '<div class="table-responsive-wrapper">';
-        echo '<form method="get">';
-        echo '<input type="hidden" name="page" value="' . esc_attr($_REQUEST['page']) . '" />';
-        $table->display();
-        echo '</form>';
-        echo '</div>';
+        // Enhanced Avatar Table
+        echo '<div class="avatar-table-wrapper">';
+        
+        if (empty($avatars)) {
+            echo '<div class="empty-state">';
+            echo '<i class="bi bi-robot"></i>';
+            echo '<h3>No Avatars Yet</h3>';
+            echo '<p>Create your first avatar to get started!</p>';
+            echo '</div>';
+        } else {
+            echo '<table class="avatar-table">';
+            echo '<thead>';
+            echo '<tr>';
+            echo '<th style="width: 60px;">ID</th>';
+            echo '<th style="width: 100px;">Preview</th>';
+            echo '<th style="width: 100px;">Vendor</th>';
+            echo '<th style="width: 180px;">Avatar/Replica ID</th>';
+            echo '<th style="width: 180px;">Knowledge/Persona ID</th>';
+            echo '<th style="width: auto;">Actions</th>';
+            echo '<th style="width: 50px;">See Full Data</th>'; // Expand icon
+            echo '</tr>';
+            echo '</thead>';
+            echo '<tbody>';
+            
+            foreach ($avatars as $avatar) {
+                $shortcode = '[avatar_studio id="' . $avatar->id . '"]';
+                $edit_url = admin_url('admin.php?page=avatar_studio-edit-avatar&id=' . $avatar->id);
+                $delete_url = wp_nonce_url(admin_url('admin-post.php?action=delete_avatar&id=' . $avatar->id), 'delete_avatar_' . $avatar->id);
+                $copy_url = wp_nonce_url(admin_url('admin-post.php?action=copy_avatar&id=' . $avatar->id), 'copy_avatar_' . $avatar->id);
+                
+                // Main Row
+                echo '<tr class="main-row" data-id="' . $avatar->id . '">';
+                
+                // ID
+                echo '<td><span class="id-badge">' . $avatar->id . '</span></td>';
+                
+                // Preview Image
+                echo '<td>';
+                if (!empty($avatar->preview_image)) {
+                    echo '<img src="' . esc_url($avatar->preview_image) . '" alt="Preview" class="avatar-preview-img" />';
+                } else {
+                    echo '<div style="width:60px;height:60px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-person-circle" style="font-size:32px;color:#d1d5db;"></i></div>';
+                }
+                echo '</td>';
+                
+                // Vendor Badge
+                echo '<td>';
+                echo '<span class="vendor-badge ' . strtolower($avatar->vendor) . '">' . esc_html(ucfirst($avatar->vendor)) . '</span>';
+                echo '</td>';
+                
+                // Avatar/Replica ID
+                echo '<td>';
+                echo '<span style="font-family:monospace;font-size:12px;color:#333;">' . esc_html(substr($avatar->avatar_id, 0, 30)) . (strlen($avatar->avatar_id) > 30 ? '...' : '') . '</span>';
+                echo '</td>';
+                
+                // Knowledge/Persona ID
+                echo '<td>';
+                if (!empty($avatar->knowledge_id)) {
+                    echo '<span style="font-family:monospace;font-size:12px;color:#333;">' . esc_html(substr($avatar->knowledge_id, 0, 30)) . (strlen($avatar->knowledge_id) > 30 ? '...' : '') . '</span>';
+                } else {
+                    echo '<span style="color:#d1d5db;">—</span>';
+                }
+                echo '</td>';
+                
+                // Actions
+                echo '<td>';
+                echo '<div class="action-buttons">';
+                echo '<a href="' . $edit_url . '" class="action-btn edit"><i class="bi bi-pencil-square"></i></a>';
+                echo '<a href="' . $copy_url . '" class="action-btn copy" onclick="return confirm(\'Duplicate this avatar?\');"><i class="bi bi-files"></i></a>';
+                echo '<a href="' . $delete_url . '" class="action-btn delete" onclick="return confirm(\'Are you sure you want to delete this avatar?\');"><i class="bi bi-trash"></i></a>';
+                echo '</div>';
+                echo '</td>';
 
-        echo '</div>';
-        echo '</div>';
+                // Expand Icon
+                echo '<td>';
+                echo '<span class="expand-icon"><i class="bi bi-chevron-down"></i></span>';
+                echo '</td>';
+                
+                echo '</tr>';
+                
+                // Details Row (Hidden by default)
+                echo '<tr class="details-row">';
+                echo '<td colspan="7">';
+                echo '<div class="details-content">';
+                
+                echo '<div class="details-grid">';
+                
+                // Title
+                echo '<div class="detail-item">';
+                echo '<label>Title</label>';
+                echo '<div class="value">' . esc_html($avatar->title) . '</div>';
+                echo '</div>';
+                
+                // Avatar Name
+                echo '<div class="detail-item">';
+                echo '<label>Avatar Name</label>';
+                echo '<div class="value">' . (!empty($avatar->avatar_name) ? esc_html($avatar->avatar_name) : '<span style="color:#d1d5db;">Not set</span>') . '</div>';
+                echo '</div>';
+                
+                // Time Limit
+                echo '<div class="detail-item">';
+                echo '<label>Time Limit</label>';
+                echo '<div class="value">' . esc_html($avatar->time_limit) . ' minutes</div>';
+                echo '</div>';
+                
+                // Description
+                if (!empty($avatar->description)) {
+                    echo '<div class="detail-item" style="grid-column: span 2;">';
+                    echo '<label>Description</label>';
+                    echo '<div class="value">' . esc_html($avatar->description) . '</div>';
+                    echo '</div>';
+                }
+                
+                // Full Avatar ID
+                echo '<div class="detail-item">';
+                echo '<label>Avatar/Replica ID</label>';
+                echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->avatar_id) . '</div>';
+                echo '</div>';
+                
+                // Full Knowledge ID
+                if (!empty($avatar->knowledge_id)) {
+                    echo '<div class="detail-item">';
+                    echo '<label>Knowledge/Persona ID</label>';
+                    echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->knowledge_id) . '</div>';
+                    echo '</div>';
+                }
+
+                // Shortcode Section
+                echo '<div class="detail-item">';
+                echo '<label>Shortcode</label>';
+                echo '<div class="shortcode-box">';
+                echo '<code>' . esc_html($shortcode) . '</code>';
+                echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($shortcode) . '">Copy</button>';
+                echo '</div>';
+                echo '</div>';
+                
+                echo '</div>'; // End details-grid
+                
+                echo '</div>'; // End details-content
+                echo '</td>';
+                echo '</tr>';
+            }
+            
+            echo '</tbody>';
+            echo '</table>';
+        }
+        
+        echo '</div>'; // End avatar-table-wrapper
+
+        echo '</div>'; // End avatar-studio-content
+        echo '</div>'; // End wrap
     }
 
     function avatar_studio_avatars_add_screen_options()
