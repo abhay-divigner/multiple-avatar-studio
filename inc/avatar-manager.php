@@ -64,8 +64,9 @@ class avatarManager
                 /* Main Container Styling */
                 .wrap {
                     background: #f8f9fa;
-                    padding: 0 !important;
-                    margin: 20px 20px 20px 0;
+                    max-width: 1400px;
+                    margin: 20px auto;
+                    padding: 0 20px;
                 }
 
                 /* Header Section */
@@ -129,7 +130,7 @@ class avatarManager
                 }
 
                 .button:before {
-                    content: '';
+                    /* content: ''; */
                     font-weight: bold;
                 }
 
@@ -420,7 +421,7 @@ class avatarManager
                 }
 
                 .details-content {
-                    padding: 24px 16px;
+                    padding: 16px;
                     animation: expandDown 0.3s ease;
                 }
 
@@ -473,8 +474,8 @@ class avatarManager
 
                 .shortcode-box {
                     background: #f9fafb;
-                    padding: 12px;
-                    border-radius: 6px;
+                    padding: 4px;
+                    border-radius: 4px;
                     font-family: monospace;
                     font-size: 13px;
                     color: #374151;
@@ -592,7 +593,7 @@ class avatarManager
 
                 @media screen and (max-width: 782px) {
                     .wrap {
-                        margin: 10px 10px 10px 0;
+                        margin: 10px;
                     }
                     
                     .avatar-studio-header {
@@ -662,7 +663,7 @@ class avatarManager
                 /* Empty State */
                 .empty-state {
                     text-align: center;
-                    padding: 60px 20px;
+                    padding: 40px;
                     color: #333;
                 }
 
@@ -774,14 +775,14 @@ class avatarManager
                 <div class="vendor-options">
                     <a href="<?php echo admin_url('admin.php?page=avatar_studio-add-avatar&vendor=tavus'); ?>" class="vendor-option">
                         <div class="vendor-icon">
-                        <img style="width: 100px" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio(v1.0.3)/assets/images/tavus_logo.png" alt="Tavus Logo">
+                        <img style="width: 100px" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/tavus_logo.png" alt="Tavus Logo">
                         </div>
                         <strong>Tavus</strong>
                     </a>
                     
                     <a href="<?php echo admin_url('admin.php?page=avatar_studio-add-avatar&vendor=heygen'); ?>" class="vendor-option">
                         <div class="vendor-icon">
-                            <img style="width: 100px" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio(v1.0.3)/assets/images/heygen_logo.png" alt="Heygen Logo">
+                            <img style="width: 100px" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/heygen_logo.png" alt="Heygen Logo">
                         </div>
                         <strong>HeyGen</strong>
                     </a>
@@ -821,7 +822,9 @@ class avatarManager
         
         if (empty($avatars)) {
             echo '<div class="empty-state">';
-            echo '<i class="bi bi-robot"></i>';
+            // echo '<i class="bi bi-robot"></i>';
+            echo '<img style="width: 160px; margin-bottom: 10px; border-radius: 10px;" src="' . get_site_url() . '/wp-content/plugins/AvatarStudio/assets/images/avatar.jpeg" alt="Preview Avatar">';
+
             echo '<h3>No Avatars Yet</h3>';
             echo '<p>Create your first avatar to get started!</p>';
             echo '</div>';
@@ -835,7 +838,7 @@ class avatarManager
             echo '<th style="width: 180px;">Avatar/Replica ID</th>';
             echo '<th style="width: 180px;">Knowledge/Persona ID</th>';
             echo '<th style="width: auto;">Actions</th>';
-            echo '<th style="width: 50px;">See Full Data</th>'; // Expand icon
+            echo '<th style="width: 50px;">See Details</th>'; // Expand icon
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
@@ -904,47 +907,47 @@ class avatarManager
                 echo '<div class="details-grid">';
                 
                 // Title
-                echo '<div class="detail-item">';
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
                 echo '<label>Title</label>';
-                echo '<div class="value">' . esc_html($avatar->title) . '</div>';
+                echo '<div class="value">' . (!empty($avatar->title) ? esc_html($avatar->title) : '<span style="color:#d1d5db;">Not set</span>') . '</div>';
                 echo '</div>';
-                
+
                 // Avatar Name
-                echo '<div class="detail-item">';
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
                 echo '<label>Avatar Name</label>';
                 echo '<div class="value">' . (!empty($avatar->avatar_name) ? esc_html($avatar->avatar_name) : '<span style="color:#d1d5db;">Not set</span>') . '</div>';
                 echo '</div>';
                 
                 // Time Limit
-                echo '<div class="detail-item">';
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
                 echo '<label>Time Limit</label>';
                 echo '<div class="value">' . esc_html($avatar->time_limit) . ' minutes</div>';
                 echo '</div>';
                 
                 // Description
                 if (!empty($avatar->description)) {
-                    echo '<div class="detail-item" style="grid-column: span 2;">';
+                    echo '<div class="detail-item" style="grid-column: span 2; style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
                     echo '<label>Description</label>';
                     echo '<div class="value">' . esc_html($avatar->description) . '</div>';
                     echo '</div>';
                 }
                 
                 // Full Avatar ID
-                echo '<div class="detail-item">';
-                echo '<label>Avatar/Replica ID</label>';
-                echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->avatar_id) . '</div>';
-                echo '</div>';
+                // echo '<div class="detail-item">';
+                // echo '<label>Avatar/Replica ID</label>';
+                // echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->avatar_id) . '</div>';
+                // echo '</div>';
                 
                 // Full Knowledge ID
-                if (!empty($avatar->knowledge_id)) {
-                    echo '<div class="detail-item">';
-                    echo '<label>Knowledge/Persona ID</label>';
-                    echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->knowledge_id) . '</div>';
-                    echo '</div>';
-                }
+                // if (!empty($avatar->knowledge_id)) {
+                //     echo '<div class="detail-item">';
+                //     echo '<label>Knowledge/Persona ID</label>';
+                //     echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->knowledge_id) . '</div>';
+                //     echo '</div>';
+                // }
 
                 // Shortcode Section
-                echo '<div class="detail-item">';
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
                 echo '<label>Shortcode</label>';
                 echo '<div class="shortcode-box">';
                 echo '<code>' . esc_html($shortcode) . '</code>';
@@ -987,58 +990,112 @@ class avatarManager
     }
 
     public function render_avatar_settings_page()
-    {
-        global $wpdb;
-        
-        $vendor = isset($_GET['vendor']) ? sanitize_text_field($_GET['vendor']) : '';
-        
-        if (empty($vendor) || !in_array($vendor, ['tavus', 'heygen'])) {
-            wp_redirect(admin_url('admin.php?page=avatar_studio-avatars'));
-            exit;
-        }
-        
-        echo '<div class="wrap">';
-        echo '<div class="avatar-studio-header">';
-        echo '<h1>Create New Avatar - ' . ucfirst($vendor) . '</h1>';
-        echo '<p>Configure your new ' . ucfirst($vendor) . ' avatar settings</p>';
-        echo '</div>';
+{
+    global $wpdb;
+    
+    $vendor = isset($_GET['vendor']) ? sanitize_text_field($_GET['vendor']) : '';
+    
+    if (empty($vendor) || !in_array($vendor, ['tavus', 'heygen'])) {
+        wp_redirect(admin_url('admin.php?page=avatar_studio-avatars'));
+        exit;
+    }
+    
+    // Get the next predicted ID
+    $next_id = $wpdb->get_var("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$wpdb->prefix}avatar_studio_avatars'");
+    
+    // If we can't get AUTO_INCREMENT, get the max ID and add 1
+    if (!$next_id) {
+        $max_id = $wpdb->get_var("SELECT MAX(id) FROM {$wpdb->prefix}avatar_studio_avatars");
+        $next_id = $max_id ? $max_id + 1 : 1;
+    }
+    
+    echo '<div class="wrap">';
+    echo '<div class="avatar-studio-header">';
+    echo '<h1>Create New Avatar - ' . ucfirst($vendor) . '</h1>';
+    echo '<p>Configure your new ' . ucfirst($vendor) . ' avatar settings</p>';
+    echo '</div>';
 
-        echo '<div class="avatar-studio-content">';
-        echo '<p><a href="' . admin_url('admin.php?page=avatar_studio-avatars') . '" class="button" id="back-to-avatar-btn">Back to Avatars</a></p>';
-        
-        $avatar = (object)['vendor' => $vendor];
-        include 'avatar-form.php';
+    echo '<div class="avatar-studio-content">';
+    
+    // BACK BUTTON + SHORTCODE IN SAME ROW
+    $predicted_shortcode = '[avatar_studio id="' . $next_id . '"]';
+    echo '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 24px;">';
+    
+    // Back button on left
+    echo '<div>';
+    echo '<a href="' . admin_url('admin.php?page=avatar_studio-avatars') . '" class="button" id="back-to-avatar-btn">Back to Avatars</a>';
+    echo '</div>';
+    
+    // Shortcode on right
+    echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
+    echo '<div style="display: flex; align-items: end; gap: 12px;">';
+    echo '<div style="text-align: left;">';
+    echo '<strong style="display: block; margin-bottom: 6px; color: #374151; font-size: 13px;">Shortcode</strong>';
+    echo '<code style="background: #f8f9fa; padding: 8px 12px; border-radius: 4px; font-size: 13px; border: 1px solid #e5e7eb; font-weight: 600; color: #1f2937; line-height: 1; height: 28px; display: flex; align-items: center;">' . esc_html($predicted_shortcode) . '</code>';
+    echo '</div>';
+    echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($predicted_shortcode) . '" style="background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
+    echo '</div>';
+    echo '</div>';
+    
+    echo '</div>';
+    // END BACK BUTTON + SHORTCODE ROW
+    
+    $avatar = (object)['vendor' => $vendor];
+    include 'avatar-form.php';
 
-        echo '</div>';
-        echo '</div>';
+    echo '</div>';
+    echo '</div>';
+}
+
+public function render_edit_avatar_settings_page()
+{
+    global $wpdb;
+
+    $id = intval($_GET['id'] ?? 0);
+
+    $avatar = $wpdb->get_row($wpdb->prepare("
+        SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d
+    ", $id));
+
+    if (!$avatar) {
+        wp_die('Avatar not found.');
     }
 
-    public function render_edit_avatar_settings_page()
-    {
-        global $wpdb;
+    echo '<div class="wrap">';
+    echo '<div class="avatar-studio-header">';
+    echo '<h1>Edit Avatar - ' . ucfirst($avatar->vendor) . '</h1>';
+    echo '<p>Modify settings for: ' . esc_html($avatar->title) . '</p>';
+    echo '</div>';
 
-        $id = intval($_GET['id'] ?? 0);
-
-        $avatar = $wpdb->get_row($wpdb->prepare("
-            SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d
-        ", $id));
-
-        if (!$avatar) {
-            wp_die('Avatar not found.');
-        }
-
-        echo '<div class="wrap">';
-        echo '<div class="avatar-studio-header">';
-        echo '<h1>Edit Avatar - ' . ucfirst($avatar->vendor) . '</h1>';
-        echo '<p>Modify settings for: ' . esc_html($avatar->title) . '</p>';
-        echo '</div>';
-
-        echo '<div class="avatar-studio-content">';
-        echo '<p><a href="' . admin_url('admin.php?page=avatar_studio-avatars') . '" class="button" id="back-to-avatar-btn">Back to Avatars</a></p>';
-        include 'avatar-form.php';
-        echo '</div>';
-        echo '</div>';
-    }
+    echo '<div class="avatar-studio-content">';
+    
+    // BACK BUTTON + SHORTCODE IN SAME ROW
+    $shortcode = '[avatar_studio id="' . $avatar->id . '"]';
+    echo '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 24px;">';
+    
+    // Back button on left
+    echo '<div>';
+    echo '<a href="' . admin_url('admin.php?page=avatar_studio-avatars') . '" class="button" id="back-to-avatar-btn">Back to Avatars</a>';
+    echo '</div>';
+    
+    // Shortcode on right
+    echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
+    echo '<div style="display: flex; align-items: end; gap: 12px;">';
+    echo '<div style="text-align: left;">';
+    echo '<strong style="display: block; margin-bottom: 6px; color: #374151; font-size: 13px;">Shortcode</strong>';
+    echo '<code style="background: #f8f9fa; padding: 8px 12px; border-radius: 4px; font-size: 13px; border: 1px solid #e5e7eb; font-weight: 600; color: #1f2937; line-height: 1; height: 28px; display: flex; align-items: center;">' . esc_html($shortcode) . '</code>';
+    echo '</div>';
+    echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($shortcode) . '" style="background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
+    echo '</div>';
+    echo '</div>';
+    
+    echo '</div>';
+    // END BACK BUTTON + SHORTCODE ROW
+    
+    include 'avatar-form.php';
+    echo '</div>';
+    echo '</div>';
+}
 
     public function handle_update_avatar()
     {
@@ -1085,6 +1142,17 @@ class avatarManager
             'start_button_label' => isset($_POST['start_button_label']) ? sanitize_text_field($_POST['start_button_label']) : 'Chat',
         ], ['id' => $id]);
 
+
+        if ($_POST['vendor'] == "tavus" && empty($tavus_api_key)) {
+            $tavus_api_key = $_POST['api_key'];
+            update_option('avatar_studio_tavus_api_key', $tavus_api_key);
+        }
+
+        if ($_POST['vendor'] == "heygen" && empty($heygen_api_key)) {
+            $heygen_api_key = $_POST['api_key'];
+            update_option('avatar_studio_heygen_api_key', $heygen_api_key);
+        }
+        
         if ($result === false) {
             echo 'Update failed: ' . $wpdb->last_error;
         } else {
@@ -1139,6 +1207,18 @@ class avatarManager
         ];
         
         $id = isset($_REQUEST['id']) ? intval($_REQUEST['id']) : 0;
+
+
+        // API details (Tavus/Heygen) added at the Avatar level should feed to the main API screen and vice versa
+        if ($_POST['vendor'] == "tavus" && empty($tavus_api_key)) {
+            $tavus_api_key = $_POST['api_key'];
+            update_option('avatar_studio_tavus_api_key', $tavus_api_key);
+        }
+
+        if ($_POST['vendor'] == "heygen" && empty($heygen_api_key)) {
+            $heygen_api_key = $_POST['api_key'];
+            update_option('avatar_studio_heygen_api_key', $heygen_api_key);
+        }
 
         if ($id > 0) {
             // Update

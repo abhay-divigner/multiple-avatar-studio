@@ -71,15 +71,15 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 }
 
 .avatar-form-grid-body {
-    padding: 30px 30px 0 30px;
+    padding: 36px 36px 0 36px;
 }
 
 /* Grid Layout for Form Fields */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    margin-bottom: 24px;
+    gap: 30px;
+    margin-bottom: 30px;
 }
 
 .form-grid.single-column {
@@ -88,6 +88,8 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 
 .form-grid.three-columns {
     grid-template-columns: repeat(3, 1fr);
+    /* margin-top: -16px; */
+
 }
 
 .input-grid {
@@ -145,6 +147,12 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
     line-height: 1.5;
 }
 
+/* Tick-boxes */
+
+input[type=checkbox]:checked::before {
+    margin: -0.1275rem 0px 0 -0.15rem;
+}
+
 /* Vendor Display Styling */
 /* .vendor-display {
     display: flex;
@@ -172,7 +180,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 }
 
 .vendor-display img {
-    max-width: 140px;
+    max-width: 100px;
     height: auto;
 }
 
@@ -237,20 +245,20 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 /* Image Uploader in Grid */
 .form-field .image-uploader-wrap {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 12px;
 }
 
 .form-field .image-uploader-wrap .image-preview {
-    max-width: 200px;
-    border-radius: 8px;
-    border: 2px solid #e5e7eb;
-    padding: 4px;
+    max-width: 88px;
+    border-radius: 4px;
 }
 
 .form-field .image-uploader-wrap .upload-controls {
     display: flex;
     gap: 8px;
+    max-width: 596px;
+    width: 100%;
 }
 
 .form-field .image-uploader-wrap input[type="text"] {
@@ -271,11 +279,15 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 }
 
 .form-field .image-uploader-wrap .button:hover {
-    border-color: #38b1c5 !important;
+    border-color: #dc2626 !important;
     background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%) !important;
 }
 
 .form-field .image-uploader-wrap .upload-image-btn {
+    border-color: #38b1c5 !important;
+}
+
+.form-field .image-uploader-wrap .upload-image-btn:hover {
     border-color: #38b1c5 !important;
 }
 
@@ -284,8 +296,8 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 }
 
 .form-field .image-uploader-wrap .remove-image-btn:hover {
-    background: #dc2626 !important;
-    color: white !important;
+    /* background: #dc2626 !important; */
+    color: #dc2626 !important;
 }
 
 /* Select2 in Grid */
@@ -382,7 +394,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
     width: 100%;
     height: 2px;
     background: linear-gradient(90deg, transparent 0%, #38b1c5 25%, #da922c 75%, transparent 100%);
-    margin: 42px 0;
+    margin: 20px 0;
 }
 
 /* Responsive Design */
@@ -451,7 +463,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 .boxed {
     background: white;
     border-radius: 12px;
-    padding: 0 30px;
+    padding: 20px 30px;
     /* margin-bottom: 24px; */
 }
 
@@ -481,7 +493,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 
 .form-table th {
     text-align: left;
-    padding: 12px 20px 0 0;
+    /* padding: 12px 20px 0 0; */
     font-weight: 600;
     color: #495057;
     font-size: 14px;
@@ -667,7 +679,7 @@ input[type="checkbox"] {
     border-radius: 12px;
     margin-bottom: 24px;
     box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-    padding-top: 30px;
+    padding-top: 12px;
 }
 
 @media (max-width: 768px) {
@@ -688,7 +700,7 @@ input[type="checkbox"] {
     }
 
     .boxed {
-        padding: 0 20px;
+        padding: 20px;
     }
 }
 
@@ -727,9 +739,9 @@ input[type="checkbox"] {
                             <div class="vendor-display">
                                 <!-- <strong><?php echo $avatar && $avatar->vendor ? ucfirst(esc_html($avatar->vendor)) : 'Not Selected'; ?></strong> -->
                                 <?php if ($avatar && $avatar->vendor === 'tavus'): ?>
-                                    <img src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio(v1.0.3)/assets/images/tavus_full_logo.png" alt="Tavus Logo">
+                                    <img src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/tavus_full_logo.png" alt="Tavus Logo">
                                 <?php elseif ($avatar && $avatar->vendor === 'heygen'): ?>
-                                    <img src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio(v1.0.3)/assets/images/heygen_full_logo.png" alt="Heygen Logo">
+                                    <img src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/heygen_full_logo.png" alt="Heygen Logo">
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -740,38 +752,56 @@ input[type="checkbox"] {
                     <!-- Hidden vendor input -->
                     <input type="hidden" name="vendor" value="<?php echo $avatar && $avatar->vendor ? esc_attr($avatar->vendor) : ''; ?>">
                     
+                    <?php
+                    // Get the global API keys from first file settings
+                    $global_tavus_key = get_option('avatar_studio_tavus_api_key');
+                    $global_heygen_key = get_option('avatar_studio_heygen_api_key');
+
+                    // Determine which key to use based on vendor
+                    $default_api_key = '';
+                    if ($avatar && $avatar->vendor === 'tavus') {
+                        $default_api_key = $global_tavus_key;
+                    } elseif ($avatar && $avatar->vendor === 'heygen') {
+                        $default_api_key = $global_heygen_key;
+                    }
+
+                    // Use avatar-specific key if exists, otherwise use global default
+                    $current_api_key = $avatar && $avatar->api_key ? $avatar->api_key : $default_api_key;
+                    ?>
+
                     <!-- Row 1: API Key + Title -->
                     <div class="form-grid">
                         <div class="form-field">
-                            <label for="api_key">API Key *</label>
-                            <input type="password" name="api_key" id="api_key" 
-                                value="<?php echo $avatar && $avatar->api_key ? esc_attr($avatar->api_key) : '' ?>" required />
-                        </div>
+                        <label for="api_key">API Key *<p class="field-description">
+                            <?php if (empty($avatar->api_key) && !empty($default_api_key)): ?>
+                                <span style="color: #38b1c5;">✓ Using global <?php echo ucfirst($avatar_vendor); ?> API key</span>
+                            <?php elseif (empty($avatar->api_key) && empty($default_api_key)): ?>
+                                <span style="color: #da922c;">⚠ No global API key set. Please configure in Settings.</span>
+                            <?php else: ?>
+                                Using avatar-specific API key
+                            <?php endif; ?>
+                        </p></label>
+                        <input type="text" name="api_key" id="api_key" placeholder="Enter your API Key here..." 
+                            value="<?php echo esc_attr($current_api_key); ?>" required />
+                    </div>
                         
                         <div class="form-field">
                             <label for="avatar_title">Title</label>
-                            <input type="text" name="title" id="avatar_title" 
+                            <input type="text" name="title" id="avatar_title" placeholder="Enter your title here..." 
                                 value="<?php echo $avatar && $avatar->title ? esc_attr($avatar->title) : '' ?>" />
                         </div>
                     </div>
                     
-                    <!-- Row 2: Avatar Name (Full Width) -->
-                    <div class="form-grid single-column">
-                        <div class="form-field">
-                            <label for="avatar_name">Avatar Name</label>
-                            <input type="text" name="avatar_name" id="avatar_name" 
-                                value="<?php echo $avatar && $avatar->avatar_name ? esc_attr($avatar->avatar_name) : '' ?>" />
-                        </div>
-                    </div>
-                    
-                    <!-- Row 3: Avatar ID + Knowledge ID -->
+                    <!-- Row 2: Avatar ID + Knowledge ID -->
                     <div class="form-grid">
                         <div class="form-field">
                             <label for="avatar_id">
                                 <?php echo ($avatar && $avatar->vendor === 'tavus') ? 'Replica ID *' : 'Avatar ID *'; ?>
                             </label>
-                            <input type="text" name="avatar_id" id="avatar_id" 
-                                value="<?php echo $avatar && $avatar->avatar_id ? esc_attr($avatar->avatar_id) : '' ?>" required />
+                            <input type="text" name="avatar_id" id="avatar_id"
+                                value="<?php echo $avatar && $avatar->avatar_id ? esc_attr($avatar->avatar_id) : '' ?>" 
+                                placeholder="<?php echo ($avatar && $avatar->vendor === 'tavus') ? 'Enter your Replica ID here...' : 'Enter your Avatar ID here...'; ?>" 
+                                required />
                         </div>
                         
                         <div class="form-field">
@@ -779,50 +809,52 @@ input[type="checkbox"] {
                                 <?php echo ($avatar && $avatar->vendor === 'tavus') ? 'Persona ID *' : 'Knowledge ID *'; ?>
                             </label>
                             <input type="text" name="knowledge_id" id="knowledge_id" 
-                                value="<?php echo $avatar && $avatar->knowledge_id ? esc_attr($avatar->knowledge_id) : '' ?>" required />
+                                value="<?php echo $avatar && $avatar->knowledge_id ? esc_attr($avatar->knowledge_id) : '' ?>" 
+                                placeholder="<?php echo ($avatar && $avatar->vendor === 'tavus') ? 'Enter your Persona ID here...' : 'Enter your Knowledge ID here...'; ?>" 
+                                required />
                         </div>
                     </div>
-                    
-                    <!-- Row 4: Preview Image (Full Width) -->
-                    <div class="form-grid single-column">
-                        <div class="form-field">
-                            <label for="preview_image">Preview/Poster Image</label>
-                            <div class="image-uploader-wrap">
-                                <img class="image-preview"
-                                    src="<?php echo $avatar && $avatar->preview_image ? esc_attr($avatar->preview_image) : '' ?>"
-                                    style="<?php echo ($avatar && $avatar->preview_image) ? 'display: block;' : 'display: none;'; ?>" />
-                                <div class="upload-controls">
-                                    <input type="text" name="preview_image" id="preview_image" class="image-url"
-                                        value="<?php echo $avatar && $avatar->preview_image ? esc_attr($avatar->preview_image) : '' ?>" 
-                                        placeholder="Enter image URL or upload..." />
-                                    <button type="button" class="button upload-image-btn" title="Upload Image">
-                                        <span class="dashicons dashicons-upload"></span>
-                                    </button>
-                                    <button type="button" class="button remove-image-btn" title="Remove"
-                                        style="<?php echo ($avatar && $avatar->preview_image) ? 'display: inline-flex;' : 'display: none;'; ?>">
-                                        <span class="dashicons dashicons-no-alt"></span>
-                                    </button>
+
+                    <!-- Row 3: Avatar Name (Full Width) -->
+                    <div class="form-grid">
+                        <div class="form-grid single-column">
+                            <div class="form-field">
+                                <label for="avatar_name">Avatar Name</label>
+                                <input type="text" name="avatar_name" id="avatar_name" placeholder="Enter your avatar name here..." 
+                                    value="<?php echo $avatar && $avatar->avatar_name ? esc_attr($avatar->avatar_name) : '' ?>" />
+                            </div>
+                        </div>      
+                        
+                        <div class="form-grid single-column">
+                            <div class="form-field">
+                                <label for="preview_image">Preview/Poster Image</label>
+                                <div class="image-uploader-wrap">
+                                    <img class="image-preview"
+                                        src="<?php echo $avatar && $avatar->preview_image ? esc_attr($avatar->preview_image) : '' ?>"
+                                        style="<?php echo ($avatar && $avatar->preview_image) ? 'display: block;' : 'display: none;'; ?>" />
+                                    <div class="upload-controls">
+                                        <input type="text" name="preview_image" id="preview_image" class="image-url"
+                                            value="<?php echo $avatar && $avatar->preview_image ? esc_attr($avatar->preview_image) : '' ?>" 
+                                            placeholder="Enter image URL or upload..." />
+                                        <button type="button" class="button upload-image-btn" title="Upload Image">
+                                            <span class="dashicons dashicons-upload"></span>
+                                        </button>
+                                        <button type="button" class="button remove-image-btn" title="Remove"
+                                            style="<?php echo ($avatar && $avatar->preview_image) ? 'display: inline-flex;' : 'display: none;'; ?>">
+                                            <span class="dashicons dashicons-no-alt"></span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
+
                     
-                    <div class="form-divider"></div>
+                    <!-- <div class="form-divider"></div> -->
                     
-                    <!-- Row 5: Time Limit + Voice Emotion -->
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label for="time_limit">
-                                Time Limit (minutes) *
-                                <span class="tooltip-wrapper">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltip-content">Specify how many minutes the avatar chat session can run</span>
-                                </span>
-                            </label>
-                            <input type="number" min="0" name="time_limit" id="time_limit" 
-                                value="<?php echo $avatar && $avatar->time_limit ? esc_attr($avatar->time_limit) : 60 ?>" required />
-                            <p class="field-description">Avatar chat duration in minutes</p>
-                        </div>
+                    <!-- Row 4: Time Limit + Voice Emotion -->
+                    <!-- <div class="form-grid">
                         
                         <div class="form-field voice-emotion-row <?php echo ($avatar && $avatar->vendor == 'tavus') ? 'hidden' : ''; ?>">
                             <label for="voice_emotion">Voice Emotion</label>
@@ -834,10 +866,10 @@ input[type="checkbox"] {
                                 <option value="broadcaster" <?php echo $avatar && $avatar->voice_emotion == 'broadcaster' ? 'selected' : ''; ?>>Broadcaster</option>
                             </select>
                         </div>
-                    </div>
+                    </div> -->
                     
                     <!-- Row 6: Open on Desktop + Video Enable + Chat Only (Three Columns) -->
-                    <div class="form-grid three-columns">
+                    <div class="form-grid three-columns" style="margin-bottom: 40px;">
                         <div class="form-field">
                             <label>
                                 Open on Desktop
@@ -859,9 +891,15 @@ input[type="checkbox"] {
                                 </label>
                             </div>
                         </div>
-                        
+
                         <div class="form-field">
-                            <label>Video Enable</label>
+                            <label>
+                                Video Enable
+                                <span class="tooltip-wrapper">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-content">Enable video streaming for the avatar</span>
+                                </span>
+                            </label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="video_enable" id="video_enable_yes" value="1" 
@@ -875,9 +913,15 @@ input[type="checkbox"] {
                                 </label>
                             </div>
                         </div>
-                        
+
                         <div class="form-field">
-                            <label>Chat Only</label>
+                            <label>
+                                Chat Only
+                                <span class="tooltip-wrapper">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-content">Enable text-only chat without video</span>
+                                </span>
+                            </label>
                             <div class="radio-group">
                                 <label class="radio-option">
                                     <input type="radio" name="chat_only" id="chat_only_yes" value="1" 
@@ -895,31 +939,72 @@ input[type="checkbox"] {
                     </div>
                     
                     <!-- Row 7: Chat Window Pages (Full Width) -->
-                    <div class="form-grid single-column">
+                    <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
                         <div class="form-field">
-                            <label for="chat_window_pages">
-                                Chat Window Pages
+                            <label for="time_limit">
+                                Time Limit (minutes) *
                                 <span class="tooltip-wrapper">
                                     <span class="tooltip-icon">?</span>
-                                    <span class="tooltip-content">Select pages where chat widget will appear</span>
+                                    <span class="tooltip-content">Specify how many minutes the avatar chat session can run</span>
                                 </span>
                             </label>
-                            <?php $pages = $avatar && $avatar->pages ? json_decode($avatar->pages, true) : []; ?>
-                            <select name="pages[]" id="chat_window_pages" class="select2 full-width" multiple="multiple">
-                                <?php
-                                foreach ($all_pages as $val) {
-                                    $selected = is_array($pages) && in_array($val->ID, $pages) ? 'selected="selected"' : '';
-                                    echo '<option value="' . $val->ID . '" ' . $selected . '>' . esc_html($val->post_title) . '</option>';
-                                }
-                                ?>
+                            <input type="number" min="0" name="time_limit" id="time_limit" style="width: 160px;" 
+                                value="<?php echo $avatar && $avatar->time_limit ? esc_attr($avatar->time_limit) : 60 ?>" required />
+                            <p class="field-description">Avatar chat duration in minutes</p>
+                        </div>
+                        <div class="form-field voice-emotion-row">
+                            <label for="voice_emotion" style="margin-bottom: 8px;">
+                                Voice Emotion
+                                <span class="tooltip-wrapper">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-content">Select the emotional tone for the avatar's voice</span>
+                                </span>
+                            </label>
+                            <select name="voice_emotion" id="voice_emotion" style="width: 160px; height: 52px;">
+                                <option value="excited" <?php echo $avatar && $avatar->voice_emotion == 'excited' ? 'selected' : ''; ?>>Excited</option>
+                                <option value="serious" <?php echo $avatar && $avatar->voice_emotion == 'serious' ? 'selected' : ''; ?>>Serious</option>
+                                <option value="friendly" <?php echo $avatar && $avatar->voice_emotion == 'friendly' ? 'selected' : ''; ?>>Friendly</option>
+                                <option value="soothing" <?php echo $avatar && $avatar->voice_emotion == 'soothing' ? 'selected' : ''; ?>>Soothing</option>
+                                <option value="broadcaster" <?php echo $avatar && $avatar->voice_emotion == 'broadcaster' ? 'selected' : ''; ?>>Broadcaster</option>
                             </select>
-                            <p class="field-description">Hold Ctrl/Cmd to select multiple pages</p>
+                        </div>
+                        <div class="form-grid single-column">
+                            <div class="form-field">
+                                <label for="chat_window_pages">
+                                    Chat Window Pages *
+                                    <span class="tooltip-wrapper">
+                                        <span class="tooltip-icon">?</span>
+                                        <span class="tooltip-content">Select pages where chat widget will appear</span>
+                                    </span>
+                                </label>
+                                <?php $pages = $avatar && $avatar->pages ? json_decode($avatar->pages, true) : []; ?>
+                                <select name="pages[]" id="chat_window_pages" class="select2 full-width" multiple="multiple" required data-placeholder="Select pages for chat widget...">
+                                    <option value=""></option>
+                                    <?php
+                                    foreach ($all_pages as $val) {
+                                        $selected = is_array($pages) && in_array($val->ID, $pages) ? 'selected="selected"' : '';
+                                        echo '<option value="' . $val->ID . '" ' . $selected . '>' . esc_html($val->post_title) . '</option>';
+                                    }
+                                    ?>
+                                </select>
+                                <p class="field-description">Select pages where the avatar chat should appear</p>
+                            </div>
                         </div>
                     </div>
+                    <script>
+                    jQuery(document).ready(function($) {
+                        // Initialize Select2 with placeholder
+                        $('#chat_window_pages').select2({
+                            placeholder: "Select pages for chat widget...",
+                            allowClear: true,
+                            width: '100%'
+                        });
+                    });
+                    </script>
                 </div>
                 <div class="form-divider"></div>
                 <div class="container">
-                   <div class="boxed">
+                    <div class="boxed">
                         <h2>LiveKit & API Settings</h2>
                         <table class="form-table">
                             <tr>
@@ -940,9 +1025,9 @@ input[type="checkbox"] {
 
                                         <!-- RAG API URL -->
                                         <div style="flex: 1;">
-                                            <label><strong>Custom RAG API URL</strong></label><br>
+                                            <label id="rag_label"><strong>Custom RAG API URL</strong></label><br>
                                             <small>Leave blank to use HeyGen knowledge base</small>
-                                            <input type="url" name="RAG_API_URL" 
+                                            <input type="url" name="RAG_API_URL" id="RAG_API_URL"
                                                 value="<?php echo $avatar && $avatar->RAG_API_URL ? esc_attr($avatar->RAG_API_URL) : ''; ?>"
                                                 placeholder="https://api.example.com/rag"
                                                 style="width: 100%; margin-top: 12px;">
@@ -950,9 +1035,9 @@ input[type="checkbox"] {
 
                                         <!-- Deepgram Key -->
                                         <div style="flex: 1;">
-                                            <label><strong>Deepgram API Key</strong></label><br>
+                                            <label id="deepgram_label"><strong>Deepgram API Key</strong></label><br>
                                             <small>Required for cross-browser compatibility</small>
-                                            <input type="text" name="deepgramKEY" 
+                                            <input type="text" name="deepgramKEY" id="deepgramKEY"
                                                 value="<?php echo $avatar && $avatar->deepgramKEY ? esc_attr($avatar->deepgramKEY) : ''; ?>"
                                                 placeholder="Enter your Deepgram API key"
                                                 style="width: 100%; margin-top: 12px;">
@@ -963,9 +1048,113 @@ input[type="checkbox"] {
                             </tr>
                         </table>
                     </div>
-                    <div class="form-divider"></div>
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const livekitToggle = document.getElementById('livekit_enable');
+                        const ragInput = document.getElementById('RAG_API_URL');
+                        const deepgramInput = document.getElementById('deepgramKEY');
+                        const ragLabel = document.getElementById('rag_label');
+                        const deepgramLabel = document.getElementById('deepgram_label');
+                        
+                        function toggleRequiredFields() {
+                            if (livekitToggle.checked) {
+                                ragInput.setAttribute('required', 'required');
+                                deepgramInput.setAttribute('required', 'required');
+                                ragLabel.innerHTML = '<strong>Custom RAG API URL <span style="color: black;">*</span></strong>';
+                                deepgramLabel.innerHTML = '<strong>Deepgram API Key <span style="color: black;">*</span></strong>';
+                            } else {
+                                ragInput.removeAttribute('required');
+                                deepgramInput.removeAttribute('required');
+                                ragLabel.innerHTML = '<strong>Custom RAG API URL</strong>';
+                                deepgramLabel.innerHTML = '<strong>Deepgram API Key</strong>';
+                            }
+                        }
+                        
+                        // Set initial state
+                        toggleRequiredFields();
+                        
+                        // Update when checkbox changes
+                        livekitToggle.addEventListener('change', toggleRequiredFields);
+                    });
+                    </script>
+                    <div class="form-divider"></div>                
+                        <div class="boxed">
+                            <h2>Disclaimer</h2>
+                            <table class="form-table">
+                                <tr>
+                                    <th>Enable Disclaimer</th>
+                                    <td>
+                                        <div class="toggle-wrapper">
+                                            <input type="checkbox" name="disclaimer_enable" value="1" id="disclaimer_enable" 
+                                                <?php echo $avatar && $avatar->disclaimer_enable ? 'checked' : ''; ?> />
+                                            <label for="disclaimer_enable" class="toggle-label">Show disclaimer to users</label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- New Combined Row -->
+                                <tr>
+                                    <th colspan="2">
+                                        <div style="display: flex; gap: 30px;">
+
+                                            <!-- Heading -->
+                                            <div style="flex: 1;">
+                                                <label><strong>Heading</strong></label><br>
+                                                <input type="text" name="disclaimer_title"
+                                                    value="<?php echo $avatar && $avatar->disclaimer_title ? esc_attr($avatar->disclaimer_title) : ''; ?>"
+                                                    placeholder="e.g., Terms & Conditions"
+                                                    style="width: 100%; margin-top: 5px;">
+                                            </div>
+
+                                            <!-- Disclaimer Content -->
+                                            <div style="flex: 1;">
+                                                <label><strong>Disclaimer Content</strong></label><br>
+                                                <div class="editor-wrapper" style="margin-top: 5px;">
+                                                    <?php
+                                                    $disclaimer_content = $avatar && $avatar->disclaimer ? $avatar->disclaimer : '';
+                                                    $editor_id = 'disclaimer_editor';
+                                                    $settings = array(
+                                                        'textarea_name' => 'disclaimer',
+                                                        'textarea_rows' => 10,
+                                                        'media_buttons' => true,
+                                                        'teeny' => false,
+                                                        'quicktags' => true,
+                                                        'wpautop' => true
+                                                    );
+                                                    wp_editor($disclaimer_content, $editor_id, $settings);
+                                                    ?>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </th>
+                                </tr>
+
+                            </table>
+                        </div>
+
+                    <div class="form-divider"></div>                
                     <div class="boxed">
-                        <h2>Instructions <span class="section-badge">Optional</span></h2>
+                        <h2>User Form</h2>
+                        <table class="form-table">
+                            <tr>
+                                <th>Enable User Form</th>
+                                <td>
+                                    <div class="toggle-wrapper">
+                                        <input type="checkbox" name="user_form_enable" value="1" id="user_form_enable" 
+                                            <?php echo $avatar && $avatar->user_form_enable ? 'checked' : ''; ?> />
+                                        <label for="user_form_enable" class="toggle-label">Collect user information before session</label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="form-divider"></div>
+                    
+                    <div class="boxed">
+                        <h2>Video Instructions <span class="section-badge">(Optional)</span></h2>
                         <table class="form-table">
 
                             <!-- Row 1: Enable Instruction + Skip Instruction Video -->
@@ -975,7 +1164,7 @@ input[type="checkbox"] {
 
                                         <!-- Enable Instruction -->
                                         <div style="flex: 1;">
-                                            <label><strong>Enable Instruction</strong></label><br>
+                                            <label><strong>Enable Video Instruction</strong></label><br>
                                             <div class="toggle-wrapper" style="margin-top: 12px;">
                                                 <input type="checkbox" name="instruction_enable" value="1" id="instruction_enable" 
                                                     <?php echo $avatar && $avatar->instruction_enable ? 'checked' : ''; ?> />
@@ -985,7 +1174,7 @@ input[type="checkbox"] {
 
                                         <!-- Skip Instruction Video -->
                                         <div style="flex: 1;">
-                                            <label><strong>Skip Instruction Video</strong></label><br>
+                                            <label><strong>Skip Video Instruction</strong></label><br>
                                             <div class="toggle-wrapper" style="margin-top: 12px;">
                                                 <input type="checkbox" name="skip_instruction_video" value="1" id="skip_instruction_video" 
                                                     <?php echo $avatar && $avatar->skip_instruction_video ? 'checked' : ''; ?> />
@@ -1015,71 +1204,19 @@ input[type="checkbox"] {
                                         <div style="flex: 1;">
                                             <label><strong>Instruction Content</strong></label><br>
                                             <div class="editor-wrapper" style="margin-top: 12px;">
-                                                <textarea name="instruction" rows="10"
-                                                    style="width: 100%; border: 1px solid #ccc; background: #fff; resize: vertical; padding: 8px;"
-                                                    placeholder="Enter detailed instructions for users..."><?php echo $avatar && $avatar->instruction ? esc_textarea($avatar->instruction) : ''; ?></textarea>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </th>
-                            </tr>
-
-                        </table>
-                    </div>
-
-                    <div class="form-divider"></div>                
-                    <div class="boxed">
-                        <h2>User Form</h2>
-                        <table class="form-table">
-                            <tr>
-                                <th>Enable User Form</th>
-                                <td>
-                                    <div class="toggle-wrapper">
-                                        <input type="checkbox" name="user_form_enable" value="1" id="user_form_enable" 
-                                            <?php echo $avatar && $avatar->user_form_enable ? 'checked' : ''; ?> />
-                                        <label for="user_form_enable" class="toggle-label">Collect user information before session</label>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                                        <div class="form-divider"></div>                
-                                        <div class="boxed">
-                        <h2>Disclaimer</h2>
-                        <table class="form-table">
-                            <tr>
-                                <th>Enable Disclaimer</th>
-                                <td>
-                                    <div class="toggle-wrapper">
-                                        <input type="checkbox" name="disclaimer_enable" value="1" id="disclaimer_enable" 
-                                            <?php echo $avatar && $avatar->disclaimer_enable ? 'checked' : ''; ?> />
-                                        <label for="disclaimer_enable" class="toggle-label">Show disclaimer to users</label>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- New Combined Row -->
-                            <tr>
-                                <th colspan="2">
-                                    <div style="display: flex; gap: 30px;">
-
-                                        <!-- Heading -->
-                                        <div style="flex: 1;">
-                                            <label><strong>Heading</strong></label><br>
-                                            <input type="text" name="disclaimer_title"
-                                                value="<?php echo $avatar && $avatar->disclaimer_title ? esc_attr($avatar->disclaimer_title) : ''; ?>"
-                                                placeholder="e.g., Terms & Conditions"
-                                                style="width: 100%; margin-top: 5px;">
-                                        </div>
-
-                                        <!-- Disclaimer Content -->
-                                        <div style="flex: 1;">
-                                            <label><strong>Disclaimer Content</strong></label><br>
-                                            <div class="editor-wrapper" style="margin-top: 5px;">
-                                                <textarea name="disclaimer" rows="10"
-                                                    style="width: 100%; border: 1px solid #ccc; background: #fff; resize: vertical; padding: 8px;"
-                                                    placeholder="Enter disclaimer text..."><?php echo $avatar && $avatar->disclaimer ? esc_textarea($avatar->disclaimer) : ''; ?></textarea>
+                                                <?php
+                                                $instruction_content = $avatar && $avatar->instruction ? $avatar->instruction : '';
+                                                $editor_id = 'instruction_editor';
+                                                $settings = array(
+                                                    'textarea_name' => 'instruction',
+                                                    'textarea_rows' => 10,
+                                                    'media_buttons' => true,
+                                                    'teeny' => false,
+                                                    'quicktags' => true,
+                                                    'wpautop' => true
+                                                );
+                                                wp_editor($instruction_content, $editor_id, $settings);
+                                                ?>
                                             </div>
                                         </div>
 
@@ -3553,7 +3690,30 @@ document.addEventListener('DOMContentLoaded', () => {
 // Your existing showChatBoxPreview function remains the same
 // Just ensure it doesn't override the position styling we've added
 </script>
-
+<script>
+// Copy shortcode functionality
+jQuery(document).ready(function($) {
+    $('.copy-shortcode-btn').on('click', function(e) {
+        e.preventDefault();
+        var $btn = $(this);
+        var shortcode = $btn.data('shortcode');
+        
+        // Create temporary input
+        var $temp = $('<input>');
+        $('body').append($temp);
+        $temp.val(shortcode).select();
+        document.execCommand('copy');
+        $temp.remove();
+        
+        // Visual feedback
+        var originalText = $btn.text();
+        $btn.text('Copied!');
+        setTimeout(function() {
+            $btn.text(originalText);
+        }, 2000);
+    });
+});
+</script>
 <?php
 // Add this hidden input to save the selected thumbnail size for preview
 ?>

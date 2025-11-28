@@ -58,1057 +58,1337 @@
     add_action('admin_menu', 'avatar_studio_plugin_menu');
 
         function avatar_studio_main_page()
-        {
-            $pages = get_pages();
-            $export_enabled = get_option('avatar_auto_export_enabled', 1);
-            $export_interval = get_option('avatar_auto_export_interval', 'every_5_minutes');
-            ?>
-            <style>
-            /* Modern WordPress Admin Styling - Gradient Theme */
-            .avatar-studio-wrap {
-                max-width: 1400px;
-                margin: 20px auto;
-                padding: 0 20px;
-            }
+{
+    $pages = get_pages();
+    $export_enabled = get_option('avatar_auto_export_enabled', 1);
+    $export_interval = get_option('avatar_auto_export_interval', 'every_5_minutes');
+    
+    // Get Tavus API key value
+    $tavus_api_key = get_option('avatar_studio_tavus_api_key', '');
+    $has_tavus_key = !empty($tavus_api_key);
+    
+    // Get current Google Drive enable status
+    $google_drive_enabled = get_option('avatar_studio_enable_google_drive', 0);
+    ?>
+    <style>
+    /* Add these new styles for the conditional sections */
+    .conditional-section {
+        transition: all 0.3s ease;
+    }
+    
+    .conditional-section.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    .section-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 10px;
+        background: #f1f5f9;
+        color: #64748b;
+    }
+    
+    .section-status.active {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
+        color: #38b1c5;
+    }
+    
+    .section-status.inactive {
+        background: #f1f5f9;
+        color: #94a3b8;
+    }
+    
+    .section-status::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .section-status.active::before {
+        background: #10b981;
+        box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+    }
+    
+    .section-status.inactive::before {
+        background: #94a3b8;
+    }
+    
+    /* Existing styles remain the same */
+    .avatar-studio-wrap {
+        max-width: 1400px;
+        margin: 20px auto;
+        padding: 0 20px;
+    }
 
-            .avatar-studio-header {
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                color: white;
-                padding: 30px 40px;
-                border-radius: 12px;
-                margin-bottom: 30px;
-                box-shadow: 0 4px 20px rgba(56, 177, 197, 0.3);
-                position: relative;
-                overflow: hidden;
-            }
+    .avatar-studio-header {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        padding: 32px 40px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(56, 177, 197, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
 
-            .avatar-studio-header::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-                pointer-events: none;
-            }
+    .avatar-studio-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+    }
 
-            .avatar-studio-header h1 {
-                margin: 0 0 8px 0;
-                font-size: 28px;
-                font-weight: 600;
-                color: white;
-            }
+    .avatar-studio-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
 
-            .avatar-studio-header p {
-                margin: 0;
-                opacity: 0.9;
+    .avatar-studio-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 15px;
+    }
+
+    .avatar-studio-card {
+        background: white;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 12px;
+        padding: 0;
+        margin: 20px 0;
+        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .avatar-studio-card:hover {
+        box-shadow: 0 8px 25px rgba(56, 177, 197, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        padding: 20px 30px;
+        border-bottom: 2px solid transparent;
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
+        border-radius: 10px 10px 0 0;
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .card-header.collapsible {
+        cursor: pointer;
+        display: flex;
+    }
+
+    .card-header.collapsible:hover {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.12) 0%, rgba(218, 146, 44, 0.12) 100%);
+    }
+
+    .card-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+    }
+
+    .card-header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-header h2::before {
+        content: '';
+        width: 5px;
+        height: 24px;
+        background: linear-gradient(180deg, #38b1c5 0%, #da922c 100%);
+        border-radius: 3px;
+        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.4);
+    }
+
+    /* Collapse Toggle Icon */
+    .collapse-toggle {
+        margin-left: auto;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        border-radius: 50%;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .collapse-toggle.collapsed {
+        transform: rotate(180deg);
+    }
+
+    .card-body.collapsed + .card-header::after,
+    .card-header.collapsible:has(+ .card-body.collapsed)::after {
+        opacity: 0;
+        height: 0;
+    }
+
+    /* Fix for all card header borders */
+    .card-header {
+        position: relative;
+        padding: 20px 30px;
+        border-bottom: 2px solid transparent;
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
+        border-radius: 10px 10px 0 0;
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .card-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+        transition: all 0.3s ease;
+    }
+
+    /* Show border when NOT collapsed */
+    .card-body:not(.collapsed) + .card-header::after,
+    .card-header.collapsible:not(.collapsed-state)::after {
+        opacity: 1;
+        height: 2px;
+    }
+
+    /* Hide border when collapsed */
+    .card-body.collapsed + .card-header::after,
+    .card-header.collapsible.collapsed-state::after {
+        opacity: 0;
+        height: 0;
+    }
+
+    /* Remove the old conflicting rules */
+    .card-header.collapsible:has(+ .card-body.collapsed)::after {
+        /* Remove this rule entirely */
+    }
+
+    /* Alternative approach - add a class-based solution */
+    .card-header.collapsed-state::after {
+        opacity: 0;
+        height: 0;
+        transition: all 0.3s ease;
+    }
+
+    .card-body {
+        padding: 30px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .card-body.collapsed {
+        max-height: 0;
+        padding: 0 30px;
+        opacity: 0;
+    }
+
+    .form-table {
+        margin: 0;
+        width: 100%;
+    }
+
+    .form-table th {
+        padding: 15px 0;
+        width: 180px;
+        font-weight: 600;
+        color: #333;
+        vertical-align: top;
+    }
+
+    #api-key-config {
+        width: 80px;
+    }
+
+    .form-table td {
+        padding: 15px 0;
+        width: auto;
+    }
+
+    .form-table tr {
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .form-table tr:last-child {
+        border-bottom: none;
+    }
+
+    .plugin-input[type="text"],
+    .plugin-input[type="password"],
+    .plugin-input select {
+        width: 100%;
+        max-width: 600px;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: white;
+        box-sizing: border-box;
+    }
+
+    .plugin-input[type="text"]:focus,
+    .plugin-input[type="password"]:focus,
+    .plugin-input select:focus {
+        outline: none;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
+    }
+
+    .input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .input-wrapper input {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .toggle-visibility {
+        padding: 10px 20px !important;
+        background: #f8fafc !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 6px !important;
+        color: #475569 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height: auto !important;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .toggle-visibility:hover {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%) !important;
+        border: 1px solid transparent !important;
+        background-image: 
+            linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
+        background-origin: border-box !important;
+        background-clip: padding-box, border-box !important;
+        color: #fff !important;
+    }
+
+    .description {
+        margin: 8px 0 0 0 !important;
+        color: #64748b !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+    }
+
+    .description a {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-decoration: none;
+        font-weight: 600;
+        position: relative;
+    }
+
+    .description a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+        transition: width 0.3s ease;
+    }
+
+    .description a:hover::after {
+        width: 100%;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 26px;
+        margin-right: 10px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.3s;
+        border-radius: 34px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.4);
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(22px);
+    }
+
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .toggle-label span {
+        font-weight: 500;
+        color: #334155;
+    }
+
+    /* api-integration */
+
+    .tavus-heygen-api {
+        /* display: flex; */
+        gap: 20px;
+    }
+
+    .tavus-heygen-api .avatar-studio-card {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Code Display */
+    .code-display {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: #e2e8f0;
+        padding: 16px 20px;
+        border-radius: 8px;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 13px;
+        display: inline-block;
+        max-width: 100%;
+        overflow-x: auto;
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(135deg, #1e293b 0%, #0f172a 100%),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        word-break: break-all;
+    }
+
+    /* Setup Instructions */
+    .setup-instructions {
+        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%),
+            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-top: 30px;
+    }
+
+    .setup-instructions h3 {
+        font-size: 16px;
+        margin: 0 0 20px 0;
+        font-weight: 600;
+        background-clip: text;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+    }
+
+    .setup-instructions h3::before {
+        content: '📋';
+        font-size: 20px;
+    }
+
+    .setup-instructions ol {
+        counter-reset: step-counter;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .setup-instructions li {
+        counter-increment: step-counter;
+        /* margin: 12px 0; */
+        background: white;
+        border: 1px solid #d9f2f6;
+        border-radius: 6px;
+        padding: 14px 18px 14px 60px;
+        position: relative;
+        transition: all 0.2s ease;
+        color: #334155;
+        line-height: 1.6;
+    }
+
+    .setup-instructions li::before {
+        content: counter(step-counter);
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        color: white;
+        border-radius: 50%;
                 font-size: 14px;
-            }
-
-            .avatar-studio-card {
-                background: white;
-                border: 2px solid transparent;
-                background-image: 
-                    linear-gradient(white, white),
-                    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-                border-radius: 12px;
-                padding: 0;
-                margin: 20px 0;
-                box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-                transition: all 0.3s ease;
-            }
-
-            .avatar-studio-card:hover {
-                box-shadow: 0 8px 25px rgba(56, 177, 197, 0.2);
-                transform: translateY(-2px);
-            }
-
-            .card-header {
-                padding: 20px 30px;
-                border-bottom: 2px solid transparent;
-                background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-                border-radius: 10px 10px 0 0;
-                position: relative;
-                cursor: pointer;
-                user-select: none;
-            }
-
-            .card-header.collapsible {
-                cursor: pointer;
-                display: flex;
-            }
-
-            .card-header.collapsible:hover {
-                background: linear-gradient(135deg, rgba(56, 177, 197, 0.12) 0%, rgba(218, 146, 44, 0.12) 100%);
-            }
-
-            .card-header::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 2px;
-                background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-            }
-
-            .card-header h2 {
-                margin: 0;
-                font-size: 18px;
-                font-weight: 600;
-                color: #1e293b;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-
-            .card-header h2::before {
-                content: '';
-                width: 5px;
-                height: 24px;
-                background: linear-gradient(180deg, #38b1c5 0%, #da922c 100%);
-                border-radius: 3px;
-                box-shadow: 0 2px 8px rgba(56, 177, 197, 0.4);
-            }
-
-            /* Collapse Toggle Icon */
-            .collapse-toggle {
-                margin-left: auto;
-                width: 24px;
-                height: 24px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                border-radius: 50%;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                transition: transform 0.3s ease;
-                flex-shrink: 0;
-            }
-
-            .collapse-toggle.collapsed {
-                transform: rotate(180deg);
-            }
-
-            .card-body {
-                padding: 30px;
-                transition: all 0.3s ease;
-                overflow: hidden;
-            }
-
-            .card-body.collapsed {
-                max-height: 0;
-                padding: 0 30px;
-                opacity: 0;
-            }
-
-            .form-table {
-                margin: 0;
-                width: 100%;
-            }
-
-            .form-table th {
-                padding: 15px 0;
-                width: 180px;
-                font-weight: 600;
-                color: #333;
-                vertical-align: top;
-            }
-
-            #api-key-config {
-                width: 80px;
-            }
-
-            .form-table td {
-                padding: 15px 0;
-                width: auto;
-            }
-
-            .form-table tr {
-                border-bottom: 1px solid #f1f5f9;
-            }
-
-            .form-table tr:last-child {
-                border-bottom: none;
-            }
-
-            .plugin-input[type="text"],
-            .plugin-input[type="password"],
-            .plugin-input select {
-                width: 100%;
-                max-width: 600px;
-                padding: 10px 14px;
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                font-size: 14px;
-                transition: all 0.2s ease;
-                background: white;
-                box-sizing: border-box;
-            }
-
-            .plugin-input[type="text"]:focus,
-            .plugin-input[type="password"]:focus,
-            .plugin-input select:focus {
-                outline: none;
-                border: 2px solid transparent;
-                background-image: 
-                    linear-gradient(white, white),
-                    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-                box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
-            }
-
-            .input-wrapper {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                width: 100%;
-                max-width: 600px;
-            }
-
-            .input-wrapper input {
-                flex: 1;
-                min-width: 0;
-            }
-
-            .toggle-visibility {
-                padding: 10px 20px !important;
-                background: #f8fafc !important;
-                border: 1px solid #d1d5db !important;
-                border-radius: 6px !important;
-                color: #475569 !important;
-                font-size: 13px !important;
-                font-weight: 500 !important;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                height: auto !important;
-                white-space: nowrap;
-                flex-shrink: 0;
-            }
-
-            .toggle-visibility:hover {
-                background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%) !important;
-                border: 1px solid transparent !important;
-                background-image: 
-                    linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-                    linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
-                background-origin: border-box !important;
-                background-clip: padding-box, border-box !important;
-                color: #fff !important;
-            }
-
-            .description {
-                margin: 8px 0 0 0 !important;
-                color: #64748b !important;
-                font-size: 13px !important;
-                line-height: 1.5 !important;
-            }
-
-            .description a {
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                text-decoration: none;
-                font-weight: 600;
-                position: relative;
-            }
-
-            .description a::after {
-                content: '';
-                position: absolute;
-                left: 0;
-                bottom: -2px;
-                width: 0;
-                height: 2px;
-                background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-                transition: width 0.3s ease;
-            }
-
-            .description a:hover::after {
-                width: 100%;
-            }
-
-            /* Toggle Switch */
-            .toggle-switch {
-                position: relative;
-                display: inline-block;
-                width: 48px;
-                height: 26px;
-                margin-right: 10px;
-            }
-
-            .toggle-switch input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-
-            .toggle-slider {
-                position: absolute;
-                cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: #cbd5e1;
-                transition: 0.3s;
-                border-radius: 34px;
-            }
-
-            .toggle-slider:before {
-                position: absolute;
-                content: "";
-                height: 20px;
-                width: 20px;
-                left: 3px;
-                bottom: 3px;
-                background-color: white;
-                transition: 0.3s;
-                border-radius: 50%;
-            }
-
-            input:checked + .toggle-slider {
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                box-shadow: 0 2px 8px rgba(56, 177, 197, 0.4);
-            }
-
-            input:checked + .toggle-slider:before {
-                transform: translateX(22px);
-            }
-
-            .toggle-label {
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-            }
-
-            .toggle-label span {
-                font-weight: 500;
-                color: #334155;
-            }
-
-            /* api-integration */
-
-            .tavus-heygen-api {
-                /* display: flex; */
-                gap: 20px;
-            }
-
-            .tavus-heygen-api .avatar-studio-card {
-                flex: 1;
-                min-width: 0;
-            }
-
-            /* Code Display */
-            .code-display {
-                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-                color: #e2e8f0;
-                padding: 16px 20px;
-                border-radius: 8px;
-                font-family: 'Monaco', 'Courier New', monospace;
-                font-size: 13px;
-                display: inline-block;
-                max-width: 100%;
-                overflow-x: auto;
-                border: 2px solid transparent;
-                background-image: 
-                    linear-gradient(135deg, #1e293b 0%, #0f172a 100%),
-                    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-                word-break: break-all;
-            }
-
-            /* Setup Instructions */
-            .setup-instructions {
-                background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-                border: 2px solid transparent;
-                background-image: 
-                    linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%),
-                    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-                border-radius: 12px;
-                padding: 25px 30px;
-                margin-top: 30px;
-            }
-
-            .setup-instructions h3 {
-                font-size: 16px;
-                margin: 0 0 20px 0;
-                font-weight: 600;
-                background-clip: text;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: #fff;
-            }
-
-            .setup-instructions h3::before {
-                content: '📋';
-                font-size: 20px;
-            }
-
-            .setup-instructions ol {
-                counter-reset: step-counter;
-                list-style: none;
-                padding: 0;
-                margin: 0;
-            }
-
-            .setup-instructions li {
-                counter-increment: step-counter;
-                /* margin: 12px 0; */
-                background: white;
-                border: 1px solid #d9f2f6;
-                border-radius: 6px;
-                padding: 14px 18px 14px 60px;
-                position: relative;
-                transition: all 0.2s ease;
-                color: #334155;
-                line-height: 1.6;
-            }
-
-            .setup-instructions li::before {
-                content: counter(step-counter);
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                color: white;
-                border-radius: 50%;
-                font-size: 14px;
-                font-weight: 700;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 2px 4px rgba(56, 177, 197, 0.3);
-            }
-
-            .setup-instructions li:hover {
-                background: #f8fafc;
-                transform: translateX(4px);
-                border-color: #38b1c5;
-            }
-
-            .setup-instructions a {
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                text-decoration: none;
-                font-weight: 600;
-                position: relative;
-            }
-
-            .setup-instructions a::after {
-                content: '';
-                position: absolute;
-                left: 0;
-                bottom: -2px;
-                width: 0;
-                height: 2px;
-                background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-                transition: width 0.3s ease;
-            }
-
-            .setup-instructions a:hover::after {
-                width: 100%;
-            }
-
-            .setup-instructions strong {
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-
-            .two-col {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-            }
-
-            .two-col li {
-                margin-bottom: 20px;
-            }
-
-            #second-col ol[start="5"] {
-                counter-reset: my-counter 4;
-            }
-
-            #second-col ol[start="5"] > li {
-                counter-increment: my-counter;
-            }
-
-            #second-col ol[start="5"] > li::before {
-                content: counter(my-counter);
-            }
-
-            /* Submit Button */
-            .button-primary {
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
-                border: none !important;
-                padding: 12px 30px !important;
-                font-size: 14px !important;
-                font-weight: 600 !important;
-                border-radius: 8px !important;
-                box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4) !important;
-                transition: all 0.3s ease !important;
-                height: auto !important;
-                text-shadow: none !important;
-                position: relative;
-                overflow: hidden;
-            }
-
-            .button-primary::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-                transition: left 0.5s ease;
-            }
-
-            .button-primary:hover::before {
-                left: 100%;
-            }
-
-            .button-primary:hover {
-                background: linear-gradient(135deg, #2a8b9a 0%, #c17d23 100%) !important;
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5) !important;
-            }
-
-            /* Section Divider */
-            .section-divider {
-                margin: 40px 0;
-                border: none;
-                height: 2px;
-                background: linear-gradient(90deg, transparent 0%, #38b1c5 25%, #da922c 75%, transparent 100%);
-            }
-
-            /* Alert Box */
-            .alert-box {
-                background: linear-gradient(135deg, rgba(218, 146, 44, 0.08) 0%, rgba(56, 177, 197, 0.08) 100%);
-                border: 2px solid transparent;
-                background-image: 
-                    linear-gradient(135deg, rgba(218, 146, 44, 0.08) 0%, rgba(56, 177, 197, 0.08) 100%),
-                    linear-gradient(135deg, #da922c 0%, #38b1c5 100%);
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-                padding: 16px 20px;
-                border-radius: 8px;
-                margin: 20px 0;
-                display: flex;
-                align-items: start;
-                gap: 12px;
-            }
-
-            .alert-box::before {
-                content: '⚠️';
-                font-size: 20px;
-                flex-shrink: 0;
-            }
-
-            .alert-box p {
-                margin: 0;
-                color: #fff;
-                line-height: 1.5;
-            }
-
-            .alert-box strong {
-                background-clip: text;
-                color: #fff;
-            }
-
-            /* Grey Background Section */
-            #google-drive-settings {
-                margin-top: 20px;
-                padding: 25px;
-                background: #f9f9f9;
-                border: 1px solid #ddd;
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-                border-radius: 4px;
-            }
-
-            /* Auto Export Settings within Google Drive */
-            .auto-export-section {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid rgba(56, 177, 197, 0.2);
-            }
-
-            .auto-export-section h3 {
-                font-size: 16px;
-                font-weight: 600;
-                color: #1e293b;
-                margin: 0 0 20px 0;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .auto-export-section h3::before {
-                content: '⚡';
-                font-size: 18px;
-            }
-
-            /* Responsive */
-            @media (max-width: 782px) {
-                .avatar-studio-wrap {
-                    padding: 0 10px;
-                }
-
-                .avatar-studio-header {
-                    padding: 20px;
-                }
-
-                .card-body {
-                    padding: 20px;
-                }
-
-                .form-table th,
-                .form-table td {
-                    display: block;
-                    width: 100% !important;
-                    padding: 10px 0;
-                }
-
-                .form-table th {
-                    padding-bottom: 5px;
-                }
-
-                .input-wrapper {
-                    max-width: 100%;
-                }
-
-                .plugin-input[type="text"],
-                .plugin-input[type="password"],
-                .plugin-input select {
-                    max-width: 100%;
-                }
-
-                .tavus-heygen-api {
-                    flex-direction: column;
-                }
-            }
-            /* Responsive adjustments */
-            @media screen and (max-width: 1200px) {
-                td > div[style*="grid-template-columns"] {
-                    grid-template-columns: 1fr !important;
-                    gap: 16px !important;
-                }
-            }
-            
-            @media screen and (max-width: 782px) {
-                .form-table th {
-                    display: block;
-                    width: 100% !important;
-                    padding-bottom: 0;
-                }
-                
-                .form-table td {
-                    display: block;
-                    width: 100%;
-                    padding-top: 8px;
-                }
-                
-                td > div[style*="grid-template-columns"] {
-                    grid-template-columns: 1fr !important;
-                }
-            }
-        </style>
-
-        <div class="avatar-studio-wrap">
-        <!-- Header -->
-        <div class="avatar-studio-header">
-            <h1>Avatar Studio Settings</h1>
-            <p>Configure your plugin settings, API keys, and integrations</p>
+        font-weight: 700;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(56, 177, 197, 0.3);
+    }
+
+    .setup-instructions li:hover {
+        background: #f8fafc;
+        transform: translateX(4px);
+        border-color: #38b1c5;
+    }
+
+    .setup-instructions a {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-decoration: none;
+        font-weight: 600;
+        position: relative;
+    }
+
+    .setup-instructions a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+        transition: width 0.3s ease;
+    }
+
+    .setup-instructions a:hover::after {
+        width: 100%;
+    }
+
+    .setup-instructions strong {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .two-col li {
+        margin-bottom: 20px;
+    }
+
+    #second-col ol[start="5"] {
+        counter-reset: my-counter 4;
+    }
+
+    #second-col ol[start="5"] > li {
+        counter-increment: my-counter;
+    }
+
+    #second-col ol[start="5"] > li::before {
+        content: counter(my-counter);
+    }
+
+    /* Dropdown-styling */
+    .wp-core-ui select {
+        font-size: 14px;
+        line-height: 2;
+        color: #2c3338;
+        border-color: #c5c5c5;
+        box-shadow: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        min-height: 30px;
+        max-width: 16rem;
+        -webkit-appearance: none;
+        background: #fff url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23555%22%2F%3E%3C%2Fsvg%3E) no-repeat right 10px top 52%;
+        background-size: 16px 16px;
+        cursor: pointer;
+        vertical-align: middle;
+        }
+
+    /* Submit Button */
+    .button-primary {
+        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
+        border: none !important;
+        padding: 12px 30px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4) !important;
+        transition: all 0.3s ease !important;
+        height: auto !important;
+        text-shadow: none !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .button-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .button-primary:hover::before {
+        left: 100%;
+    }
+
+    .button-primary:hover {
+        background: linear-gradient(135deg, #2a8b9a 0%, #c17d23 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5) !important;
+    }
+
+    /* Section Divider */
+    .section-divider {
+        margin: 40px 0;
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent 0%, #38b1c5 25%, #da922c 75%, transparent 100%);
+    }
+
+    /* Alert Box */
+    .alert-box {
+        background: linear-gradient(135deg, rgba(218, 146, 44, 0.08) 0%, rgba(56, 177, 197, 0.08) 100%);
+        border: 2px solid transparent;
+        background-image: 
+            linear-gradient(135deg, rgba(218, 146, 44, 0.08) 0%, rgba(56, 177, 197, 0.08) 100%),
+            linear-gradient(135deg, #da922c 0%, #38b1c5 100%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .alert-box::before {
+        content: '⚠️';
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .alert-box p {
+        margin: 0;
+        color: #fff;
+        line-height: 1.5;
+    }
+
+    .alert-box strong {
+        background-clip: text;
+        color: #fff;
+    }
+
+    /* Grey Background Section */
+    #google-drive-settings {
+        margin-top: 20px;
+        padding: 25px;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        border-radius: 4px;
+    }
+
+    /* Auto Export Settings within Google Drive */
+    .auto-export-section {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(56, 177, 197, 0.2);
+    }
+
+    .auto-export-section h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .auto-export-section h3::before {
+        content: '⚡';
+        font-size: 18px;
+    }
+
+
+    .masked {
+        -webkit-text-security: disc; /* Chrome, Edge */
+        text-security: disc;         /* Firefox (partial support) */
+    }
+
+    /* Responsive */
+    @media (max-width: 782px) {
+        .avatar-studio-wrap {
+            padding: 0 10px;
+        }
+
+        .avatar-studio-header {
+            padding: 20px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-table th,
+        .form-table td {
+            display: block;
+            width: 100% !important;
+            padding: 10px 0;
+        }
+
+        .form-table th {
+            padding-bottom: 5px;
+        }
+
+        .input-wrapper {
+            max-width: 100%;
+        }
+
+        .plugin-input[type="text"],
+        .plugin-input[type="password"],
+        .plugin-input select {
+            max-width: 100%;
+        }
+
+        .tavus-heygen-api {
+            flex-direction: column;
+        }
+    }
+    /* Responsive adjustments */
+    @media screen and (max-width: 1200px) {
+        td > div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+        }
+    }
+    
+    @media screen and (max-width: 782px) {
+        .form-table th {
+            display: block;
+            width: 100% !important;
+            padding-bottom: 0;
+        }
+        
+        .form-table td {
+            display: block;
+            width: 100%;
+            padding-top: 8px;
+        }
+        
+        td > div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
+<div class="avatar-studio-wrap">
+<!-- Header -->
+<div class="avatar-studio-header">
+    <h1><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+        <circle cx="12" cy="12" r="3"/>
+    </svg> Avatar Studio Settings</h1>
+    <p>Configure your plugin settings, API keys, and integrations</p>
+</div>
+
+<form method="post" action="options.php">
+    <?php 
+    settings_fields('avatar_studio_main_settings_group');
+    // REMOVE the register_setting calls from here - they're now in avatar_studio_register_settings()
+        ?>
+
+        <!-- Main Enable Setting -->
+        <div class="avatar-studio-card">
+            <div class="card-header">
+                <h2>General Settings</h2>
+            </div>
+            <div class="card-body">
+                <table class="form-table">
+                    <tr valign="top">
+                        <th style="line-height: 1.5;" scope="row">Plugin Status</th>
+                        <td>
+                            <label class="toggle-label">
+                                <div class="toggle-switch">
+                                    <input 
+                                        type="checkbox" 
+                                        id="avatar_studio_enable" 
+                                        name="avatar_studio_enable" 
+                                        value="1" 
+                                        <?php checked(1, get_option('avatar_studio_enable'), true); ?> 
+                                    />
+                                    <span class="toggle-slider"></span>
+                                </div>
+                                <span>Enable Avatar Studio Plugin</span>
+                            </label>
+                            <p class="description">Toggle this to enable or disable all plugin functionality</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
-        <form method="post" action="options.php">
-            <?php 
-            settings_fields('avatar_studio_main_settings_group');
-            // REMOVE the register_setting calls from here - they're now in avatar_studio_register_settings()
-                ?>
-
-                <!-- Main Enable Setting -->
-                <div class="avatar-studio-card">
-                    <div class="card-header">
-                        <h2>General Settings</h2>
-                    </div>
-                    <div class="card-body">
-                        <table class="form-table">
-                            <tr valign="top">
-                                <th style="line-height: 1.5;" scope="row">Plugin Status</th>
-                                <td>
-                                    <label class="toggle-label">
-                                        <div class="toggle-switch">
-                                            <input 
-                                                type="checkbox" 
-                                                id="avatar_studio_enable" 
-                                                name="avatar_studio_enable" 
-                                                value="1" 
-                                                <?php checked(1, get_option('avatar_studio_enable'), true); ?> 
-                                            />
-                                            <span class="toggle-slider"></span>
-                                        </div>
-                                        <span>Enable Avatar Studio Plugin</span>
-                                    </label>
-                                    <p class="description">Toggle this to enable or disable all plugin functionality</p>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+        <!-- Tavus API Settings -->
+        <div class="tavus-heygen-api">
+            <div class="avatar-studio-card">
+                <div class="card-header collapsible" data-target="tavus-api-body">
+                    <h2>Tavus API Configuration</h2>
+                    <span class="collapse-toggle">−</span>
                 </div>
-
-                <!-- Tavus API Settings -->
-                <div class="tavus-heygen-api">
-                    <div class="avatar-studio-card">
-                        <div class="card-header collapsible" data-target="tavus-api-body">
-                            <h2>Tavus API Configuration</h2>
-                            <span class="collapse-toggle">−</span>
-                        </div>
-                        <div class="card-body" id="tavus-api-body">
-                            <table class="form-table">
-                                <tr valign="top">
-                                    <th style="line-height: 3.3;" id="api-key-config" scope="row">API Key</th>
-                                    <td>
-                                        <div class="input-wrapper">
-                                            <input 
-                                                type="password" 
-                                                id="avatar_studio_tavus_api_key" 
-                                                name="avatar_studio_tavus_api_key" 
-                                                value="<?php echo esc_attr(get_option('avatar_studio_tavus_api_key')); ?>" 
-                                                class="plugin-input"
-                                                placeholder="Enter your Tavus API key"
-                                            />
-                                            <button type="button" class="button toggle-visibility" data-target="avatar_studio_tavus_api_key">Show</button>
-                                        </div>
-                                        <p class="description">
-                                            Enter your Tavus API key to fetch conversation transcripts. 
-                                            Get your API key from <a href="https://platform.tavus.io" target="_blank">Tavus Platform →</a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Heygen API Settings -->
-                    <div class="avatar-studio-card">
-                        <div class="card-header collapsible" data-target="heygen-api-body">
-                            <h2>Heygen API Configuration</h2>
-                            <span class="collapse-toggle">−</span>
-                        </div>
-                        <div class="card-body" id="heygen-api-body">
-                            <table class="form-table">
-                                <tr valign="top">
-                                    <th style="line-height: 3.3;" id="api-key-config" scope="row">API Key</th>
-                                    <td>
-                                        <div class="input-wrapper">
-                                            <input 
-                                                type="password" 
-                                                id="avatar_studio_heygen_api_key" 
-                                                name="avatar_studio_heygen_api_key" 
-                                                value="<?php echo esc_attr(get_option('avatar_studio_heygen_api_key')); ?>" 
-                                                class="plugin-input"
-                                                placeholder="Enter your Heygen API key"
-                                            />
-                                            <button type="button" class="button toggle-visibility" data-target="avatar_studio_heygen_api_key">Show</button>
-                                        </div>
-                                        <p class="description">
-                                            Enter your Heygen API key to fetch conversation data. 
-                                            Get your API key from <a href="https://app.heygen.com" target="_blank">Heygen Platform →</a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                <div class="card-body" id="tavus-api-body">
+                    <table class="form-table">
+                        <tr valign="top">
+                            <th style="line-height: 3.3;" id="api-key-config" scope="row">API Key</th>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input 
+                                        type="text" 
+                                        id="avatar_studio_tavus_api_key" 
+                                        name="avatar_studio_tavus_api_key" 
+                                        value="<?php echo esc_attr($tavus_api_key); ?>" 
+                                        class="plugin-input masked"
+                                        placeholder="Enter your Tavus API key"
+                                        autocomplete="off"
+                                        autocorrect="off"
+                                        autocapitalize="none"
+                                    />
+                                    <button type="button" class="button toggle-visibility" data-target="avatar_studio_tavus_api_key">Show</button>
+                                </div>
+                                <p class="description">
+                                    Enter your Tavus API key to fetch conversation transcripts. 
+                                    Get your API key from <a href="https://platform.tavus.io" target="_blank">Tavus Platform →</a>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
+            </div>
 
-                <!-- Google Drive Integration -->
-                <div class="avatar-studio-card">
-                    <div class="card-header collapsible" data-target="google-drive-body">
-                        <h2>Google Drive Integration</h2>
-                        <span class="collapse-toggle collapsed">−</span>
-                    </div>
-                    <div class="card-body collapsed" id="google-drive-body">
-                        <table class="form-table">
-                            <tr valign="top">
-                                <th style="line-height: 1.5;" scope="row">Enable Integration</th>
-                                <td>
-                                    <label class="toggle-label">
-                                        <div class="toggle-switch">
-                                            <input 
-                                                type="checkbox" 
-                                                id="avatar_studio_enable_google_drive" 
-                                                name="avatar_studio_enable_google_drive" 
-                                                value="1" 
-                                                <?php checked(1, get_option('avatar_studio_enable_google_drive'), true); ?> 
-                                                class="plugin-input"
-                                            />
-                                            <span class="toggle-slider"></span>
-                                        </div>
-                                        <span>Enable Google Drive</span>
-                                    </label>
-                                    <p class="description">Enable this to export transcripts directly to Google Drive</p>
-                                </td>
-                            </tr>
-                        </table>
+            <!-- Heygen API Settings -->
+            <div class="avatar-studio-card">
+                <div class="card-header collapsible" data-target="heygen-api-body">
+                    <h2>Heygen API Configuration</h2>
+                    <span class="collapse-toggle">−</span>
+                </div>
+                <div class="card-body" id="heygen-api-body">
+                    <table class="form-table">
+                        <tr valign="top">
+                            <th style="line-height: 3.3;" id="api-key-config" scope="row">API Key</th>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input 
+                                        type="text" 
+                                        id="avatar_studio_heygen_api_key" 
+                                        name="avatar_studio_heygen_api_key" 
+                                        value="<?php echo esc_attr(get_option('avatar_studio_heygen_api_key')); ?>" 
+                                        class="plugin-input masked"
+                                        placeholder="Enter your Heygen API key"
+                                        autocomplete="off"
+                                        autocorrect="off"
+                                        autocapitalize="none"
+                                    />
+                                    <button type="button" class="button toggle-visibility" data-target="avatar_studio_heygen_api_key">Show</button>
+                                </div>
+                                <p class="description">
+                                    Enter your Heygen API key to fetch conversation data. 
+                                    Get your API key from <a href="https://app.heygen.com" target="_blank">Heygen Platform →</a>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-                        <div id="google-drive-settings" style="display:none;">
-                            <hr class="section-divider">
-                            
-                            <table class="form-table">
-                                <!-- Client ID and Client Secret in One Row -->
-                                <tr valign="top">
-                                    <th style="line-height: 3; width: 120px;" scope="row">OAuth Credentials</th>
-                                    <td>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                            <!-- Client ID -->
-                                            <div>
-                                                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Client ID</label>
-                                                <input 
-                                                    type="text" 
-                                                    id="avatar_studio_google_client_id" 
-                                                    name="avatar_studio_google_client_id" 
-                                                    value="<?php echo esc_attr(get_option('avatar_studio_google_client_id')); ?>" 
-                                                    class="plugin-input google-drive-input"
-                                                    placeholder="Enter Google Client ID"
-                                                    style="width: 100%;"
-                                                />
-                                                <p class="description" style="margin-top: 6px;">
-                                                    OAuth 2.0 Client ID from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console →</a>
-                                                </p>
-                                            </div>
+        <!-- Google Drive Integration -->
+        <div class="avatar-studio-card conditional-section <?php echo !$has_tavus_key ? 'disabled' : ''; ?>" id="google-drive-section">
+            <div class="card-header collapsible" data-target="google-drive-body">
+                <h2>
+                    Google Drive Integration (User Transcripts – Tavus Only)
+                    <span class="section-status <?php echo $has_tavus_key ? 'active' : 'inactive'; ?>">
+                        <?php echo $has_tavus_key ? 'Tavus API Available' : 'Tavus API Required'; ?>
+                    </span>
+                </h2>
+                <span class="collapse-toggle <?php echo !$has_tavus_key ? 'collapsed' : ''; ?>">−</span>
+            </div>
+            <div class="card-body <?php echo !$has_tavus_key ? 'collapsed' : ''; ?>" id="google-drive-body">
+                <?php if (!$has_tavus_key): ?>
+                <div class="alert-box">
+                    <p>
+                        <strong>Transcript Export requires Tavus API key.</strong> 
+                        Please enter your Tavus API key above to enable user transcript export to Google Drive.
+                    </p>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Purpose Description -->
+                <div class="alert-box" style="background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
+                    <p style="color: #1e293b;">
+                        <strong style="color: #333;">Export User Conversation Transcripts</strong><br>
+                        This integration automatically exports user conversation transcripts from Tavus to Google Drive. 
+                        Perfect for backup, analysis, or compliance purposes. Transcripts contain full conversation logs 
+                        between users and your AI avatars.
+                    </p>
+                </div>
+                
+                <table class="form-table">
+                    <tr valign="top">
+                        <th style="line-height: 1.5;" scope="row">Enable Transcript Export</th>
+                        <td>
+                            <label class="toggle-label">
+                                <div class="toggle-switch">
+                                    <input 
+                                        type="checkbox" 
+                                        id="avatar_studio_enable_google_drive" 
+                                        name="avatar_studio_enable_google_drive" 
+                                        value="1" 
+                                        <?php checked(1, $google_drive_enabled, true); ?> 
+                                        class="plugin-input"
+                                        <?php echo !$has_tavus_key ? 'disabled' : ''; ?>
+                                    />
+                                    <span class="toggle-slider"></span>
+                                </div>
+                                <span>Enable Google Drive Export</span>
+                            </label>
+                            <p class="description">Enable to automatically export user conversation transcripts to Google Drive</p>
+                        </td>
+                    </tr>
+                </table>
 
-                                            <!-- Client Secret -->
-                                            <div>
-                                                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Client Secret</label>
-                                                <div class="input-wrapper" style="display: flex; gap: 8px;">
-                                                    <input 
-                                                        type="password" 
-                                                        id="avatar_studio_google_client_secret" 
-                                                        name="avatar_studio_google_client_secret" 
-                                                        value="<?php echo esc_attr(get_option('avatar_studio_google_client_secret')); ?>" 
-                                                        class="plugin-input google-drive-input"
-                                                        placeholder="Enter Client Secret"
-                                                        style="flex: 1;"
-                                                    />
-                                                    <button type="button" class="button toggle-visibility google-drive-toggle" data-target="avatar_studio_google_client_secret" style="white-space: nowrap;">Show</button>
-                                                </div>
-                                                <p class="description" style="margin-top: 6px;">OAuth 2.0 Client Secret from Google Cloud Console</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr valign="top">
-                                    <th style="line-height: 3;" scope="row">Redirect URI</th>
-                                    <td>
-                                        <div class="code-display">
-                                            <?php echo admin_url('admin.php?page=avatar_studio_sessions'); ?>
-                                        </div>
-                                        <div class="alert-box" style="margin-top: 12px;">
-                                            <p>
-                                                <strong>Important:</strong> Add this exact URL to your "Authorized redirect URIs" 
-                                                in the Google Cloud Console to enable OAuth authentication.
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <div class="setup-instructions">
-                                <h3>Setup Instructions</h3>
-
-                                <div class="two-col">
-                                    <div class="col">
-                                        <ol start="1">
-                                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and select your project (or create a new one)</li>
-                                            <li>Navigate to API Library and <strong>enable the Google Drive API</strong></li>
-                                            <li>Go to APIs & Services → Credentials</li>
-                                            <li>Create a new <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
-                                        </ol>
+                <div id="google-drive-settings" style="<?php echo !$google_drive_enabled ? 'display:none;' : ''; ?>">
+                    <hr class="section-divider">
+                    
+                    <table class="form-table">
+                        <!-- Client ID and Client Secret in One Row -->
+                        <tr valign="top">
+                            <th style="line-height: 3; width: 120px;" scope="row">OAuth Credentials</th>
+                            <td>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <!-- Client ID -->
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Client ID</label>
+                                        <input 
+                                            type="text" 
+                                            id="avatar_studio_google_client_id" 
+                                            name="avatar_studio_google_client_id" 
+                                            value="<?php echo esc_attr(get_option('avatar_studio_google_client_id')); ?>" 
+                                            class="plugin-input google-drive-input"
+                                            placeholder="Enter Google Client ID"
+                                            style="width: 100%;"
+                                            <?php echo !$has_tavus_key ? 'disabled' : ''; ?>
+                                        />
+                                        <p class="description" style="margin-top: 6px;">
+                                            OAuth 2.0 Client ID from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console →</a>
+                                        </p>
                                     </div>
 
-                                    <div id="second-col" class="col">
-                                        <ol start="5">
-                                            <li>Add the Redirect URI shown above to your Authorized redirect URIs</li>
-                                            <li>Copy your Client ID and Client Secret into the fields above</li>
-                                            <li>Save your settings, then go to the Sessions page to connect Google Drive</li>
-                                        </ol>
+                                    <!-- Client Secret -->
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Client Secret</label>
+                                        <div class="input-wrapper" style="display: flex; gap: 8px;">
+                                            <input 
+                                                type="password" 
+                                                id="avatar_studio_google_client_secret" 
+                                                name="avatar_studio_google_client_secret" 
+                                                value="<?php echo esc_attr(get_option('avatar_studio_google_client_secret')); ?>" 
+                                                class="plugin-input google-drive-input"
+                                                placeholder="Enter Client Secret"
+                                                style="flex: 1;"
+                                                <?php echo !$has_tavus_key ? 'disabled' : ''; ?>
+                                            />
+                                            <button type="button" class="button toggle-visibility google-drive-toggle" data-target="avatar_studio_google_client_secret" style="white-space: nowrap;" <?php echo !$has_tavus_key ? 'disabled' : ''; ?>>Show</button>
+                                        </div>
+                                        <p class="description" style="margin-top: 6px;">OAuth 2.0 Client Secret from Google Cloud Console</p>
                                     </div>
                                 </div>
+                            </td>
+                        </tr>
+
+                        <tr valign="top">
+                            <th style="line-height: 3;" scope="row">Redirect URI</th>
+                            <td>
+                                <div class="code-display">
+                                    <?php echo admin_url('admin.php?page=avatar_studio_sessions'); ?>
+                                </div>
+                                <div class="alert-box" style="margin-top: 12px;">
+                                    <p>
+                                        <strong>Important:</strong> Add this exact URL to your "Authorized redirect URIs" 
+                                        in the Google Cloud Console to enable OAuth authentication for transcript export.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="setup-instructions">
+                        <h3>Setup Instructions for Transcript Export</h3>
+
+                        <div class="two-col">
+                            <div class="col">
+                                <ol start="1">
+                                    <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and select your project (or create a new one)</li>
+                                    <li>Navigate to API Library and <strong>enable the Google Drive API</strong></li>
+                                    <li>Go to APIs & Services → Credentials</li>
+                                    <li>Create a new <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
+                                </ol>
                             </div>
 
-                            <!-- Auto Export Settings -->
-                            <div class="auto-export-section">
-                                <h3>Automated Export Settings</h3>
-                                <p class="description" style="margin-bottom: 20px;">Configure automatic transcript export to Google Drive at scheduled intervals.</p>
-                                
-                                <table class="form-table">
-                                    <!-- Auto Export and Export Frequency in One Row -->
-                                    <tr valign="top">
-                                        <th style="line-height: 1.5; width: 120px;" scope="row">Export Configuration</th>
-                                        <td>
-                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
-                                                <!-- Auto Export Toggle -->
-                                                <div>
-                                                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Auto Export</label>
-                                                    <label class="toggle-label">
-                                                        <div class="toggle-switch">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                id="avatar_auto_export_enabled"
-                                                                name="avatar_auto_export_enabled" 
-                                                                value="1" 
-                                                                <?php checked($export_enabled, 1); ?>
-                                                                class="plugin-input auto-export-input"
-                                                            />
-                                                            <span class="toggle-slider"></span>
-                                                        </div>
-                                                        <span>Enable Automatic Export</span>
-                                                    </label>
-                                                    <p class="description" style="margin-top: 6px;">Automatically export all transcripts to Google Drive at scheduled intervals</p>
-                                                </div>
-                                                
-                                                <!-- Export Frequency -->
-                                                <div>
-                                                    <label for="avatar_auto_export_interval" style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Export Frequency</label>
-                                                    <select 
-                                                        name="avatar_auto_export_interval" 
-                                                        id="avatar_auto_export_interval"
-                                                        class="plugin-input auto-export-input"
-                                                        style="width: 100%;"
-                                                    >
-                                                        <option value="every_5_minutes" <?php selected($export_interval, 'every_5_minutes'); ?>>Every 5 Minutes</option>
-                                                        <option value="every_15_minutes" <?php selected($export_interval, 'every_15_minutes'); ?>>Every 15 Minutes</option>
-                                                        <option value="hourly" <?php selected($export_interval, 'hourly'); ?>>Every Hour</option>
-                                                        <option value="twicedaily" <?php selected($export_interval, 'twicedaily'); ?>>Twice Daily</option>
-                                                        <option value="daily" <?php selected($export_interval, 'daily'); ?>>Daily</option>
-                                                    </select>
-                                                    <p class="description" style="margin-top: 6px;">Choose how often transcripts should be automatically exported</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <div id="second-col" class="col">
+                                <ol start="5">
+                                    <li>Add the Redirect URI shown above to your Authorized redirect URIs</li>
+                                    <li>Copy your Client ID and Client Secret into the fields above</li>
+                                    <li>Save your settings, then go to the Sessions page to connect Google Drive</li>
+                                    <li><strong>User transcripts will automatically export</strong> to your connected Google Drive</li>
+                                </ol>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <?php submit_button('Save All Settings', 'primary', 'submit', false); ?>
-            </form>
+                    <!-- Auto Export Settings -->
+                    <div class="auto-export-section">
+                        <h3>Automated Transcript Export Settings</h3>
+                        <p class="description" style="margin-bottom: 20px;">Configure automatic user transcript export to Google Drive at scheduled intervals.</p>
+                        
+                        <table class="form-table">
+                            <!-- Auto Export and Export Frequency in One Row -->
+                            <tr valign="top">
+                                <th style="line-height: 1.5; width: 120px;" scope="row">Export Configuration</th>
+                                <td>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                                        <!-- Auto Export Toggle -->
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Auto Export</label>
+                                            <label class="toggle-label">
+                                                <div class="toggle-switch">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        id="avatar_auto_export_enabled"
+                                                        name="avatar_auto_export_enabled" 
+                                                        value="1" 
+                                                        <?php checked($export_enabled, 1); ?>
+                                                        class="plugin-input auto-export-input"
+                                                        <?php echo !$has_tavus_key ? 'disabled' : ''; ?>
+                                                    />
+                                                    <span class="toggle-slider"></span>
+                                                </div>
+                                                <span>Enable Automatic Transcript Export</span>
+                                            </label>
+                                            <p class="description" style="margin-top: 6px;">Automatically export all user conversation transcripts to Google Drive at scheduled intervals</p>
+                                        </div>
+                                        
+                                        <!-- Export Frequency -->
+                                        <div>
+                                            <label for="avatar_auto_export_interval" style="display: block; font-weight: 600; margin-bottom: 8px; color: #1f2937;">Export Frequency</label>
+                                            <select 
+                                                name="avatar_auto_export_interval" 
+                                                id="avatar_auto_export_interval"
+                                                class="plugin-input auto-export-input"
+                                                style="width: 100%;"
+                                                <?php echo !$has_tavus_key ? 'disabled' : ''; ?>
+                                            >
+                                                <option value="every_5_minutes" <?php selected($export_interval, 'every_5_minutes'); ?>>Every 5 Minutes</option>
+                                                <option value="every_15_minutes" <?php selected($export_interval, 'every_15_minutes'); ?>>Every 15 Minutes</option>
+                                                <option value="hourly" <?php selected($export_interval, 'hourly'); ?>>Every Hour</option>
+                                                <option value="twicedaily" <?php selected($export_interval, 'twicedaily'); ?>>Twice Daily</option>
+                                                <option value="daily" <?php selected($export_interval, 'daily'); ?>>Daily</option>
+                                            </select>
+                                            <p class="description" style="margin-top: 6px;">Choose how often user transcripts should be automatically exported</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Transcript Information -->
+                        <div class="alert-box" style="margin-top: 20px; background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);">
+                            <p style="color: #1e293b;">
+                                <strong style="color: #333;">What gets exported?</strong><br>
+                                Each exported transcript includes the complete conversation log between a user and your AI avatar, 
+                                including timestamps, user messages, avatar responses, and metadata. Files are organized by date 
+                                and session ID for easy reference.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Handle expand/collapse functionality
-            document.querySelectorAll('.card-header.collapsible').forEach(function(header) {
-                header.addEventListener('click', function(e) {
-                    // Prevent collapse when clicking on child elements like toggles
-                    if (e.target.closest('.toggle-switch') || e.target.closest('.toggle-label')) {
-                        return;
-                    }
-                    
-                    const targetId = this.getAttribute('data-target');
-                    const body = document.getElementById(targetId);
-                    const toggle = this.querySelector('.collapse-toggle');
-                    
-                    if (body && toggle) {
-                        body.classList.toggle('collapsed');
-                        toggle.classList.toggle('collapsed');
-                    }
+        <?php submit_button('Save All Settings', 'primary', 'submit', false); ?>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Get Tavus API key input and Google Drive section
+    const tavusApiKeyInput = document.getElementById('avatar_studio_tavus_api_key');
+    const googleDriveSection = document.getElementById('google-drive-section');
+    const googleDriveCheckbox = document.getElementById('avatar_studio_enable_google_drive');
+    const googleDriveSettings = document.getElementById('google-drive-settings');
+    
+    // Function to check Tavus API key and toggle Google Drive section
+    function toggleGoogleDriveSection() {
+        const hasTavusKey = tavusApiKeyInput.value.trim() !== '';
+        
+        if (googleDriveSection) {
+            if (hasTavusKey) {
+                googleDriveSection.classList.remove('disabled');
+                // Enable all inputs within Google Drive section
+                document.querySelectorAll('#google-drive-section input, #google-drive-section select, #google-drive-section button').forEach(input => {
+                    input.disabled = false;
                 });
-            });
-
-            // Handle password visibility toggles
-            document.querySelectorAll('.toggle-visibility').forEach(function (button) {
-                button.addEventListener('click', function () {
-                    const targetId = this.getAttribute('data-target');
-                    const input = document.getElementById(targetId);
-
-                    if (!input) return;
-
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        this.textContent = 'Hide';
-                    } else {
-                        input.type = 'password';
-                        this.textContent = 'Show';
-                    }
-                });
-            });
-
-            // Handle Google Drive section show/hide
-            const googleDriveCheckbox = document.getElementById('avatar_studio_enable_google_drive');
-            const googleDriveSettings = document.getElementById('google-drive-settings');
-
-            function toggleGoogleDriveSettings() {
-                if (googleDriveSettings) {
-                    googleDriveSettings.style.display = googleDriveCheckbox.checked ? 'block' : 'none';
-                }
-            }
-
-            if (googleDriveCheckbox && googleDriveSettings) {
-                toggleGoogleDriveSettings(); // Initialize on page load
-                googleDriveCheckbox.addEventListener('change', toggleGoogleDriveSettings);
-            }
-
-            // Handle main plugin enable/disable
-            const enableCheckbox = document.getElementById('avatar_studio_enable');
-            const allInputs = document.querySelectorAll('.plugin-input');
-            const allToggleButtons = document.querySelectorAll('.toggle-visibility');
-
-            function toggleAllInputs() {
-                const enabled = enableCheckbox.checked;
+                // Auto-enable Google Drive if it was previously enabled
                 
-                allInputs.forEach(input => {
-                    if (input.id !== 'avatar_studio_enable') {
-                        input.disabled = !enabled;
-                    }
+            } else {
+                googleDriveSection.classList.add('disabled');
+                // Disable all inputs within Google Drive section
+                document.querySelectorAll('#google-drive-section input, #google-drive-section select, #google-drive-section button').forEach(input => {
+                    input.disabled = true;
                 });
-                
-                allToggleButtons.forEach(btn => {
-                    btn.disabled = !enabled;
-                });
-                
-                // Re-check Google Drive settings visibility
-                if (enabled) {
+                // Auto-disable Google Drive
+                if (googleDriveCheckbox) {
+                    googleDriveCheckbox.checked = false;
                     toggleGoogleDriveSettings();
-                } else {
-                    if (googleDriveSettings) {
-                        googleDriveSettings.style.display = 'none';
-                    }
                 }
             }
+        }
+    }
+    
+    // Function to toggle Google Drive settings visibility
+    function toggleGoogleDriveSettings() {
+        if (googleDriveSettings && googleDriveCheckbox) {
+            googleDriveSettings.style.display = googleDriveCheckbox.checked ? 'block' : 'none';
+        }
+    }
+    
+    // Initialize on page load
+    toggleGoogleDriveSection();
+    toggleGoogleDriveSettings();
+    
+    // Listen for changes in Tavus API key
+    if (tavusApiKeyInput) {
+        tavusApiKeyInput.addEventListener('input', toggleGoogleDriveSection);
+        tavusApiKeyInput.addEventListener('change', toggleGoogleDriveSection);
+    }
+    
+    // Listen for changes in Google Drive checkbox
+    if (googleDriveCheckbox) {
+        googleDriveCheckbox.addEventListener('change', toggleGoogleDriveSettings);
+    }
 
-            if (enableCheckbox) {
-                toggleAllInputs(); // Initialize on page load
-                enableCheckbox.addEventListener('change', toggleAllInputs);
+    // Initialize collapsed states on page load
+    document.querySelectorAll('.card-header.collapsible').forEach(function(header) {
+        const targetId = header.getAttribute('data-target');
+        const body = document.getElementById(targetId);
+        const toggle = header.querySelector('.collapse-toggle');
+        
+        if (body && body.classList.contains('collapsed')) {
+            header.classList.add('collapsed-state');
+            if (toggle) {
+                toggle.classList.add('collapsed');
+            }
+        }
+    });
+
+    // Handle expand/collapse functionality
+    document.querySelectorAll('.card-header.collapsible').forEach(function(header) {
+        header.addEventListener('click', function(e) {
+            // Prevent collapse when clicking on child elements like toggles
+            if (e.target.closest('.toggle-switch') || e.target.closest('.toggle-label')) {
+                return;
+            }
+            
+            // Don't allow collapsing if section is disabled
+            if (this.closest('.conditional-section.disabled')) {
+                return;
+            }
+            
+            const targetId = this.getAttribute('data-target');
+            const body = document.getElementById(targetId);
+            const toggle = this.querySelector('.collapse-toggle');
+            
+            if (body && toggle) {
+                body.classList.toggle('collapsed');
+                toggle.classList.toggle('collapsed');
+                this.classList.toggle('collapsed-state');
             }
         });
-        </script>
-        <?php
+    });
+
+    // Handle password visibility toggles
+    document.querySelectorAll('.toggle-visibility').forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (this.disabled) return;
+            
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+
+            if (!input) return;
+
+            // Toggle masked class
+            if (input.classList.contains('masked')) {
+                input.classList.remove('masked');
+                this.textContent = 'Hide';
+            } else {
+                input.classList.add('masked');
+                this.textContent = 'Show';
+            }
+        });
+    });
+
+    // Handle main plugin enable/disable
+    const enableCheckbox = document.getElementById('avatar_studio_enable');
+    const allInputs = document.querySelectorAll('.plugin-input');
+    const allToggleButtons = document.querySelectorAll('.toggle-visibility');
+
+    function toggleAllInputs() {
+        const enabled = enableCheckbox.checked;
+        
+        allInputs.forEach(input => {
+            if (input.id !== 'avatar_studio_enable') {
+                input.disabled = !enabled;
+            }
+        });
+        
+        allToggleButtons.forEach(btn => {
+            btn.disabled = !enabled;
+        });
+        
+        // Collapse/Expand API sections based on plugin state
+        const apiSections = [
+            { body: 'tavus-api-body', header: '[data-target="tavus-api-body"]' },
+            { body: 'heygen-api-body', header: '[data-target="heygen-api-body"]' }
+        ];
+        
+        apiSections.forEach(section => {
+            const body = document.getElementById(section.body);
+            const header = document.querySelector(section.header);
+            
+            if (body && header) {
+                if (enabled) {
+                    // Plugin enabled - expand API sections
+                    body.classList.remove('collapsed');
+                    header.classList.remove('collapsed-state');
+                    header.querySelector('.collapse-toggle')?.classList.remove('collapsed');
+                } else {
+                    // Plugin disabled - collapse API sections
+                    body.classList.add('collapsed');
+                    header.classList.add('collapsed-state');
+                    header.querySelector('.collapse-toggle')?.classList.add('collapsed');
+                }
+            }
+        });
+        
+        // Re-check Google Drive settings
+        if (enabled) {
+            toggleGoogleDriveSection();
+            toggleGoogleDriveSettings();
+        } else {
+            if (googleDriveSettings) {
+                googleDriveSettings.style.display = 'none';
+            }
+        }
     }
+
+    if (enableCheckbox) {
+        toggleAllInputs(); // Initialize on page load
+        enableCheckbox.addEventListener('change', toggleAllInputs);
+}
+});
+</script>
+<?php
+}
 
     // Sessions page
     function avatar_studio_sessions_page()
@@ -1199,8 +1479,7 @@
     }
 
     .page-btn:hover {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
+        color: #333;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(56, 177, 197, 0.3);
     }
@@ -1389,6 +1668,7 @@
     .drive-header h2 {
         margin: 0;
         font-size: 22px;
+        line-height: 28px;
         font-weight: 700;
         background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
         -webkit-background-clip: text;
@@ -4231,19 +4511,94 @@
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_user_info';
 
-    // Handle delete action
-    if (isset($_POST['delete_user_id']) && isset($_POST['delete_user_nonce'])) {
-        if (wp_verify_nonce($_POST['delete_user_nonce'], 'delete_user_action')) {
-            $user_id = intval($_POST['delete_user_id']);
-            $deleted = $wpdb->delete($table_name, ['id' => $user_id], ['%d']);
-            
-            if ($deleted) {
-                echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> User deleted successfully.</p></div>';
-            } else {
-                echo '<div class="notice notice-error is-dismissible"><p><strong>Error!</strong> Failed to delete user.</p></div>';
+    // Handle bulk delete action
+    if (isset($_POST['bulk_delete']) && isset($_POST['bulk_delete_nonce'])) {
+        if (wp_verify_nonce($_POST['bulk_delete_nonce'], 'bulk_delete_action')) {
+            if (!empty($_POST['selected_users'])) {
+                $selected_users = array_map('intval', $_POST['selected_users']);
+                $placeholders = implode(',', array_fill(0, count($selected_users), '%d'));
+                
+                $deleted = $wpdb->query(
+                    $wpdb->prepare(
+                        "DELETE FROM {$table_name} WHERE id IN ($placeholders)",
+                        $selected_users
+                    )
+                );
+                
+                if ($deleted) {
+                    echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> ' . $deleted . ' users deleted successfully.</p></div>';
+                } else {
+                    echo '<div class="notice notice-error is-dismissible"><p><strong>Error!</strong> Failed to delete selected users.</p></div>';
+                }
             }
         }
     }
+
+    // Handle export CSV action
+    // if (isset($_POST['export_csv']) && isset($_POST['export_csv_nonce'])) {
+    //     if (wp_verify_nonce($_POST['export_csv_nonce'], 'export_csv_action')) {
+    //         if (!empty($_POST['selected_users'])) {
+    //             $selected_users = array_map('intval', $_POST['selected_users']);
+    //             $placeholders = implode(',', array_fill(0, count($selected_users), '%d'));
+                
+    //             $export_query = $wpdb->prepare(
+    //                 "SELECT * FROM {$table_name} WHERE id IN ($placeholders) ORDER BY created_at DESC",
+    //                 $selected_users
+    //             );
+    //             $export_results = $wpdb->get_results($export_query);
+                
+    //             // Set headers for CSV download
+    //             header('Content-Type: text/csv; charset=utf-8');
+    //             header('Content-Disposition: attachment; filename=avatar-studio-users-' . date('Y-m-d-H-i-s') . '.csv');
+                
+    //             // Create output stream
+    //             $output = fopen('php://output', 'w');
+                
+    //             // Add BOM for UTF-8
+    //             fputs($output, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
+                
+    //             // CSV headers
+    //             fputcsv($output, [
+    //                 'ID',
+    //                 'Full Name', 
+    //                 'Email Address',
+    //                 'Phone Number',
+    //                 'Conversation ID',
+    //                 'Created At'
+    //             ]);
+                
+    //             // Add data rows
+    //             foreach ($export_results as $row) {
+    //             // Format the date for CSV export
+    //             $created_date = DateTime::createFromFormat('Y-m-d H:i:s', $row->created_at);
+    //             $formatted_date = $created_date ? $created_date->format('m-d-Y H:i:s') : $row->created_at;
+                
+    //             // Format phone number in US format with country code
+    //             $clean_phone = preg_replace('/[^0-9]/', '', $row->mobile);
+    //             if (substr($clean_phone, 0, 1) === '1' && strlen($clean_phone) === 11) {
+    //                 $clean_phone = substr($clean_phone, 1);
+    //             }
+    //             if (strlen($clean_phone) === 10) {
+    //                 $formatted_phone = '+1 (' . substr($clean_phone, 0, 3) . ') ' . substr($clean_phone, 3, 3) . '-' . substr($clean_phone, 6, 4);
+    //             } else {
+    //                 $formatted_phone = '+1 ' . $clean_phone;
+    //             }
+                
+    //             fputcsv($output, [
+    //                 'AS' . $row->id,
+    //                 $row->full_name,
+    //                 $row->email,
+    //                 $formatted_phone,
+    //                 $row->conversation_id,
+    //                 $formatted_date
+    //             ]);
+    //         }
+                
+    //             fclose($output);
+    //             exit;
+    //         }
+    //     }
+    // }
 
     $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
     $per_page = 10;
@@ -4259,7 +4614,8 @@
     $where_sql = '';
     if (!empty($search)) {
         $where_sql = $wpdb->prepare(
-            "WHERE full_name LIKE %s OR email LIKE %s OR mobile LIKE %s OR country_code LIKE %s",
+            "WHERE full_name LIKE %s OR email LIKE %s OR mobile LIKE %s OR country_code LIKE %s OR CONCAT('+1 ', mobile) LIKE %s",
+            '%' . $wpdb->esc_like($search) . '%',
             '%' . $wpdb->esc_like($search) . '%',
             '%' . $wpdb->esc_like($search) . '%',
             '%' . $wpdb->esc_like($search) . '%',
@@ -4306,32 +4662,6 @@
         .avatar-user-info-header h1 {
             margin: 0 0 5px;
             font-size: 22px;
-        }
-
-        .avatar-search-section {
-            background: #f9f9f9;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-        }
-
-        .search-form-wrapper {
-            display: flex;
-            gap: 10px;
-        }
-
-        .search-form-wrapper input[type="search"] {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-        }
-
-        .search-form-wrapper input[type="submit"],
-        .search-form-wrapper .button {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            background: #eee;
-            cursor: pointer;
         }
 
         .avatar-table-section {
@@ -4383,7 +4713,8 @@
         }
 
         .pagination-links a:hover {
-            background: #ddd;
+            background: #f5f5f5;
+            color: #333;
         }
 
         .stats-grid {
@@ -4417,8 +4748,9 @@
     <style>
         /* Main Wrapper */
         .avatar-user-info-wrapper {
-            max-width: 98%;
-            margin: 20px 0;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
         }
 
@@ -4531,12 +4863,33 @@
             background-clip: text;
         }
 
-        /* Search Section */
-        .avatar-search-section {
+        /* Search & Bulk Actions Section */
+        .search-bulk-section {
+            margin-bottom: 24px;
+        }
+
+        .search-bulk-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .search-bulk-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        /* Bulk Actions Column */
+        .bulk-actions-column {
+            min-width: 0;
+        }
+
+        .bulk-actions-card {
             background: white;
             padding: 24px;
             border-radius: 12px;
-            margin-bottom: 24px;
             border: 2px solid transparent;
             background-image: 
                 linear-gradient(white, white),
@@ -4544,15 +4897,262 @@
             background-origin: border-box;
             background-clip: padding-box, border-box;
             box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+            height: -webkit-fill-available;
         }
 
-        .search-form-wrapper {
+        .bulk-actions-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #374151;
+            margin: 5px 0 16px 0;
             display: flex;
-            gap: 12px;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bulk-actions-title::before {
+            content: '📁';
+            font-size: 18px;
+        }
+
+        .select-all-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
+            border-radius: 8px;
+            border: 1px solid rgba(56, 177, 197, 0.2);
+        }
+
+        .bulk-checkbox {
+            transform: scale(1.3);
+            cursor: pointer;
+            accent-color: #38b1c5;
+        }
+
+        .bulk-checkbox-label {
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .bulk-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .selected-count {
+            background: #fff;
+            color: #da922c;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            border: 1px solid #da922c;
+            text-decoration: none;
+        }
+
+        .selected-count:hover {
+            background: #da922c;
+            color: #fff;
+        }
+
+        .button-bulk-delete {
+            background: #fff;
+            color: #dc2626;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            border: 1px solid #dc2626;
+            text-decoration: none;
+        }
+
+        .button-bulk-delete:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .button-bulk-clear {
+            background: #fff;
+            color: #6b7280;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+            border: 1px solid #6b7280;
+            text-decoration: none;
+        }
+
+        .button-bulk-clear:hover {
+            background: #6b7280;
+            color: #fff;
+        }
+
+        .button-bulk-export {
+            background: #fff;
+            color: #059669;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            border: 1px solid #059669;
+            text-decoration: none;
+        }
+
+        .button-bulk-export:hover {
+            background: #059669;
+            color: #fff;
+        }
+
+        .button-bulk-export svg,
+        .button-bulk-delete svg,
+        .button-bulk-clear svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .button-bulk-export-all {
+            background: #fff;
+            color: #3b82f6;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            border: 1px solid #3b82f6;
+            text-decoration: none;
+        }
+
+        .button-bulk-export-all:hover {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .button-bulk-export-all svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Search Column */
+        .search-column {
+            min-width: 0;
+        }
+
+        .search-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background-image: 
+                linear-gradient(white, white),
+                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+            height: -webkit-fill-available;
+        }
+
+        .search-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #374151;
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-title::before {
+            content: '🔍';
+            font-size: 16px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 10px;
             align-items: stretch;
         }
 
-        .search-form-wrapper input[type="search"] {
+        .search-input-group input {
+            background: white;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+        }
+
+        .search-input-group input:active {
+            background: white;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+        }
+
+        .search-input-group input:focus {
+            background: white;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+        }
+
+        .search-input {
             flex: 1;
             padding: 12px 16px;
             border-radius: 8px;
@@ -4562,7 +5162,7 @@
             background: #fafafa;
         }
 
-        .search-form-wrapper input[type="search"]:focus {
+        .search-input:focus {
             outline: none;
             border: 2px solid transparent;
             background-image: 
@@ -4571,119 +5171,52 @@
             background-origin: border-box;
             background-clip: padding-box, border-box;
             box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
+            background: white;
         }
 
-        .search-form-wrapper input[type="search"]::placeholder {
-            color: #9ca3af;
-        }
-
-        .button-primary {
+        .search-button {
             background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 12px 24px;
-            cursor: pointer;
-            font-weight: 600;
+            padding: 12px 20px;
             font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4);
-            white-space: nowrap;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            position: relative;
-            overflow: hidden;
+            white-space: nowrap;
         }
 
-        .button-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .button-primary:hover::before {
-            left: 100%;
-        }
-
-        .button-primary:hover {
+        .search-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5);
         }
 
-        .button-primary:active {
-            transform: translateY(0);
+        .search-clear {
+            background: white;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
 
-        .button-secondary {
-            background: white;
-            padding: 12px 20px;
-            border-radius: 8px;
+        .search-clear:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
             text-decoration: none;
             color: #374151;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            white-space: nowrap;
-            gap: 8px;
-        }
-
-        .button-secondary:hover {
-            background-image: 
-                linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            text-decoration: none;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(56, 177, 197, 0.2);
-        }
-
-        .button-danger {
-            background: #fef3c7;
-            color: #991b1b;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .button-danger:hover {
-            background: #991b1b;
-            color: #fff;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-        }
-
-        .button-danger:active {
-            transform: translateY(0);
-        }
-
-        #user-search-btn {
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            border: none;
-            border-radius: 8px;
         }
 
         /* Table Section */
@@ -4724,8 +5257,7 @@
 
         .avatar-table th {
             color: #374151;
-            text-align: center;
-            padding: 16px 20px;
+            padding: 16px 12px;
             font-weight: 700;
             font-size: 13px;
             text-transform: uppercase;
@@ -4735,6 +5267,7 @@
             top: 0;
             background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
             z-index: 10;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .avatar-table th a {
@@ -4742,8 +5275,11 @@
             text-decoration: none;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             transition: all 0.2s ease;
+            padding: 4px 0;
+            font-size: 12px;
         }
 
         .avatar-table th a:hover {
@@ -4777,20 +5313,138 @@
         }
 
         .avatar-table td {
-            padding: 16px 20px;
+            padding: 16px 12px;
             color: #1f2937;
             vertical-align: middle;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        /* Specific column alignments */
+        .avatar-table th:nth-child(1), /* Checkbox column */
+        .avatar-table td:nth-child(1) {
+            width: 50px;
+            text-align: center;
+            padding: 16px 8px;
+        }
+
+        .avatar-table th:nth-child(2), /* ID column */
+        .avatar-table td:nth-child(2) {
+            width: 80px;
+            text-align: center;
+            padding: 16px 8px;
+        }
+
+        .avatar-table th:nth-child(3), /* Full Name column */
+        .avatar-table td:nth-child(3) {
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .avatar-table th:nth-child(4), /* Email column */
+        .avatar-table td:nth-child(4) {
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .avatar-table th:nth-child(5), /* Phone Number column */
+        .avatar-table td:nth-child(5) {
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .avatar-table th:nth-child(6), /* Conversation ID column */
+        .avatar-table td:nth-child(6) {
+            text-align: center;
+            min-width: 200px;
+            font-size: 12px;
+        }
+
+        .avatar-table th:nth-child(7), /* Created At column */
+        .avatar-table td:nth-child(7) {
+            width: 180px;
+            text-align: center;
+            padding: 16px 8px;
+        }
+
+        /* Center align checkbox cells */
+        .avatar-table td:first-child {
             text-align: center;
         }
 
-        .avatar-table td:first-child {
+        /* ID column styling */
+        .avatar-table td:nth-child(2) {
             font-weight: 600;
+            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        /* Conversation ID wrapper alignment */
+        .conversation-id-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Copy button alignment */
+        .copy-btn {
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: white;
+            border: 2px solid transparent;
+            background-image: 
+                linear-gradient(white, white),
+                linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            color: #6b7280;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        /* Badge alignment */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .badge-primary {
+            background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
+            border: 2px solid transparent;
+            background-image: 
+                linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
+                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
             background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
+        /* Empty state alignment */
         .table-empty {
             text-align: center;
             padding: 60px 20px !important;
@@ -5132,6 +5786,13 @@
             box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
         }
 
+        /* Checkbox styles */
+        .user-checkbox {
+            transform: scale(1.2);
+            cursor: pointer;
+            accent-color: #38b1c5;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .avatar-table {
@@ -5140,11 +5801,45 @@
 
             .avatar-table th,
             .avatar-table td {
-                padding: 12px 16px;
+                padding: 12px 8px;
+            }
+            
+            .avatar-table th:nth-child(1),
+            .avatar-table td:nth-child(1) {
+                padding: 12px 6px;
+            }
+            
+            .avatar-table th:nth-child(2),
+            .avatar-table td:nth-child(2) {
+                padding: 12px 6px;
+            }
+            
+            .avatar-table th:nth-child(7),
+            .avatar-table td:nth-child(7) {
+                padding: 12px 6px;
             }
         }
 
         @media (max-width: 768px) {
+
+            .avatar-table-section {
+                overflow-x: auto;
+                border-radius: 8px;
+            }
+
+            .avatar-table {
+                min-width: 800px;
+            }
+            
+            .avatar-table th,
+            .avatar-table td {
+                padding: 12px 8px;
+            }
+            
+            .conversation-id-wrapper {
+                justify-content: flex-start;
+            }
+
             .avatar-user-info-wrapper {
                 margin: 10px;
             }
@@ -5166,15 +5861,45 @@
                 padding: 20px;
             }
 
-            .search-form-wrapper {
+            .search-bulk-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-input-group {
                 flex-direction: column;
-                align-items: stretch;
             }
 
-            .search-form-wrapper input[type="search"],
-            .button-primary,
-            .button-secondary {
-                width: 100%;
+            .bulk-controls-row {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .bulk-controls-row {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                padding: 16px;
+                background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
+                border-radius: 8px;
+                border: 1px solid rgba(56, 177, 197, 0.2);
+            }
+
+            .bulk-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .button-bulk-export,
+            .button-bulk-delete,
+            .button-bulk-clear {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .select-all-control {
+                justify-content: center;
             }
 
             .avatar-table-section {
@@ -5201,10 +5926,6 @@
             .page-jump-wrapper {
                 width: 100%;
                 justify-content: center;
-            }
-
-            .delete-modal-content {
-                margin: 20px;
             }
         }
 
@@ -5253,61 +5974,9 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
-        /* Actions column */
-        .actions-cell {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
     </style>
 
     <script>
-        let deleteUserId = null;
-        let deleteUserName = '';
-        let deleteUserEmail = '';
-
-        function showDeleteModal(userId, userName, userEmail) {
-            deleteUserId = userId;
-            deleteUserName = userName;
-            deleteUserEmail = userEmail;
-            
-            document.getElementById('delete-user-name').textContent = userName;
-            document.getElementById('delete-user-email').textContent = userEmail;
-            document.getElementById('delete-user-id').textContent = userId;
-            document.getElementById('delete-modal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('delete-modal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-            deleteUserId = null;
-            deleteUserName = '';
-            deleteUserEmail = '';
-        }
-
-        function confirmDelete() {
-            if (deleteUserId) {
-                document.getElementById('delete-user-id-input').value = deleteUserId;
-                document.getElementById('delete-user-form').submit();
-            }
-        }
-
-        // Close modal on escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeDeleteModal();
-            }
-        });
-
-        // Close modal on backdrop click
-        document.addEventListener('click', function(e) {
-            if (e.target.id === 'delete-modal') {
-                closeDeleteModal();
-            }
-        });
-
         function copyConversationId(id, button) {
             navigator.clipboard.writeText(id).then(function() {
                 const originalText = button.innerHTML;
@@ -5337,6 +6006,60 @@
             }
         }
 
+        // Bulk selection functions
+        function toggleSelectAll(checkbox) {
+            const userCheckboxes = document.querySelectorAll('.user-checkbox');
+            userCheckboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateBulkActions();
+        }
+
+        function updateBulkActions() {
+            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+            const selectedCount = document.getElementById('selected-count');
+            
+            selectedCount.textContent = selectedCheckboxes.length + ' selected';
+            document.getElementById('select-all-checkbox').checked = selectedCheckboxes.length === document.querySelectorAll('.user-checkbox').length;
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.user-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            document.getElementById('select-all-checkbox').checked = false;
+            updateBulkActions();
+        }
+
+        // Bulk delete functions
+        function showBulkDeleteModal() {
+            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+            document.getElementById('bulk-selected-count').textContent = selectedCheckboxes.length + ' user(s)';
+            document.getElementById('bulk-delete-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBulkDeleteModal() {
+            document.getElementById('bulk-delete-modal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function confirmBulkDelete() {
+            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+            const container = document.getElementById('bulk-delete-users-container');
+            container.innerHTML = '';
+            
+            selectedCheckboxes.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_users[]';
+                input.value = checkbox.value;
+                container.appendChild(input);
+            });
+            
+            document.getElementById('bulk-delete-form').submit();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const pageInput = document.getElementById('page-jump-input');
             if (pageInput) {
@@ -5346,7 +6069,130 @@
                     }
                 });
             }
+
+            // Close modal on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeBulkDeleteModal();
+                }
+            });
+
+            // Close modal on backdrop click
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'bulk-delete-modal') {
+                    closeBulkDeleteModal();
+                }
+            });
         });
+        // Export Selected CSV function
+        function exportSelectedUsers() {
+            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('Please select at least one user to export.');
+                return false;
+            }
+            
+            // Get selected user IDs
+            const selectedUsers = Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
+            
+            // Show loading state
+            const exportBtn = document.querySelector('.button-bulk-export');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '⏳ Exporting...';
+            exportBtn.disabled = true;
+            
+            // Create a hidden form and submit it
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '<?php echo admin_url('admin-ajax.php'); ?>';
+            form.style.display = 'none';
+            
+            // Add action
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'avatar_studio_export_csv';
+            form.appendChild(actionInput);
+            
+            // Add nonce
+            const nonceInput = document.createElement('input');
+            nonceInput.type = 'hidden';
+            nonceInput.name = 'nonce';
+            nonceInput.value = '<?php echo wp_create_nonce('export_csv_action'); ?>';
+            form.appendChild(nonceInput);
+            
+            // Add selected user IDs
+            selectedUsers.forEach(userId => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_users[]';
+                input.value = userId;
+                form.appendChild(input);
+            });
+            
+            // Add form to document and submit
+            document.body.appendChild(form);
+            form.submit();
+            
+            // Remove form after submission and reset button
+            setTimeout(() => {
+                document.body.removeChild(form);
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+            }, 3000);
+            
+            return false;
+        }
+
+        // Export All CSV function
+        function exportAllUsers() {
+            // Show loading state
+            const exportAllBtn = document.querySelector('.button-bulk-export-all');
+            const originalText = exportAllBtn.innerHTML;
+            exportAllBtn.innerHTML = '⏳ Exporting All...';
+            exportAllBtn.disabled = true;
+            
+            // Create a hidden form and submit it
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '<?php echo admin_url('admin-ajax.php'); ?>';
+            form.style.display = 'none';
+            
+            // Add action
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'avatar_studio_export_csv';
+            form.appendChild(actionInput);
+            
+            // Add nonce
+            const nonceInput = document.createElement('input');
+            nonceInput.type = 'hidden';
+            nonceInput.name = 'nonce';
+            nonceInput.value = '<?php echo wp_create_nonce('export_csv_action'); ?>';
+            form.appendChild(nonceInput);
+            
+            // Add export_all flag
+            const exportAllInput = document.createElement('input');
+            exportAllInput.type = 'hidden';
+            exportAllInput.name = 'export_all';
+            exportAllInput.value = '1';
+            form.appendChild(exportAllInput);
+            
+            // Add form to document and submit
+            document.body.appendChild(form);
+            form.submit();
+            
+            // Remove form after submission and reset button
+            setTimeout(() => {
+                document.body.removeChild(form);
+                exportAllBtn.innerHTML = originalText;
+                exportAllBtn.disabled = false;
+            }, 3000);
+            
+            return false;
+        }
     </script>
 
     <div class="avatar-user-info-wrapper">
@@ -5378,39 +6224,101 @@
             </div>
         </div>
 
-        <!-- Search Section -->
-        <div class="avatar-search-section">
-            <form method="get" action="" class="search-form-wrapper">
-                <?php if (isset($_GET['page'])) : ?>
-                    <input type="hidden" name="page" value="<?php echo esc_attr($_GET['page']); ?>">
-                <?php endif; ?>
-                
-                <?php if (isset($_GET['orderby'])) : ?>
-                    <input type="hidden" name="orderby" value="<?php echo esc_attr($_GET['orderby']); ?>">
-                <?php endif; ?>
-                <?php if (isset($_GET['order'])) : ?>
-                    <input type="hidden" name="order" value="<?php echo esc_attr($_GET['order']); ?>">
-                <?php endif; ?>
-                
-                <input 
-                    type="search" 
-                    name="s" 
-                    value="<?php echo esc_attr($search); ?>" 
-                    placeholder="Search by name, email, or mobile number..."
-                >
-                <button id="user-search-btn" style="padding: 0 20px" type="submit" class="button-primary">
-                    🔍 Search
-                </button>
-                <?php if (!empty($search)) : ?>
-                    <a href="?page=<?php echo esc_attr($_GET['page']); ?>" class="button-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                        Clear
-                    </a>
-                <?php endif; ?>
-            </form>
+        <!-- Search & Bulk Actions Section -->
+        <div class="search-bulk-section">
+            <div class="search-bulk-grid">
+
+                <!-- Column 1: Search Bar -->
+                <div class="search-column">
+                    <div class="search-card">
+                        <h3 class="search-title">Search Users</h3>
+                        <form method="get" action="" class="search-form-wrapper">
+                            <?php if (isset($_GET['page'])) : ?>
+                                <input type="hidden" name="page" value="<?php echo esc_attr($_GET['page']); ?>">
+                            <?php endif; ?>
+                            
+                            <?php if (isset($_GET['orderby'])) : ?>
+                                <input type="hidden" name="orderby" value="<?php echo esc_attr($_GET['orderby']); ?>">
+                            <?php endif; ?>
+                            <?php if (isset($_GET['order'])) : ?>
+                                <input type="hidden" name="order" value="<?php echo esc_attr($_GET['order']); ?>">
+                            <?php endif; ?>
+                            
+                            <div class="search-input-group">
+                                <input 
+                                    type="search" 
+                                    name="s" 
+                                    value="<?php echo esc_attr($search); ?>" 
+                                    placeholder="Search by name, email, or mobile number..."
+                                    class="search-input"
+                                >
+                                <button type="submit" class="search-button">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <path d="m21 21-4.3-4.3"></path>
+                                    </svg>
+                                    Search
+                                </button>
+                                <?php if (!empty($search)) : ?>
+                                    <a href="?page=<?php echo esc_attr($_GET['page']); ?>" class="search-clear">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                        Clear
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                 <!-- Column 2: Bulk Actions -->
+                <div class="bulk-actions-column">
+                    <div class="bulk-actions-card">
+                        <h3 class="bulk-actions-title">Bulk Actions</h3>
+                        <div class="bulk-controls">
+                            <div class="bulk-controls-row" style="display: flex; justify-content: space-between;">
+                                <div class="bulk-buttons" id="bulk-buttons">
+                                    <button style="border: none; padding: 0;">
+                                        <span class="selected-count" id="selected-count">0 Selected</span>
+                                    </button>    
+                                    <button type="button" class="button-bulk-export" onclick="exportSelectedUsers()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        Export Selected
+                                    </button>
+                                    <button type="button" class="button-bulk-export-all" onclick="exportAllUsers()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        Export All
+                                    </button>
+                                    <button type="button" class="button-bulk-delete" onclick="showBulkDeleteModal()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18"></path>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                        </svg>
+                                        Delete
+                                    </button>
+                                    <button type="button" class="button-bulk-clear" onclick="clearSelection()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Table Section -->
@@ -5418,7 +6326,10 @@
             <table class="avatar-table">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">
+                        <th>
+                            <input style="width: 1.2rem; height: 1.2rem;" type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)">
+                        </th>
+                        <th>
                             <a href="<?php echo avatar_filter_url(['orderby'=>'id','order'=>$orderby==='id'?$new_order:'asc']); ?>">
                                 ID
                                 <?php if($orderby==='id'): ?>
@@ -5444,44 +6355,56 @@
                         </th>
                         <th>
                             <a href="<?php echo avatar_filter_url(['orderby'=>'mobile','order'=>$orderby==='mobile'?$new_order:'asc']); ?>">
-                                Mobile Number
+                                Phone Number (US)
                                 <?php if($orderby==='mobile'): ?>
                                     <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
                                 <?php endif; ?>
                             </a>
                         </th>
-                        <th style="width: 120px;">
-                            <a href="<?php echo avatar_filter_url(['orderby'=>'country_code','order'=>$orderby==='country_code'?$new_order:'asc']); ?>">
-                                Country
-                                <?php if($orderby==='country_code'): ?>
-                                    <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
-                                <?php endif; ?>
-                            </a>
-                        </th>
                         <th>Conversation ID</th>
-                        <th style="width: 180px;">
+                        <th>
                             <a href="<?php echo avatar_filter_url(['orderby'=>'created_at','order'=>$orderby==='created_at'?$new_order:'desc']); ?>">
-                                Created At
+                                Created Date & Time
                                 <?php if($orderby==='created_at'): ?>
                                     <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
                                 <?php endif; ?>
                             </a>
                         </th>
-                        <th style="width: 100px; text-align: center;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($results) : ?>
                         <?php foreach ($results as $row) : ?>
                             <tr>
+                                <td>
+                                    <input type="checkbox" name="selected_users[]" value="<?php echo esc_attr($row->id); ?>" class="user-checkbox" onchange="updateBulkActions()">
+                                </td>
                                 <td><strong>AS<?php echo esc_html($row->id); ?></strong></td>
                                 <td><?php echo esc_html($row->full_name); ?></td>
                                 <td><?php echo esc_html($row->email); ?></td>
-                                <td><?php echo esc_html($row->mobile); ?></td>
                                 <td>
-                                    <span class="badge badge-secondary">
-                                        <?php echo esc_html($row->country_code); ?>
-                                    </span>
+                                    <?php 
+                                    // Format phone number in US format with country code: +1 (XXX) XXX-XXXX
+                                    $phone_number = $row->mobile;
+                                    
+                                    // Remove all non-numeric characters
+                                    $clean_phone = preg_replace('/[^0-9]/', '', $phone_number);
+                                    
+                                    // Remove leading 1 if present (US country code) to avoid duplication
+                                    if (substr($clean_phone, 0, 1) === '1' && strlen($clean_phone) === 11) {
+                                        $clean_phone = substr($clean_phone, 1);
+                                    }
+                                    
+                                    // Format as +1 (XXX) XXX-XXXX if it's 10 digits
+                                    if (strlen($clean_phone) === 10) {
+                                        $formatted_phone = '+1 (' . substr($clean_phone, 0, 3) . ') ' . substr($clean_phone, 3, 3) . '-' . substr($clean_phone, 6, 4);
+                                    } else {
+                                        // Fallback: show original number with +1 prefix if not 10 digits
+                                        $formatted_phone = '+1 ' . $clean_phone;
+                                    }
+                                    
+                                    echo esc_html($formatted_phone);
+                                    ?>
                                 </td>
                                 <td>
                                     <div class="conversation-id-wrapper">
@@ -5496,27 +6419,23 @@
                                         </button>
                                     </div>
                                 </td>
-                                <td><?php echo esc_html($row->created_at); ?></td>
-                                <td style="text-align: center;">
-                                    <button 
-                                        class="button-danger" 
-                                        onclick="showDeleteModal(<?php echo esc_js($row->id); ?>, '<?php echo esc_js($row->full_name); ?>', '<?php echo esc_js($row->email); ?>')"
-                                        title="Delete user">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M3 6h18"></path>
-                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                                        </svg>
-                                    </button>
+                                <td>
+                                    <?php 
+                                    // Convert the database date to MM-DD-YYYY HH:MM:SS format
+                                    $created_date = DateTime::createFromFormat('Y-m-d H:i:s', $row->created_at);
+                                    if ($created_date) {
+                                        echo esc_html($created_date->format('m-d-Y H:i:s'));
+                                    } else {
+                                        // Fallback in case of date format issues
+                                        echo esc_html($row->created_at);
+                                    }
+                                    ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="8" class="table-empty">
+                            <td colspan="7" class="table-empty">
                                 <?php echo !empty($search) ? 'No users found matching your search.' : 'No user records available yet.'; ?>
                             </td>
                         </tr>
@@ -5563,41 +6482,47 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="delete-modal">
+    <!-- Bulk Delete Confirmation Modal -->
+    <div id="bulk-delete-modal" class="delete-modal">
         <div class="delete-modal-content">
             <div class="delete-modal-header">
                 <div class="delete-modal-icon">⚠️</div>
-                <h2 class="delete-modal-title">Confirm Deletion</h2>
+                <h2 class="delete-modal-title">Confirm Bulk Deletion</h2>
             </div>
             
             <div class="delete-modal-body">
-                <p class="delete-modal-text">
-                    Are you sure you want to permanently delete this user? This action cannot be undone.
+                <p class="delete-modal-text" id="bulk-delete-message">
+                    Are you sure you want to delete the selected users? This action cannot be undone.
                 </p>
                 
                 <div class="delete-user-details">
-                    <p><strong>Name:</strong> <span id="delete-user-name"></span></p>
-                    <p><strong>Email:</strong> <span id="delete-user-email"></span></p>
-                    <p><strong>User ID:</strong> <span id="delete-user-id"></span></p>
+                    <p><strong>Selected Users:</strong> <span id="bulk-selected-count"></span></p>
+                    <p style="color: #dc2626; font-weight: 600;">This will permanently remove all selected user records.</p>
                 </div>
             </div>
             
             <div class="delete-modal-footer">
-                <button type="button" class="modal-btn-cancel" onclick="closeDeleteModal()">
+                <button type="button" class="modal-btn-cancel" onclick="closeBulkDeleteModal()">
                     Cancel
                 </button>
-                <button type="button" class="modal-btn-delete" onclick="confirmDelete()">
-                    Delete User
+                <button type="button" class="modal-btn-delete" onclick="confirmBulkDelete()">
+                    Delete Selected Users
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Hidden form for delete submission -->
-    <form id="delete-user-form" method="post" style="display: none;">
-        <input type="hidden" name="delete_user_id" id="delete-user-id-input">
-        <input type="hidden" name="delete_user_nonce" value="<?php echo wp_create_nonce('delete_user_action'); ?>">
+    <!-- Bulk Delete Form -->
+    <form id="bulk-delete-form" method="post" style="display: none;">
+        <input type="hidden" name="bulk_delete" value="1">
+        <input type="hidden" name="bulk_delete_nonce" value="<?php echo wp_create_nonce('bulk_delete_action'); ?>">
+        <div id="bulk-delete-users-container"></div>
+    </form>
+    <!-- Export CSV Form -->
+    <form id="export-csv-form" method="post" style="display: none;">
+        <input type="hidden" name="export_csv" value="1">
+        <input type="hidden" name="export_csv_nonce" value="<?php echo wp_create_nonce('export_csv_action'); ?>">
+        <div id="export-users-container"></div>
     </form>
     <?php
 }

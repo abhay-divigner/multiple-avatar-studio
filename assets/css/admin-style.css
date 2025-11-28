@@ -113,7 +113,7 @@
 }
 
 .avatar-form .image-url {
-  max-width: 290px;
+  /* max-width: 290px; */
 }
 
 .avatar-form input.font-size,
@@ -186,7 +186,7 @@
 }
 
 .avatar-form .image-preview {
-  height: 100px;
+  height: 50px;
 }
 
 .avatar-form .image-preview:not([src=""]),

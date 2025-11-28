@@ -651,3 +651,98 @@ function getLanguageShortName($language)
         return "en";
     }
 }
+
+
+// Add AJAX handler for CSV export
+add_action('wp_ajax_avatar_studio_export_csv', 'handle_avatar_studio_export_csv');
+add_action('wp_ajax_nopriv_avatar_studio_export_csv', 'handle_avatar_studio_export_csv');
+
+function handle_avatar_studio_export_csv() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'export_csv_action')) {
+        wp_die('Security check failed');
+    }
+    
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'avatar_studio_user_info';
+    
+    // Build query based on export type
+    if (isset($_POST['export_all']) && $_POST['export_all'] === '1') {
+        // Export all users
+        $export_query = "SELECT * FROM {$table_name} ORDER BY created_at DESC";
+        $export_results = $wpdb->get_results($export_query);
+        $filename_suffix = 'all-users';
+    } else {
+        // Export selected users
+        if (!empty($_POST['selected_users'])) {
+            $selected_users = array_map('intval', $_POST['selected_users']);
+            $placeholders = implode(',', array_fill(0, count($selected_users), '%d'));
+            
+            $export_query = $wpdb->prepare(
+                "SELECT * FROM {$table_name} WHERE id IN ($placeholders) ORDER BY created_at DESC",
+                $selected_users
+            );
+            $export_results = $wpdb->get_results($export_query);
+            $filename_suffix = 'selected-users';
+        } else {
+            wp_die('No users selected for export.');
+        }
+    }
+    
+    // Clear any previous output
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=avatar-studio-' . $filename_suffix . '-' . date('Y-m-d-H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    
+    // Create output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for UTF-8
+    fputs($output, "\xEF\xBB\xBF");
+    
+    // CSV headers
+    fputcsv($output, [
+        'ID',
+        'Full Name', 
+        'Email Address',
+        'Phone Number',
+        // 'Country Code',
+        'Conversation ID',
+        'Created At'
+    ]);
+    
+    // Add data rows
+    foreach ($export_results as $row) {
+        $created_date = DateTime::createFromFormat('Y-m-d H:i:s', $row->created_at);
+        $formatted_date = $created_date ? $created_date->format('m-d-Y H:i:s') : $row->created_at;
+        
+        $clean_phone = preg_replace('/[^0-9]/', '', $row->mobile);
+        if (substr($clean_phone, 0, 1) === '1' && strlen($clean_phone) === 11) {
+            $clean_phone = substr($clean_phone, 1);
+        }
+        if (strlen($clean_phone) === 10) {
+            $formatted_phone = '+1 (' . substr($clean_phone, 0, 3) . ') ' . substr($clean_phone, 3, 3) . '-' . substr($clean_phone, 6, 4);
+        } else {
+            $formatted_phone = $row->mobile;
+        }
+        
+        fputcsv($output, [
+            'AS' . $row->id,
+            $row->full_name,
+            $row->email,
+            $formatted_phone,
+            // $row->country_code,
+            $row->conversation_id,
+            $formatted_date
+        ]);
+    }
+    
+    fclose($output);
+    wp_die(); // Important for AJAX
+}
