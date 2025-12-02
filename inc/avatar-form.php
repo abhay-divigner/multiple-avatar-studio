@@ -3346,20 +3346,25 @@ input[type="checkbox"] {
                     const imageInput = imageUploaderWrap.querySelector('.image-url');
                     const imagePreview = imageUploaderWrap.querySelector('.image-preview');
                     const removeBtn = imageUploaderWrap.querySelector('.remove-image-btn');
+                    
                     imageInput.value = attachment.url;
                     imagePreview.src = attachment.url;
                     imagePreview.style.display = 'block';
                     removeBtn.style.display = 'inline-block';
+                    
+                    const event = new Event('change', { bubbles: true });
+                    imageInput.dispatchEvent(event);
                 });
 
                 frame.open();
             });
         });
 
+        // Find the remove button handler and add this line at the end:
         document.querySelectorAll('.remove-image-btn').forEach(function (removeBtn) {
             removeBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-
+                
                 imageUploaderWrap = e.target.closest('.image-uploader-wrap');
                 const imageInput = imageUploaderWrap.querySelector('.image-url');
                 const imagePreview = imageUploaderWrap.querySelector('.image-preview');
@@ -3368,6 +3373,10 @@ input[type="checkbox"] {
                 imagePreview.src = '';
                 imagePreview.style.display = 'none';
                 removeBtn.style.display = 'none';
+                
+                // ✅ ADD THIS to trigger change
+                const event = new Event('change', { bubbles: true });
+                imageInput.dispatchEvent(event);
             });
         });
 
@@ -3711,6 +3720,58 @@ jQuery(document).ready(function($) {
         setTimeout(function() {
             $btn.text(originalText);
         }, 2000);
+    });
+});
+</script>
+<script>
+jQuery(document).ready(function($) {
+    // Monitor preview image changes
+    $('#preview_image').on('change input', function() {
+        const newImageUrl = $(this).val();
+        
+        // Update preview images immediately
+        if (newImageUrl) {
+            // Update poster image in video
+            $('#avatarVideo').attr('poster', newImageUrl);
+            
+            // Update previewImage img if exists
+            $('#previewImage').attr('src', newImageUrl);
+            
+            // Update the image preview in the form
+            $(this).closest('.image-uploader-wrap').find('.image-preview').attr('src', newImageUrl).show();
+            $(this).closest('.image-uploader-wrap').find('.remove-image-btn').show();
+        } else {
+            // Reset to default if empty
+            const defaultImage = '<?php echo $previewImage; ?>';
+            $('#avatarVideo').attr('poster', defaultImage);
+            $('#previewImage').attr('src', defaultImage);
+        }
+    });
+    
+    // Handle image upload completion
+    $('.upload-image-btn').on('click', function() {
+        const wrapper = $(this).closest('.image-uploader-wrap');
+        const inputField = wrapper.find('.image-url');
+        
+        // Store original frame select handler
+        const originalFrameSelect = frame ? frame._events.select : null;
+        
+        // Override to trigger change after selection
+        if (frame) {
+            frame.off('select');
+            frame.on('select', function() {
+                const attachment = frame.state().get('selection').first().toJSON();
+                inputField.val(attachment.url).trigger('change');
+                wrapper.find('.image-preview').attr('src', attachment.url).show();
+                wrapper.find('.remove-image-btn').show();
+            });
+        }
+    });
+    
+    // Handle image removal
+    $('.remove-image-btn').on('click', function() {
+        const wrapper = $(this).closest('.image-uploader-wrap');
+        wrapper.find('.image-url').val('').trigger('change');
     });
 });
 </script>

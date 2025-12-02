@@ -27835,6 +27835,10 @@ function closeOverlayQuestion() {
   const B = questionnaires.shift();
   return B && renderedQuestionnaires.push(B), (answerSubmit = !0), !0;
 }
+function getTimeLimitSeconds(B) {
+  const U = Number(B);
+  if (Number.isFinite(U) && U > 0) return U * 60;
+}
 async function overlayQuestionSubmit() {
   const B = overlayQuestionContainer.getAttribute("data-question-title"),
     U = overlayQuestionContainer.getAttribute("data-question-type"),
@@ -28018,14 +28022,12 @@ async function initializeAvatarSession() {
     getAvatarQuestionnaires();
   const B = await fetchAccessToken();
   if (B && B != "") {
-    const userInfo = localStorage.getItem("userInfo");
     fetch(ajaxurl, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         action: "insert_avatar_studio_user",
         provider: "heygen",
-        userInfo: typeof userInfo === "string" ? userInfo : "",
         token: B,
       }),
     }),
@@ -28156,7 +28158,11 @@ async function initializeAvatarSession() {
           (avatarError.innerHTML =
             '<span style="padding:10px; ">Voice mode isn’t allowed now, so we’ll switch to text mode instead! </span>');
     }
-    startCountDown(PLUGIN_OPTIONS == null ? void 0 : PLUGIN_OPTIONS.time_limit),
+    startCountDown(
+      getTimeLimitSeconds(
+        PLUGIN_OPTIONS == null ? void 0 : PLUGIN_OPTIONS.time_limit
+      )
+    ),
       chatBoxContainer.classList.contains("avatarSessionStarted") ||
         chatBoxContainer.classList.add("avatarSessionStarted"),
       avatarContainer.classList.contains("loading") &&

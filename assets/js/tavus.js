@@ -86,7 +86,7 @@ const W = async (i, e) => {
     }
     let i, e;
     return (
-      (i = c.getAttribute("timer") || 300),
+      (i = c.getAttribute("timer") || 5),
       (e = b()),
       {
         timer: i,
@@ -121,7 +121,7 @@ class X {
         "webkitSpeechRecognition" in window || "SpeechRecognition" in window),
       (this.lastProcessedMessageId = null),
       (this.avatarMessagePollingInterval = null),
-      (this.timerSeconds = Q.timer),
+      (this.timerSeconds = Q.timer * 60),
       (this.remainingSeconds = 0),
       (this.timerInterval = null),
       this.initializeButtons(),
@@ -633,16 +633,12 @@ async function Z() {
     console.log("getLanguage", b());
     let i = document.getElementById("pageId"),
       e = document.getElementById("avatarStudioId");
-
-    const userInfo = localStorage.getItem("userInfo");
-    console.log("user Info", userInfo);
     return await fetch(D, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         action: "avatar_studio_tavusConversation",
         language: b(),
-        userInfo: typeof userInfo === "string" ? userInfo : "",
         page_id: i ? i.value : 0,
         avatar_studio_id: e ? e.value : 0,
       }),
