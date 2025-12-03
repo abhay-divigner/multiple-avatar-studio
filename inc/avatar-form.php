@@ -892,27 +892,29 @@ input[type="checkbox"] {
                             </div>
                         </div>
 
-                        <div class="form-field">
-                            <label>
-                                Video Enable
-                                <span class="tooltip-wrapper">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltip-content">Enable video streaming for the avatar</span>
-                                </span>
-                            </label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="video_enable" id="video_enable_yes" value="1" 
-                                        <?php echo ($avatar && $avatar->video_enable == 1) ? 'checked' : ''; ?>>
-                                    <span>Yes</span>
+                        <?php if ($avatar_vendor === 'tavus'): ?>
+                            <div class="form-field">
+                                <label>
+                                    Video Enable
+                                    <span class="tooltip-wrapper">
+                                        <span class="tooltip-icon">?</span>
+                                        <span class="tooltip-content">Enable video streaming for the avatar</span>
+                                    </span>
                                 </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="video_enable" id="video_enable_no" value="0" 
-                                        <?php echo (!$avatar || $avatar->video_enable == 0) ? 'checked' : ''; ?>>
-                                    <span>No</span>
-                                </label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="video_enable" id="video_enable_yes" value="1" 
+                                            <?php echo ($avatar && $avatar->video_enable == 1) ? 'checked' : ''; ?>>
+                                        <span>Yes</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="video_enable" id="video_enable_no" value="0" 
+                                            <?php echo (!$avatar || $avatar->video_enable == 0) ? 'checked' : ''; ?>>
+                                        <span>No</span>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
 
                         <div class="form-field">
                             <label>
@@ -952,22 +954,24 @@ input[type="checkbox"] {
                                 value="<?php echo $avatar && $avatar->time_limit ? esc_attr($avatar->time_limit) : 60 ?>" required />
                             <p class="field-description">Avatar chat duration in minutes</p>
                         </div>
-                        <div class="form-field voice-emotion-row">
-                            <label for="voice_emotion" style="margin-bottom: 8px;">
-                                Voice Emotion
-                                <span class="tooltip-wrapper">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltip-content">Select the emotional tone for the avatar's voice</span>
-                                </span>
-                            </label>
-                            <select name="voice_emotion" id="voice_emotion" style="width: 160px; height: 52px;">
-                                <option value="excited" <?php echo $avatar && $avatar->voice_emotion == 'excited' ? 'selected' : ''; ?>>Excited</option>
-                                <option value="serious" <?php echo $avatar && $avatar->voice_emotion == 'serious' ? 'selected' : ''; ?>>Serious</option>
-                                <option value="friendly" <?php echo $avatar && $avatar->voice_emotion == 'friendly' ? 'selected' : ''; ?>>Friendly</option>
-                                <option value="soothing" <?php echo $avatar && $avatar->voice_emotion == 'soothing' ? 'selected' : ''; ?>>Soothing</option>
-                                <option value="broadcaster" <?php echo $avatar && $avatar->voice_emotion == 'broadcaster' ? 'selected' : ''; ?>>Broadcaster</option>
-                            </select>
-                        </div>
+                        <?php if ($avatar_vendor === 'heygen'): ?>
+                            <div class="form-field voice-emotion-row">
+                                <label for="voice_emotion" style="margin-bottom: 8px;">
+                                    Voice Emotion
+                                    <span class="tooltip-wrapper">
+                                        <span class="tooltip-icon">?</span>
+                                        <span class="tooltip-content">Select the emotional tone for the avatar's voice</span>
+                                    </span>
+                                </label>
+                                <select name="voice_emotion" id="voice_emotion" style="width: 160px; height: 52px;">
+                                    <option value="excited" <?php echo $avatar && $avatar->voice_emotion == 'excited' ? 'selected' : ''; ?>>Excited</option>
+                                    <option value="serious" <?php echo $avatar && $avatar->voice_emotion == 'serious' ? 'selected' : ''; ?>>Serious</option>
+                                    <option value="friendly" <?php echo $avatar && $avatar->voice_emotion == 'friendly' ? 'selected' : ''; ?>>Friendly</option>
+                                    <option value="soothing" <?php echo $avatar && $avatar->voice_emotion == 'soothing' ? 'selected' : ''; ?>>Soothing</option>
+                                    <option value="broadcaster" <?php echo $avatar && $avatar->voice_emotion == 'broadcaster' ? 'selected' : ''; ?>>Broadcaster</option>
+                                </select>
+                            </div>
+                        <?php endif; ?>
                         <div class="form-grid single-column">
                             <div class="form-field">
                                 <label for="chat_window_pages">
@@ -1228,8 +1232,11 @@ input[type="checkbox"] {
                     </div>
 
                     <div class="form-divider"></div>                
-                        <div class="boxed mb-20">
-                        <h2>Opening Texts / Welcome Messages</h2>
+                    <div class="boxed mb-20">
+                        <h2 style="display: flex; align-items: center; gap: 8px;">
+                            Opening Texts / Welcome Messages
+                        </h2><span>Customize the first message users see/listen when the session begins.</span>
+
                         <?php
                         $welcome_message = $avatar && $avatar->welcome_message ? json_decode($avatar->welcome_message, true) : [];
                         ?>
@@ -2850,7 +2857,6 @@ input[type="checkbox"] {
             const avatar_studioTabs = e.target.closest('.avatar_studio-tabs');
             const tab = e.target.getAttribute('data-tab');
 
-            // Remove active class from all buttons
             avatar_studioTabs.querySelectorAll(':scope > .tab-btn').forEach(btn => btn.classList.remove('active'));
 
             // Hide all tab contents
@@ -2859,6 +2865,21 @@ input[type="checkbox"] {
             // Activate selected tab
             avatar_studioTabs.querySelector('#avatar_studio-tab-' + tab).classList.add('active');
             e.target.classList.add('active');
+            
+            // Update opening text for the selected language in preview
+            const openingTexts = {
+                en: document.getElementById('welcome_message_en')?.value || '',
+                es: document.getElementById('welcome_message_es')?.value || '',
+                fr: document.getElementById('welcome_message_fr')?.value || '',
+                de: document.getElementById('welcome_message_de')?.value || ''
+            };
+            
+            const startSessionBtn = document.getElementById('startSession');
+            if (startSessionBtn) {
+                const openingText = openingTexts[tab] || openingTexts.en;
+                startSessionBtn.setAttribute('initial_message', openingText);
+                startSessionBtn.setAttribute('opening_text', openingText);
+            }
         });
     });
 
@@ -3248,6 +3269,25 @@ input[type="checkbox"] {
             } else {
                 micToggler.style.removeProperty("line-height");
             }
+        }
+
+        // Update opening texts in preview
+        const openingTexts = {
+            en: document.getElementById('welcome_message_en')?.value || '',
+            es: document.getElementById('welcome_message_es')?.value || '',
+            fr: document.getElementById('welcome_message_fr')?.value || '',
+            de: document.getElementById('welcome_message_de')?.value || ''
+        };
+        
+        const startSessionBtn = document.getElementById('startSession');
+        if (startSessionBtn) {
+            // Get current language
+            const currentLang = document.querySelector('.avatar_studio-tab-content.active')?.id?.replace('avatar_studio-tab-', '') || 'en';
+            const openingText = openingTexts[currentLang] || openingTexts.en;
+            
+            // Update the attribute
+            startSessionBtn.setAttribute('initial_message', openingText);
+            startSessionBtn.setAttribute('opening_text', openingText);
         }
 
 
