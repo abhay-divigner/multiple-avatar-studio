@@ -302,7 +302,7 @@
 #chatBox-heading {
   border-radius: 10px 10px 0 0;
   font-size: 18px;
-  position: absolute;
+  position: relative;
   text-align: center;
   top: 0;
   left: 0;
@@ -1362,6 +1362,10 @@ div#streamingStatus {
   font-size: 13px;
   height: 100px;
   overflow-y: scroll;
+}
+
+.manage-column {
+  /* display: inline-flex; */
 }
 
 @keyframes fadeInUp {

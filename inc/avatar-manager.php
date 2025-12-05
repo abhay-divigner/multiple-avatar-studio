@@ -1,26 +1,30 @@
 <?php
 
-
 if (!defined('ABSPATH'))
     exit;
+
 class avatarManager
 {
     public function __construct()
     {
         add_action('admin_menu', [$this, 'add_admin_pages']);
-
         add_action('admin_post_save_avatar', [$this, 'handle_save_avatar']);
         add_action('admin_post_update_avatar', [$this, 'handle_update_avatar']);
         add_action('admin_post_delete_avatar', [$this, 'handle_delete_avatar']);
         add_action('admin_post_copy_avatar', [$this, 'handle_copy_avatar']);
-
         add_action('admin_head', [$this, 'add_custom_styles']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
+    }
+
+    public function enqueue_admin_assets($hook)
+    {
+        if (strpos($hook, 'avatar_studio') !== false) {
+            wp_enqueue_style('bootstrap-icons', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css');
+        }
     }
 
     public function add_admin_pages()
     {
-
-
         $hook = add_submenu_page(
             'avatar_studio_main',
             'Avatars',
@@ -32,17 +36,15 @@ class avatarManager
         add_action("load-$hook", [$this, 'avatar_studio_avatars_add_screen_options']);
         add_filter('set-screen-option', [$this, 'avatar_studio_avatars_set_screen_option'], 10, 3);
 
-
-
-
         add_submenu_page(
-            null, // Hidden from sidebar
+            null,
             'Manage Options',
             'Manage Options',
             'manage_options',
             'avatar_studio-add-avatar',
             [$this, 'render_avatar_settings_page']
         );
+        
         add_submenu_page(
             null,
             'Edit Avatar',
@@ -52,67 +54,924 @@ class avatarManager
             [$this, 'render_edit_avatar_settings_page']
         );
     }
+
     public function add_custom_styles()
     {
         $screen = get_current_screen();
-        if ($screen && (strpos($screen->id, 'avatar_studio-add-avatar') !== false || strpos($screen->id, 'avatar_studio-edit-avatar') !== false)) {
-            echo '<style>
-               #wpfooter{ position:relative;}
-            </style>';
-            echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"  />';
-            // echo '<link rel="stylesheet" href="' . plugin_dir_url(__FILE__) . '../assets/css/style.css"  />';
+        if ($screen && (strpos($screen->id, 'avatar_studio') !== false)) {
+            ?>
+            <style>
+                /* Main Container Styling */
+                .wrap {
+                    background: #f8f9fa;
+                    max-width: 1400px;
+                    margin: 20px auto;
+                    padding: 0 20px;
+                }
 
+                /* Header Section */
+                .avatar-studio-header {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    padding: 32px 40px;
+                    margin: 0 0 30px 0;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(56, 177, 197, 0.15);
+                }
+
+                .avatar-studio-header h1 {
+                    color: #ffffff;
+                    font-size: 32px;
+                    font-weight: 600;
+                    margin: 0 0 12px 0;
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                .avatar-studio-header p {
+                    color: rgba(255, 255, 255, 0.95);
+                    font-size: 15px;
+                    margin: 0;
+                    font-weight: 400;
+                }
+
+                /* Content Wrapper */
+                .avatar-studio-content {
+                    background: #f9f9f9;
+                    padding: 32px;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+                    margin: 0 20px;
+                    border: 1px solid #ddd;
+                }
+
+                /* Button Styling */
+                .button, .button-primary, #add-avatar-btn {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    border: none;
+                    color: #ffffff;
+                    padding: 12px 28px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.2);
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .button:hover, .button-primary:hover, #add-avatar-btn:hover {
+                    background: linear-gradient(135deg, #38b1c5 20%, #da922c 80%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 16px rgba(56, 177, 197, 0.3);
+                    color: #ffffff;
+                }
+
+                .button:before {
+                    /* content: ''; */
+                    font-weight: bold;
+                }
+
+                #add-avatar-btn:before {
+                    content: '+';
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+
+                #back-to-avatar-btn {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    color: #fff;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                }
+
+                #back-to-avatar-btn:hover {
+                    background: linear-gradient(135deg, #38b1c5 10%, #da922c 90%);
+                }
+
+                /* Notice Styling */
+                .notice {
+                    border-left: 4px solid #38b1c5;
+                    background: #ffffff;
+                    border-radius: 8px;
+                    padding: 16px 20px;
+                    margin: 20px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                }
+
+                .notice-success {
+                    border-left-color: #46b450;
+                    background: #f0f9f1;
+                }
+
+                /* Modal Styling */
+                #vendor-selection-modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 999999;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(4px);
+                    animation: fadeIn 0.3s ease;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                .modal-content-wrapper {
+                    background: #ffffff;
+                    margin: 8% auto;
+                    padding: 48px;
+                    max-width: 600px;
+                    border-radius: 16px;
+                    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+                    animation: slideUp 0.3s ease;
+                }
+
+                @keyframes slideUp {
+                    from {
+                        transform: translateY(30px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                .modal-content-wrapper h2 {
+                    margin: 0 0 12px 0;
+                    font-size: 28px;
+                    line-height: 1;
+                    font-weight: 600;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+
+                .modal-subtitle {
+                    color: #333;
+                    font-size: 15px;
+                    margin: 0 0 40px 0;
+                }
+
+                .vendor-options {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 24px;
+                    margin-bottom: 32px;
+                }
+
+                .vendor-option {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 24px;
+                    border: 2px solid #e5e7eb;
+                    border-radius: 12px;
+                    text-decoration: none;
+                    color: #374151;
+                    transition: all 0.3s ease;
+                    background: #ffffff;
+                }
+
+                .vendor-option:hover {
+                    border-color: #38b1c5;
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
+                    transform: translateY(-4px);
+                    box-shadow: 0 12px 24px rgba(56, 177, 197, 0.15);
+                }
+
+                .vendor-icon {
+                    font-size: 56px;
+                    margin-bottom: 10px;
+                    filter: grayscale(0.3);
+                    transition: all 0.3s ease;
+                }
+
+                .vendor-option:hover .vendor-icon {
+                    filter: grayscale(0);
+                    transform: scale(1.1);
+                }
+
+                .vendor-option strong {
+                    font-size: 20px;
+                    font-weight: 600;
+                    color: #1f2937;
+                }
+
+                #close-modal-btn {
+                    width: 100%;
+                    padding: 14px;
+                    background: #f3f4f6;
+                    border: none;
+                    border-radius: 8px;
+                    color: #333;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                #close-modal-btn:hover {
+                    background: #e5e7eb;
+                    color: #374151;
+                }
+
+                /* Enhanced Expandable Table Styling */
+                .avatar-table-wrapper {
+                    background: white;
+                    border: 2px solid transparent;
+                    background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    background-origin: border-box;
+                    background-clip: padding-box, border-box;
+                    border-radius: 12px;
+                    padding: 0;
+                    margin: 20px 0;
+                    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+                    transition: all 0.3s ease;
+                }
+
+                .avatar-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                .avatar-table thead th {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
+                    color: #374151;
+                    font-weight: 600;
+                    padding: 16px 12px;
+                    text-transform: uppercase;
+                    font-size: 11px;
+                    letter-spacing: 0.8px;
+                    border-bottom: 2px solid #e5e7eb;
+                    text-align: center;
+                    white-space: nowrap;
+                }
+
+                .avatar-table tbody tr.main-row {
+                    /* background: #ffffff; */
+                    transition: all 0.2s ease;
+                    /* border-bottom: 1px solid #f3f4f6; */
+                    cursor: pointer;
+                }
+
+                .avatar-table tbody tr.main-row:hover {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
+                }
+
+                .avatar-table tbody tr.main-row.expanded {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
+                    border-bottom: none;
+                }
+
+                .avatar-table tbody td {
+                    padding: 16px 12px;
+                    vertical-align: middle;
+                    color: #1f2937;
+                    font-size: 14px;
+                    text-align: center;
+                }
+
+                /* Expand Icon */
+                .expand-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 6px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    transition: all 0.3s ease;
+                }
+
+                .expand-icon i {
+                    transition: transform 0.3s ease;
+                    font-size: 16px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    -webkit-text-fill-color: #ffffff;
+                }
+
+                .main-row.expanded .expand-icon {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                }
+
+                .main-row.expanded .expand-icon i {
+                    transform: rotate(180deg);
+                    -webkit-text-fill-color: #ffffff;
+                }
+
+                /* Preview Image */
+                .avatar-preview-img {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    border: 2px solid #e5e7eb;
+                    transition: all 0.3s ease;
+                }
+
+                .avatar-preview-img:hover {
+                    border-color: #38b1c5;
+                    transform: scale(1.05);
+                }
+
+                /* Vendor Badge */
+                .vendor-badge {
+                    display: inline-block;
+                    padding: 6px 14px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .vendor-badge.tavus {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(56, 177, 197, 0.25) 100%);
+                    color: #38b1c5;
+                }
+
+                .vendor-badge.heygen {
+                    background: linear-gradient(135deg, rgba(218, 146, 44, 0.15) 0%, rgba(218, 146, 44, 0.25) 100%);
+                    color: #da922c;
+                }
+
+                /* Expanded Details Row */
+                .details-row {
+                    display: none;
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.02) 0%, rgba(218, 146, 44, 0.02) 100%);
+                    border-bottom: 1px solid #e5e7eb;
+                }
+
+                .details-row.visible {
+                    display: table-row;
+                }
+
+                .details-content {
+                    padding: 16px;
+                    animation: expandDown 0.3s ease;
+                }
+
+                @keyframes expandDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .details-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }
+
+                .detail-item {
+                    background: #ffffff;
+                    padding: 16px;
+                    border-radius: 8px;
+                    border: 1px solid #c6c6c6;
+                    transition: all 0.2s ease;
+                }
+
+                .detail-item:hover {
+                    border-color: #c9c9c9;
+                    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.1);
+                }
+
+                .detail-item label {
+                    display: block;
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: #333;
+                    margin-bottom: 6px;
+                }
+
+                .detail-item .value {
+                    font-size: 14px;
+                    color: #1f2937;
+                    word-break: break-word;
+                }
+
+                .shortcode-box {
+                    background: #f9fafb;
+                    padding: 4px;
+                    border-radius: 4px;
+                    font-family: monospace;
+                    font-size: 13px;
+                    color: #374151;
+                    border: 1px dashed #d1d5db;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 8px;
+                }
+
+                .shortcode-box code {
+                    flex: 1;
+                    background: transparent;
+                    padding: 0;
+                }
+
+                .copy-shortcode-btn {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    border: none;
+                    color: white;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 11px;
+                    font-weight: 600;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+
+                .copy-shortcode-btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+                }
+
+                /* Action Buttons */
+                .action-buttons {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+
+                .action-btn {
+                    padding: 8px 14px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    border: 1px solid;
+                }
+
+                .action-btn.edit {
+                    background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
+                    color: #38b1c5;
+                    border-color: rgba(56, 177, 197, 0.3);
+                }
+
+                .action-btn.edit:hover {
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    color: white;
+                    border-color: transparent;
+                    transform: translateY(-2px);
+                }
+
+                .action-btn.copy {
+                    background: rgba(59, 130, 246, 0.1);
+                    color: #3b82f6;
+                    border-color: rgba(59, 130, 246, 0.3);
+                }
+
+                .action-btn.copy:hover {
+                    background: #3b82f6;
+                    color: white;
+                    border-color: transparent;
+                    transform: translateY(-2px);
+                }
+
+                .action-btn.delete {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: #ef4444;
+                    border-color: rgba(239, 68, 68, 0.3);
+                }
+
+                .action-btn.delete:hover {
+                    background: #ef4444;
+                    color: white;
+                    border-color: transparent;
+                    transform: translateY(-2px);
+                }
+
+                /* ID Badge */
+                .id-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    color: white;
+                    font-weight: 600;
+                    font-size: 13px;
+                }
+
+                /* Responsive Design */
+                @media screen and (max-width: 1200px) {
+                    .details-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+
+                @media screen and (max-width: 782px) {
+                    .wrap {
+                        margin: 10px;
+                    }
+                    
+                    .avatar-studio-header {
+                        padding: 20px;
+                    }
+                    
+                    .avatar-studio-header h1 {
+                        font-size: 24px;
+                    }
+                    
+                    .avatar-studio-content {
+                        padding: 20px;
+                        margin: 0 10px;
+                    }
+                    
+                    .details-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .avatar-table thead th {
+                        padding: 12px 8px;
+                        font-size: 10px;
+                    }
+                    
+                    .avatar-table tbody td {
+                        padding: 12px 8px;
+                        font-size: 13px;
+                    }
+                    
+                    .avatar-preview-img {
+                        width: 50px;
+                        height: 50px;
+                    }
+                    
+                    .action-buttons {
+                        flex-direction: column;
+                    }
+                    
+                    .action-btn {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                    
+                    .vendor-options {
+                        grid-template-columns: 1fr;
+                    }
+                }
+
+                @media screen and (max-width: 600px) {
+                    .avatar-table thead th:nth-child(3),
+                    .avatar-table tbody td:nth-child(3) {
+                        display: none;
+                    }
+                    
+                    .id-badge {
+                        width: 28px;
+                        height: 28px;
+                        font-size: 12px;
+                    }
+                }
+
+                /* Footer Fix */
+                #wpfooter {
+                    position: relative;
+                }
+
+                /* Empty State */
+                .empty-state {
+                    text-align: center;
+                    padding: 40px;
+                    color: #333;
+                }
+
+                .empty-state i {
+                    font-size: 64px;
+                    margin-bottom: 20px;
+                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .empty-state h3 {
+                    font-size: 20px;
+                    margin: 0 0 10px 0;
+                    color: #374151;
+                }
+
+                .empty-state p {
+                    font-size: 14px;
+                    margin: 0;
+                }
+            </style>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                // Toggle expand/collapse on row click
+                $('.avatar-table').on('click', '.main-row', function(e) {
+                    // Don't toggle if clicking on action buttons
+                    if ($(e.target).closest('.action-buttons').length > 0) {
+                        return;
+                    }
+                    
+                    var $row = $(this);
+                    var $detailsRow = $row.next('.details-row');
+                    
+                    // Toggle current row
+                    $row.toggleClass('expanded');
+                    $detailsRow.toggleClass('visible');
+                    
+                    // Optional: Close other rows
+                    // $('.main-row').not($row).removeClass('expanded');
+                    // $('.details-row').not($detailsRow).removeClass('visible');
+                });
+                
+                // Copy shortcode functionality
+                $('.avatar-table').on('click', '.copy-shortcode-btn', function(e) {
+                    e.stopPropagation();
+                    var $btn = $(this);
+                    var shortcode = $btn.data('shortcode');
+                    
+                    // Create temporary input
+                    var $temp = $('<input>');
+                    $('body').append($temp);
+                    $temp.val(shortcode).select();
+                    document.execCommand('copy');
+                    $temp.remove();
+                    
+                    // Visual feedback
+                    var originalText = $btn.text();
+                    $btn.text('Copied!');
+                    setTimeout(function() {
+                        $btn.text(originalText);
+                    }, 2000);
+                });
+            });
+            </script>
+            <?php
         }
     }
-    /**
-     * avatar
-     */
+
     public function render_avatars_page()
     {
         global $wpdb;
 
+        echo '<div class="wrap">';
+        
+        // Header Section
+        echo '<div class="avatar-studio-header">';
+        echo '<h1>Avatar Management</h1>';
+        echo '<p>Create, manage, and deploy your AI avatars across your website</p>';
+        echo '</div>';
 
+        // Notices
         if (!empty($_GET['updated'])) {
-            echo '<div class="notice notice-success is-dismissible"><p>Avatar updated.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> Avatar updated successfully.</p></div>';
         }
         if (!empty($_GET['saved'])) {
-            echo '<div class="notice notice-success is-dismissible"><p>Avatar saved.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> Avatar saved successfully.</p></div>';
         }
         if (!empty($_GET['deleted'])) {
-            echo '<div class="notice notice-success is-dismissible"><p>Avatar deleted.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> Avatar deleted successfully.</p></div>';
         }
         if (!empty($_GET['copied'])) {
-            echo '<div class="notice notice-success is-dismissible"><p>Avatar Copied.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> Avatar duplicated successfully.</p></div>';
         }
-        echo '<div class="wrap">';
-        echo '<h1>Avatars</h1>';
 
-        echo '<p><a href="' . admin_url('admin.php?page=avatar_studio-add-avatar') . '" class="button">Add Avatar</a></p>';
-        // List existing
-        echo '
-        <style>
-            th#id { width: 50px; }
-            th#vendor { width: 80px; }
-            th#time_limit { width: 80px; }
-            th#preview_image { width: 100px; }
-            th#avatar_name { width: 140px; }
-            th#shortcode { width: 250px; word-break: break-word; }
-            th#actions { width: 170px; word-break: break-word; }
-        </style>
-        ';
-        require_once 'avatar-table.php';
+        echo '<div class="avatar-studio-content">';
+        
+        // Add Avatar Button
+        echo '<p style="margin-bottom: 24px;"><button type="button" id="add-avatar-btn" class="button-primary">Add New Avatar</button></p>';
+        
+        // Vendor Selection Modal
+        ?>
+        <div id="vendor-selection-modal">
+            <div class="modal-content-wrapper">
+                <h2>Select Avatar Platform</h2>
+                <p class="modal-subtitle">Choose the AI platform you want to use for your avatar</p>
+                
+                <div class="vendor-options">
+                    <a href="<?php echo admin_url('admin.php?page=avatar_studio-add-avatar&vendor=tavus'); ?>" class="vendor-option">
+                        <div class="vendor-icon">
+                        <img style="width: 100px" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/tavus_logo.png" alt="Tavus Logo">
+                        </div>
+                        <strong>Tavus</strong>
+                    </a>
+                    
+                    <a href="<?php echo admin_url('admin.php?page=avatar_studio-add-avatar&vendor=heygen'); ?>" class="vendor-option">
+                        <div class="vendor-icon">
+                            <img style="width: 100px" src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/heygen_logo.png" alt="Heygen Logo">
+                        </div>
+                        <strong>HeyGen</strong>
+                    </a>
+                </div>
+                
+                <button type="button" id="close-modal-btn">Cancel</button>
+            </div>
+        </div>
+        
+        <script>
+            jQuery(document).ready(function($) {
+                $('#add-avatar-btn').on('click', function() {
+                    $('#vendor-selection-modal').fadeIn(300);
+                });
+                
+                $('#close-modal-btn').on('click', function() {
+                    $('#vendor-selection-modal').fadeOut(300);
+                });
+                
+                $('#vendor-selection-modal').on('click', function(e) {
+                    if (e.target.id === 'vendor-selection-modal') {
+                        $(this).fadeOut(300);
+                    }
+                });
+            });
+        </script>
+        <?php
 
-        $table = new Avatar_Studio_avatars_Table();
-        $table->prepare_items();
+        // Get avatars from database
+        $avatars = $wpdb->get_results("
+            SELECT * FROM {$wpdb->prefix}avatar_studio_avatars 
+            ORDER BY id DESC
+        ");
 
-        echo '<form method="get">';
-        echo '<input type="hidden" name="page" value="' . esc_attr($_REQUEST['page']) . '" />';
-        $table->display();
-        echo '</form>';
+        // Enhanced Avatar Table
+        echo '<div class="avatar-table-wrapper">';
+        
+        if (empty($avatars)) {
+            echo '<div class="empty-state">';
+            // echo '<i class="bi bi-robot"></i>';
+            echo '<img style="width: 160px; margin-bottom: 10px; border-radius: 10px;" src="' . get_site_url() . '/wp-content/plugins/AvatarStudio/assets/images/avatar.jpeg" alt="Preview Avatar">';
 
+            echo '<h3>No Avatars Yet</h3>';
+            echo '<p>Create your first avatar to get started!</p>';
+            echo '</div>';
+        } else {
+            echo '<table class="avatar-table">';
+            echo '<thead>';
+            echo '<tr>';
+            echo '<th style="width: 60px;">ID</th>';
+            echo '<th style="width: 100px;">Preview</th>';
+            echo '<th style="width: 100px;">Vendor</th>';
+            echo '<th style="width: 180px;">Avatar/Replica ID</th>';
+            echo '<th style="width: 180px;">Knowledge/Persona ID</th>';
+            echo '<th style="width: auto;">Actions</th>';
+            echo '<th style="width: 50px;">See Details</th>'; // Expand icon
+            echo '</tr>';
+            echo '</thead>';
+            echo '<tbody>';
+            
+            foreach ($avatars as $avatar) {
+                $shortcode = '[avatar_studio id="' . $avatar->id . '"]';
+                $edit_url = admin_url('admin.php?page=avatar_studio-edit-avatar&id=' . $avatar->id);
+                $delete_url = wp_nonce_url(admin_url('admin-post.php?action=delete_avatar&id=' . $avatar->id), 'delete_avatar_' . $avatar->id);
+                $copy_url = wp_nonce_url(admin_url('admin-post.php?action=copy_avatar&id=' . $avatar->id), 'copy_avatar_' . $avatar->id);
+                
+                // Main Row
+                echo '<tr class="main-row" data-id="' . $avatar->id . '">';
+                
+                // ID
+                echo '<td><span class="id-badge">' . $avatar->id . '</span></td>';
+                
+                // Preview Image
+                echo '<td>';
+                if (!empty($avatar->preview_image)) {
+                    echo '<img src="' . esc_url($avatar->preview_image) . '" alt="Preview" class="avatar-preview-img" />';
+                } else {
+                    echo '<div style="width:60px;height:60px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-person-circle" style="font-size:32px;color:#d1d5db;"></i></div>';
+                }
+                echo '</td>';
+                
+                // Vendor Badge
+                echo '<td>';
+                echo '<span class="vendor-badge ' . strtolower($avatar->vendor) . '">' . esc_html(ucfirst($avatar->vendor)) . '</span>';
+                echo '</td>';
+                
+                // Avatar/Replica ID
+                echo '<td>';
+                echo '<span style="font-family:monospace;font-size:12px;color:#333;">' . esc_html(substr($avatar->avatar_id, 0, 30)) . (strlen($avatar->avatar_id) > 30 ? '...' : '') . '</span>';
+                echo '</td>';
+                
+                // Knowledge/Persona ID
+                echo '<td>';
+                if (!empty($avatar->knowledge_id)) {
+                    echo '<span style="font-family:monospace;font-size:12px;color:#333;">' . esc_html(substr($avatar->knowledge_id, 0, 30)) . (strlen($avatar->knowledge_id) > 30 ? '...' : '') . '</span>';
+                } else {
+                    echo '<span style="color:#d1d5db;">—</span>';
+                }
+                echo '</td>';
+                
+                // Actions
+                echo '<td>';
+                echo '<div class="action-buttons">';
+                echo '<a href="' . $edit_url . '" class="action-btn edit"><i class="bi bi-pencil-square"></i></a>';
+                echo '<a href="' . $copy_url . '" class="action-btn copy" onclick="return confirm(\'Duplicate this avatar?\');"><i class="bi bi-files"></i></a>';
+                echo '<a href="' . $delete_url . '" class="action-btn delete" onclick="return confirm(\'Are you sure you want to delete this avatar?\');"><i class="bi bi-trash"></i></a>';
+                echo '</div>';
+                echo '</td>';
 
-        echo '</div>';
+                // Expand Icon
+                echo '<td>';
+                echo '<span class="expand-icon"><i class="bi bi-chevron-down"></i></span>';
+                echo '</td>';
+                
+                echo '</tr>';
+                
+                // Details Row (Hidden by default)
+                echo '<tr class="details-row">';
+                echo '<td colspan="7">';
+                echo '<div class="details-content">';
+                
+                echo '<div class="details-grid">';
+                
+                // Title
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
+                echo '<label>Title</label>';
+                echo '<div class="value">' . (!empty($avatar->title) ? esc_html($avatar->title) : '<span style="color:#d1d5db;">Not set</span>') . '</div>';
+                echo '</div>';
+
+                // Avatar Name
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
+                echo '<label>Avatar Name</label>';
+                echo '<div class="value">' . (!empty($avatar->avatar_name) ? esc_html($avatar->avatar_name) : '<span style="color:#d1d5db;">Not set</span>') . '</div>';
+                echo '</div>';
+                
+                // Time Limit
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
+                echo '<label>Time Limit</label>';
+                echo '<div class="value">' . esc_html($avatar->time_limit) . ' minutes</div>';
+                echo '</div>';
+                
+                // Description
+                if (!empty($avatar->description)) {
+                    echo '<div class="detail-item" style="grid-column: span 2; style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
+                    echo '<label>Description</label>';
+                    echo '<div class="value">' . esc_html($avatar->description) . '</div>';
+                    echo '</div>';
+                }
+                
+                // Full Avatar ID
+                // echo '<div class="detail-item">';
+                // echo '<label>Avatar/Replica ID</label>';
+                // echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->avatar_id) . '</div>';
+                // echo '</div>';
+                
+                // Full Knowledge ID
+                // if (!empty($avatar->knowledge_id)) {
+                //     echo '<div class="detail-item">';
+                //     echo '<label>Knowledge/Persona ID</label>';
+                //     echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->knowledge_id) . '</div>';
+                //     echo '</div>';
+                // }
+
+                // Shortcode Section
+                echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
+                echo '<label>Shortcode</label>';
+                echo '<div class="shortcode-box">';
+                echo '<code>' . esc_html($shortcode) . '</code>';
+                echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($shortcode) . '">Copy</button>';
+                echo '</div>';
+                echo '</div>';
+                
+                echo '</div>'; // End details-grid
+                
+                echo '</div>'; // End details-content
+                echo '</td>';
+                echo '</tr>';
+            }
+            
+            echo '</tbody>';
+            echo '</table>';
+        }
+        
+        echo '</div>'; // End avatar-table-wrapper
+
+        echo '</div>'; // End avatar-studio-content
+        echo '</div>'; // End wrap
     }
+
     function avatar_studio_avatars_add_screen_options()
     {
         add_screen_option('per_page', [
@@ -130,44 +989,113 @@ class avatarManager
         return $status;
     }
 
-
-
     public function render_avatar_settings_page()
-    {
-        global $wpdb;
-        if (!empty($_GET['avatar_deleted'])) {
-            echo '<div class="notice notice-success is-dismissible"><p>Avatar deleted successfully.</p></div>';
-        }
+{
+    global $wpdb;
+    
+    $vendor = isset($_GET['vendor']) ? sanitize_text_field($_GET['vendor']) : '';
+    
+    if (empty($vendor) || !in_array($vendor, ['tavus', 'heygen'])) {
+        wp_redirect(admin_url('admin.php?page=avatar_studio-avatars'));
+        exit;
+    }
+    
+    // Get the next predicted ID
+    $next_id = $wpdb->get_var("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$wpdb->prefix}avatar_studio_avatars'");
+    
+    // If we can't get AUTO_INCREMENT, get the max ID and add 1
+    if (!$next_id) {
+        $max_id = $wpdb->get_var("SELECT MAX(id) FROM {$wpdb->prefix}avatar_studio_avatars");
+        $next_id = $max_id ? $max_id + 1 : 1;
+    }
+    
+    echo '<div class="wrap">';
+    echo '<div class="avatar-studio-header">';
+    echo '<h1>Create New Avatar - ' . ucfirst($vendor) . '</h1>';
+    echo '<p>Configure your new ' . ucfirst($vendor) . ' avatar settings</p>';
+    echo '</div>';
 
-        echo '<p><a href="' . admin_url('admin.php?page=avatar_studio-avatars') . '" class="button">← Back to avatars</a></p>';
+    echo '<div class="avatar-studio-content">';
+    
+    // BACK BUTTON + SHORTCODE IN SAME ROW
+    $predicted_shortcode = '[avatar_studio id="' . $next_id . '"]';
+    echo '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 24px;">';
+    
+    // Back button on left
+    echo '<div>';
+    echo '<a href="' . admin_url('admin.php?page=avatar_studio-avatars') . '" class="button" id="back-to-avatar-btn">Back to Avatars</a>';
+    echo '</div>';
+    
+    // Shortcode on right
+    echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
+    echo '<div style="display: flex; align-items: end; gap: 12px;">';
+    echo '<div style="text-align: left;">';
+    echo '<strong style="display: block; margin-bottom: 6px; color: #374151; font-size: 13px;">Shortcode</strong>';
+    echo '<code style="background: #f8f9fa; padding: 8px 12px; border-radius: 4px; font-size: 13px; border: 1px solid #e5e7eb; font-weight: 600; color: #1f2937; line-height: 1; height: 28px; display: flex; align-items: center;">' . esc_html($predicted_shortcode) . '</code>';
+    echo '</div>';
+    echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($predicted_shortcode) . '" style="background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
+    echo '</div>';
+    echo '</div>';
+    
+    echo '</div>';
+    // END BACK BUTTON + SHORTCODE ROW
+    
+    $avatar = (object)['vendor' => $vendor];
+    include 'avatar-form.php';
 
-        echo '<h2>New Avatar</h2>';
-        include 'avatar-form.php';
+    echo '</div>';
+    echo '</div>';
+}
 
-        echo '</div>';
+public function render_edit_avatar_settings_page()
+{
+    global $wpdb;
+
+    $id = intval($_GET['id'] ?? 0);
+
+    $avatar = $wpdb->get_row($wpdb->prepare("
+        SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d
+    ", $id));
+
+    if (!$avatar) {
+        wp_die('Avatar not found.');
     }
 
-    public function render_edit_avatar_settings_page()
-    {
-        global $wpdb;
+    echo '<div class="wrap">';
+    echo '<div class="avatar-studio-header">';
+    echo '<h1>Edit Avatar - ' . ucfirst($avatar->vendor) . '</h1>';
+    echo '<p>Modify settings for: ' . esc_html($avatar->title) . '</p>';
+    echo '</div>';
 
-        $id = intval($_GET['id'] ?? 0);
-
-        $avatar = $wpdb->get_row($wpdb->prepare("
-            SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d
-        ", $id));
-
-        if (!$avatar) {
-            wp_die('avatar not found.');
-        }
-
-        echo '<div class="wrap">';
-        echo '<h1>Edit Avatar</h1>';
-        include 'avatar-form.php';
-
-        echo '</div>';
-        echo '</div>';
-    }
+    echo '<div class="avatar-studio-content">';
+    
+    // BACK BUTTON + SHORTCODE IN SAME ROW
+    $shortcode = '[avatar_studio id="' . $avatar->id . '"]';
+    echo '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 24px;">';
+    
+    // Back button on left
+    echo '<div>';
+    echo '<a href="' . admin_url('admin.php?page=avatar_studio-avatars') . '" class="button" id="back-to-avatar-btn">Back to Avatars</a>';
+    echo '</div>';
+    
+    // Shortcode on right
+    echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
+    echo '<div style="display: flex; align-items: end; gap: 12px;">';
+    echo '<div style="text-align: left;">';
+    echo '<strong style="display: block; margin-bottom: 6px; color: #374151; font-size: 13px;">Shortcode</strong>';
+    echo '<code style="background: #f8f9fa; padding: 8px 12px; border-radius: 4px; font-size: 13px; border: 1px solid #e5e7eb; font-weight: 600; color: #1f2937; line-height: 1; height: 28px; display: flex; align-items: center;">' . esc_html($shortcode) . '</code>';
+    echo '</div>';
+    echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($shortcode) . '" style="background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
+    echo '</div>';
+    echo '</div>';
+    
+    echo '</div>';
+    // END BACK BUTTON + SHORTCODE ROW
+    
+    include 'avatar-form.php';
+    echo '</div>';
+    echo '</div>';
+}
 
     public function handle_update_avatar()
     {
@@ -176,9 +1104,7 @@ class avatarManager
         }
 
         global $wpdb;
-
         $id = intval($_REQUEST['id']);
-
 
         $result = $wpdb->update("{$wpdb->prefix}avatar_studio_avatars", [
             'api_key' => sanitize_text_field($_POST['api_key']),
@@ -214,10 +1140,19 @@ class avatarManager
             'styles' => isset($_POST['styles']) ? json_encode($_POST['styles']) : null,
             'welcome_message' => isset($_POST['welcome_message']) ? json_encode($_POST['welcome_message']) : null,
             'start_button_label' => isset($_POST['start_button_label']) ? sanitize_text_field($_POST['start_button_label']) : 'Chat',
-        ], [
-            'id' => $id
-        ]);
+        ], ['id' => $id]);
 
+
+        if ($_POST['vendor'] == "tavus" && empty($tavus_api_key)) {
+            $tavus_api_key = $_POST['api_key'];
+            update_option('avatar_studio_tavus_api_key', $tavus_api_key);
+        }
+
+        if ($_POST['vendor'] == "heygen" && empty($heygen_api_key)) {
+            $heygen_api_key = $_POST['api_key'];
+            update_option('avatar_studio_heygen_api_key', $heygen_api_key);
+        }
+        
         if ($result === false) {
             echo 'Update failed: ' . $wpdb->last_error;
         } else {
@@ -270,7 +1205,20 @@ class avatarManager
             'welcome_message' => isset($_POST['welcome_message']) ? json_encode($_POST['welcome_message']) : null,
             'start_button_label' => isset($_POST['start_button_label']) ? sanitize_text_field($_POST['start_button_label']) : 'Chat',
         ];
+        
         $id = isset($_REQUEST['id']) ? intval($_REQUEST['id']) : 0;
+
+
+        // API details (Tavus/Heygen) added at the Avatar level should feed to the main API screen and vice versa
+        if ($_POST['vendor'] == "tavus" && empty($tavus_api_key)) {
+            $tavus_api_key = $_POST['api_key'];
+            update_option('avatar_studio_tavus_api_key', $tavus_api_key);
+        }
+
+        if ($_POST['vendor'] == "heygen" && empty($heygen_api_key)) {
+            $heygen_api_key = $_POST['api_key'];
+            update_option('avatar_studio_heygen_api_key', $heygen_api_key);
+        }
 
         if ($id > 0) {
             // Update
@@ -291,9 +1239,7 @@ class avatarManager
                 $id = $wpdb->insert_id;
                 wp_redirect(admin_url("admin.php?page=avatar_studio-edit-avatar&id=$id&saved=1"));
             }
-            exit;
         }
-
         exit;
     }
 
@@ -310,7 +1256,6 @@ class avatarManager
         }
 
         global $wpdb;
-        // Delete avatar
         $wpdb->delete("{$wpdb->prefix}avatar_studio_avatars", ['id' => $id]);
 
         wp_redirect(admin_url('admin.php?page=avatar_studio-avatars&deleted=1'));
@@ -330,16 +1275,16 @@ class avatarManager
         }
 
         global $wpdb;
-        $avatar = $wpdb->get_row($wpdb->prepare(" SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d ", $id));
+        $avatar = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d", $id));
 
         if (!$avatar) {
-            wp_send_json_error(['message' => 'avatar not found'], 404);
+            wp_die('Avatar not found.');
         }
 
         $data = [
             'api_key' => isset($avatar->api_key) ? $avatar->api_key : '',
             'vendor' => isset($avatar->vendor) ? $avatar->vendor : '',
-            'title' => isset($avatar->title) ? $avatar->title : '',
+            'title' => isset($avatar->title) ? $avatar->title . ' (Copy)' : 'Copy',
             'description' => isset($avatar->description) ? $avatar->description : '',
             'avatar_id' => isset($avatar->avatar_id) ? $avatar->avatar_id : '',
             'knowledge_id' => isset($avatar->knowledge_id) ? $avatar->knowledge_id : '',
@@ -371,25 +1316,26 @@ class avatarManager
             'welcome_message' => isset($avatar->welcome_message) ? $avatar->welcome_message : null,
             'start_button_label' => isset($avatar->start_button_label) ? $avatar->start_button_label : 'Chat',
         ];
+        
         $result = $wpdb->insert("{$wpdb->prefix}avatar_studio_avatars", $data);
+        
         if ($result === false) {
             echo 'Failed: ' . $wpdb->last_error;
+            wp_redirect(admin_url('admin.php?page=avatar_studio-avatars&copied=0'));
         } else {
-            $id = $wpdb->insert_id;
-            wp_redirect(admin_url('admin.php?page=avatar_studio-avatars&copied=1'));
+            $new_id = $wpdb->insert_id;
+            wp_redirect(admin_url('admin.php?page=avatar_studio-edit-avatar&id=' . $new_id . '&copied=1'));
         }
-        wp_redirect(admin_url('admin.php?page=avatar_studio-avatars&copied=0'));
+        
         exit;
     }
-
 
     public function getAvataravatars()
     {
         global $wpdb;
 
-        // Optional: Add filtering logic here (e.g., based on query vars)
         $avatars = $wpdb->get_results("
-            SELECT id, vendor, api_key, title, description,  avatar_id, knowledge_id, preview_image,thumbnail_mini,thumbnail_medium,thumbnail_large,active_thumbnail, avatar_name, time_limit, voice_emotion, pages, styles, open_on_desktop, show_on_mobile, livekit_enable,RAG_API_URL,deepgramKEY,welcome_message   
+            SELECT id, vendor, api_key, title, description, avatar_id, knowledge_id, preview_image, thumbnail_mini, thumbnail_medium, thumbnail_large, active_thumbnail, avatar_name, time_limit, voice_emotion, pages, styles, open_on_desktop, show_on_mobile, livekit_enable, RAG_API_URL, deepgramKEY, welcome_message   
             FROM {$wpdb->prefix}avatar_studio_avatars 
             ORDER BY title ASC
         ");
@@ -407,13 +1353,14 @@ class avatarManager
             wp_send_json_error(['message' => 'Missing avatar ID'], 400);
         }
 
-        $avatar = $wpdb->get_row($wpdb->prepare(" SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d ", $avatarID));
+        $avatar = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d", $avatarID));
 
         if (!$avatar) {
             wp_send_json_error(['message' => 'avatar not found'], 404);
         }
         wp_send_json_success($avatar);
     }
+
     function clearCache()
     {
         setcookie('wpengine_cache_disable', '1', time() + 3600, '/');
@@ -430,45 +1377,26 @@ class avatarManager
             wp_cache_flush();
         }
     }
-
-
 }
+
 $avatarManager = new avatarManager();
+
 add_filter('wp_kses_allowed_html', 'allow_custom_html_tags', 10, 2);
 function allow_custom_html_tags($allowed_tags, $context)
 {
     if ($context === 'post') {
-        // Allow iframe
         $allowed_tags['iframe'] = [
-            'src' => true,
-            'height' => true,
-            'width' => true,
-            'frameborder' => true,
-            'allow' => true,
-            'allowfullscreen' => true,
-            'style' => true,
-            'title' => true,
-            'referrerpolicy' => true,
+            'src' => true, 'height' => true, 'width' => true,
+            'frameborder' => true, 'allow' => true, 'allowfullscreen' => true,
+            'style' => true, 'title' => true, 'referrerpolicy' => true,
         ];
-
-        // Allow script
         $allowed_tags['script'] = [
-            'type' => true,
-            'src' => true,
-            'async' => true,
-            'defer' => true,
-            'crossorigin' => true,
-            'integrity' => true,
+            'type' => true, 'src' => true, 'async' => true,
+            'defer' => true, 'crossorigin' => true, 'integrity' => true,
         ];
-
-        // Allow link rel="stylesheet"
         $allowed_tags['link'] = [
-            'rel' => true,
-            'href' => true,
-            'type' => true,
-            'media' => true,
-            'integrity' => true,
-            'crossorigin' => true,
+            'rel' => true, 'href' => true, 'type' => true,
+            'media' => true, 'integrity' => true, 'crossorigin' => true,
         ];
     }
     return $allowed_tags;

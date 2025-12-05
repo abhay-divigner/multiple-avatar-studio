@@ -57,72 +57,83 @@ foreach ($tcpdf_include_dirs as $tcpdf_include_path) {
 /**
  * Display help guide for this command.
  */
+// function showHelp() {
+// 	$help = <<<EOD
+// tcpdf_addfont - command line tool to convert fonts for the TCPDF library.
+
+// Usage: tcpdf_addfont.php [ options ] -i fontfile[,fontfile]...
+
+// Options:
+
+// 	-t
+// 	--type      Font type. Leave empty for autodetect mode.
+// 	            Valid values are:
+// 					TrueTypeUnicode
+// 					TrueType
+// 					Type1
+// 					CID0JP = CID-0 Japanese
+// 					CID0KR = CID-0 Korean
+// 					CID0CS = CID-0 Chinese Simplified
+// 					CID0CT = CID-0 Chinese Traditional
+
+// 	-e
+// 	--enc       Name of the encoding table to use. Leave empty for
+// 	            default mode. Omit this parameter for TrueType Unicode
+// 	            and symbolic fonts like Symbol or ZapfDingBats.
+
+// 	-f
+// 	--flags     Unsigned 32-bit integer containing flags specifying
+// 	            various characteristics of the font (PDF32000:2008 -
+// 	            9.8.2 Font Descriptor Flags): +1 for fixed font; +4 for
+// 	            symbol or +32 for non-symbol; +64 for italic. Fixed and
+// 	            Italic mode are generally autodetected so you have to
+// 	            set it to 32 = non-symbolic font (default) or 4 =
+// 	            symbolic font.
+
+// 	-o
+// 	--outpath   Output path for generated font files (must be writeable
+// 	            by the web server). Leave empty for default font folder.
+
+// 	-p
+// 	--platid    Platform ID for CMAP table to extract (when building a
+// 	            Unicode font for Windows this value should be 3, for
+// 	            Macintosh should be 1).
+
+// 	-n
+// 	--encid     Encoding ID for CMAP table to extract (when building a
+// 	            Unicode font for Windows this value should be 1, for
+// 	            Macintosh should be 0). When Platform ID is 3, legal
+// 	            values for Encoding ID are: 0=Symbol, 1=Unicode,
+// 	            2=ShiftJIS, 3=PRC, 4=Big5, 5=Wansung, 6=Johab,
+// 	            7=Reserved, 8=Reserved, 9=Reserved, 10=UCS-4.
+
+// 	-b
+// 	--addcbbox  Includes the character bounding box information on the
+// 	            php font file.
+
+// 	-l
+// 	--link      Link to system font instead of copying the font data #
+// 	            (not transportable) - Note: do not work with Type1 fonts.
+
+// 	-i
+// 	--fonts     Comma-separated list of input font files.
+
+// 	-h
+// 	--help      Display this help and exit.
+// EOD;
+// 	echo $help."\n\n";
+// 	exit(0);
+// }
+
 function showHelp() {
-	$help = <<<EOD
-tcpdf_addfont - command line tool to convert fonts for the TCPDF library.
-
-Usage: tcpdf_addfont.php [ options ] -i fontfile[,fontfile]...
-
-Options:
-
-	-t
-	--type      Font type. Leave empty for autodetect mode.
-	            Valid values are:
-					TrueTypeUnicode
-					TrueType
-					Type1
-					CID0JP = CID-0 Japanese
-					CID0KR = CID-0 Korean
-					CID0CS = CID-0 Chinese Simplified
-					CID0CT = CID-0 Chinese Traditional
-
-	-e
-	--enc       Name of the encoding table to use. Leave empty for
-	            default mode. Omit this parameter for TrueType Unicode
-	            and symbolic fonts like Symbol or ZapfDingBats.
-
-	-f
-	--flags     Unsigned 32-bit integer containing flags specifying
-	            various characteristics of the font (PDF32000:2008 -
-	            9.8.2 Font Descriptor Flags): +1 for fixed font; +4 for
-	            symbol or +32 for non-symbol; +64 for italic. Fixed and
-	            Italic mode are generally autodetected so you have to
-	            set it to 32 = non-symbolic font (default) or 4 =
-	            symbolic font.
-
-	-o
-	--outpath   Output path for generated font files (must be writeable
-	            by the web server). Leave empty for default font folder.
-
-	-p
-	--platid    Platform ID for CMAP table to extract (when building a
-	            Unicode font for Windows this value should be 3, for
-	            Macintosh should be 1).
-
-	-n
-	--encid     Encoding ID for CMAP table to extract (when building a
-	            Unicode font for Windows this value should be 1, for
-	            Macintosh should be 0). When Platform ID is 3, legal
-	            values for Encoding ID are: 0=Symbol, 1=Unicode,
-	            2=ShiftJIS, 3=PRC, 4=Big5, 5=Wansung, 6=Johab,
-	            7=Reserved, 8=Reserved, 9=Reserved, 10=UCS-4.
-
-	-b
-	--addcbbox  Includes the character bounding box information on the
-	            php font file.
-
-	-l
-	--link      Link to system font instead of copying the font data #
-	            (not transportable) - Note: do not work with Type1 fonts.
-
-	-i
-	--fonts     Comma-separated list of input font files.
-
-	-h
-	--help      Display this help and exit.
-EOD;
-	echo $help."\n\n";
-	exit(0);
+    $help = "tcpdf_addfont - command line tool to convert fonts for the TCPDF library.\n\n";
+    $help .= "Usage: tcpdf_addfont.php [ options ] -i fontfile[,fontfile]...\n\n";
+    $help .= "Options:\n\n";
+    $help .= "\t-t\n";
+    $help .= "\t--type      Font type. Leave empty for autodetect mode.\n";
+    // ... continue with rest of help text
+    echo $help."\n\n";
+    exit(0);
 }
 
 // remove the name of the executing script

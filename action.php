@@ -7,17 +7,55 @@ if (!function_exists('wp_mail')) {
 add_action('wp_ajax_nopriv_avatar_studio_heygenToken', 'handle_avatar_studio_heygenToken');
 add_action('wp_ajax_avatar_studio_heygenToken', 'handle_avatar_studio_heygenToken');
 
+
 function handle_avatar_studio_heygenToken()
 {
-    // if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'avatar_studio_nonce_action')) {
-    //     wp_send_json_error("Invalid nonce");
-    // }
     if (!avatar_studio_is_same_origin_request()) {
         wp_send_json_error('Unauthorized');
         wp_die();
     }
-    $heygen_api_key = esc_attr(get_option('heygen_api_key'));
+    
+    global $wpdb;
+    
+    $heygen_api_key = esc_attr(get_option('avatar_studio_heygen_api_key'));
 
+    // Get raw userInfo data from POST
+    $user_info_raw = isset($_POST['userInfo']) ? wp_unslash($_POST['userInfo']) : '';
+
+    // Initialize an empty array
+    $user_info = [];
+
+    // Check if it's a non-empty string and looks like JSON
+    if (!empty($user_info_raw)) {
+        if (is_string($user_info_raw)) {
+            $decoded = json_decode($user_info_raw, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $user_info = $decoded;
+            }
+        } elseif (is_array($user_info_raw)) {
+            $user_info = $user_info_raw;
+        }
+    }
+
+    // Extract and sanitize values
+    $country_code = isset($user_info['countryCode']) && $user_info['countryCode'] !== null
+        ? sanitize_text_field($user_info['countryCode'])
+        : '';
+
+    $email = isset($user_info['email']) && $user_info['email'] !== null
+        ? sanitize_email($user_info['email'])
+        : '';
+
+    $mobile = isset($user_info['mobile']) && $user_info['mobile'] !== null
+        ? sanitize_text_field($user_info['mobile'])
+        : '';
+
+    $full_name = isset($user_info['fullName']) && $user_info['fullName'] !== null
+        ? sanitize_text_field($user_info['fullName'])
+        : '';
+    
+    // Get current time
+    $current_time = current_time('mysql');
 
     $ch = curl_init();
 
@@ -29,26 +67,158 @@ function handle_avatar_studio_heygenToken()
     curl_setopt($ch, CURLOPT_POST, true);
 
     $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
     if ($response === false) {
-        wp_send_json_error(curl_error($ch));
-        wp_die();
-    } else {
-        $data = json_decode($response, true);
-        $result = array();
-        $result['code'] = $data['code'];
-        $result['message'] = $data['message'];
-        $result['token'] = isset($data['data']['token']) ? $data['data']['token'] : '';
-
-
-
-
-
-        wp_send_json_success($result);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        avatar_studio_log_error('HeyGen token creation failed', [
+            'error' => $error,
+            'function' => __FUNCTION__
+        ]);
+        
+        wp_send_json_error($error);
         wp_die();
     }
-
+    
     curl_close($ch);
-    wp_send_json_error('Unknown');
+    
+    $data = json_decode($response, true);
+    
+    if ($http_code !== 200 || !isset($data['data']['token'])) {
+        avatar_studio_log_error('HeyGen API returned error', [
+            'http_code' => $http_code,
+            'response' => $data,
+            'function' => __FUNCTION__
+        ]);
+        
+        wp_send_json_error(isset($data['message']) ? $data['message'] : 'Failed to create token');
+        wp_die();
+    }
+    
+    // Generate a session_id for HeyGen
+    $session_id = uniqid('heygen_', true);
+    
+    // Log user info data for debugging
+    avatar_studio_log_error('HeyGen - Processing user info', [
+        'session_id' => $session_id,
+        'has_country_code' => !empty($country_code),
+        'has_email' => !empty($email),
+        'has_mobile' => !empty($mobile),
+        'has_full_name' => !empty($full_name),
+        'level' => 'info',
+        'function' => __FUNCTION__
+    ]);
+    
+    // Store user info to database - Check if we have ANY user info
+    if (!empty($country_code) || !empty($email) || !empty($mobile) || !empty($full_name)) {
+        $user_info_data = [
+            'country_code'   => $country_code,
+            'email'          => $email,
+            'mobile'         => $mobile,
+            'full_name'      => $full_name,
+            'conversation_id' => $session_id,
+            'created_at'     => $current_time,
+        ];
+
+        $insert_result = $wpdb->insert(
+            $wpdb->prefix . 'avatar_studio_user_info',
+            $user_info_data,
+            ['%s', '%s', '%s', '%s', '%s', '%s']
+        );
+
+        if ($wpdb->last_error) {
+            avatar_studio_log_error('HeyGen - User Info Insert Error', [
+                'session_id' => $session_id,
+                'error' => $wpdb->last_error,
+                'data' => $user_info_data,
+                'function' => __FUNCTION__
+            ]);
+        } else {
+            avatar_studio_log_error('HeyGen - User info inserted successfully', [
+                'session_id' => $session_id,
+                'insert_id' => $wpdb->insert_id,
+                'level' => 'info',
+                'function' => __FUNCTION__
+            ]);
+        }
+    } else {
+        avatar_studio_log_error('HeyGen - No user info to insert', [
+            'session_id' => $session_id,
+            'user_info_raw' => $user_info_raw,
+            'level' => 'warning',
+            'function' => __FUNCTION__
+        ]);
+    }
+
+    // Store session information
+    if (!empty($session_id)) {
+        $table_name = $wpdb->prefix . 'avatar_studio_sessions';
+        
+        // Get page_id and avatar_studio_id
+        $pageId = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
+        $avatar_studio_id = isset($_POST['avatar_studio_id']) ? intval($_POST['avatar_studio_id']) : 0;
+        
+        // Get avatar info
+        $avatar = null;
+        if ($avatar_studio_id) {
+            $avatar = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d",
+                $avatar_studio_id
+            ));
+        } else if ($pageId) {
+            $avatar = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE JSON_CONTAINS(pages, '\"%d\"')",
+                $pageId
+            ));
+        }
+
+        // Prepare session data
+        $session_data = [
+            'session_id'  => sanitize_text_field($session_id),
+            'avatar_id'   => (!empty($avatar) && !empty($avatar->id)) ? sanitize_text_field($avatar->id) : '',
+            'user_id'     => get_current_user_id() ?: 0,
+            'status'      => 'active',
+            'created_at'  => $current_time,
+        ];
+
+        // Remove any empty values to prevent invalid insertions
+        $session_data = array_filter($session_data, function($value) {
+            return $value !== null && $value !== '';
+        });
+
+        $session_insert = $wpdb->insert(
+            $table_name,
+            $session_data,
+            ['%s', '%s', '%d', '%s', '%s']
+        );
+
+        if ($wpdb->last_error) {
+            avatar_studio_log_error('HeyGen - Session Insert Error', [
+                'session_id' => $session_id,
+                'error' => $wpdb->last_error,
+                'data' => $session_data,
+                'function' => __FUNCTION__
+            ]);
+        } else {
+            avatar_studio_log_error('HeyGen - Session inserted successfully', [
+                'session_id' => $session_id,
+                'insert_id' => $wpdb->insert_id,
+                'avatar_id' => $session_data['avatar_id'] ?? 'none',
+                'level' => 'info',
+                'function' => __FUNCTION__
+            ]);
+        }
+    }
+    
+    $result = array();
+    $result['code'] = $data['code'];
+    $result['message'] = $data['message'];
+    $result['token'] = isset($data['data']['token']) ? $data['data']['token'] : '';
+    $result['session_id'] = $session_id; // Return session_id to frontend
+    
+    wp_send_json_success($result);
     wp_die();
 }
 
@@ -480,4 +650,99 @@ function getLanguageShortName($language)
     } else {
         return "en";
     }
+}
+
+
+// Add AJAX handler for CSV export
+add_action('wp_ajax_avatar_studio_export_csv', 'handle_avatar_studio_export_csv');
+add_action('wp_ajax_nopriv_avatar_studio_export_csv', 'handle_avatar_studio_export_csv');
+
+function handle_avatar_studio_export_csv() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'export_csv_action')) {
+        wp_die('Security check failed');
+    }
+    
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'avatar_studio_user_info';
+    
+    // Build query based on export type
+    if (isset($_POST['export_all']) && $_POST['export_all'] === '1') {
+        // Export all users
+        $export_query = "SELECT * FROM {$table_name} ORDER BY created_at DESC";
+        $export_results = $wpdb->get_results($export_query);
+        $filename_suffix = 'all-users';
+    } else {
+        // Export selected users
+        if (!empty($_POST['selected_users'])) {
+            $selected_users = array_map('intval', $_POST['selected_users']);
+            $placeholders = implode(',', array_fill(0, count($selected_users), '%d'));
+            
+            $export_query = $wpdb->prepare(
+                "SELECT * FROM {$table_name} WHERE id IN ($placeholders) ORDER BY created_at DESC",
+                $selected_users
+            );
+            $export_results = $wpdb->get_results($export_query);
+            $filename_suffix = 'selected-users';
+        } else {
+            wp_die('No users selected for export.');
+        }
+    }
+    
+    // Clear any previous output
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=avatar-studio-' . $filename_suffix . '-' . date('Y-m-d-H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    
+    // Create output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for UTF-8
+    fputs($output, "\xEF\xBB\xBF");
+    
+    // CSV headers
+    fputcsv($output, [
+        'ID',
+        'Full Name', 
+        'Email Address',
+        'Phone Number',
+        // 'Country Code',
+        'Conversation ID',
+        'Created At'
+    ]);
+    
+    // Add data rows
+    foreach ($export_results as $row) {
+        $created_date = DateTime::createFromFormat('Y-m-d H:i:s', $row->created_at);
+        $formatted_date = $created_date ? $created_date->format('m-d-Y H:i:s') : $row->created_at;
+        
+        $clean_phone = preg_replace('/[^0-9]/', '', $row->mobile);
+        if (substr($clean_phone, 0, 1) === '1' && strlen($clean_phone) === 11) {
+            $clean_phone = substr($clean_phone, 1);
+        }
+        if (strlen($clean_phone) === 10) {
+            $formatted_phone = '+1 (' . substr($clean_phone, 0, 3) . ') ' . substr($clean_phone, 3, 3) . '-' . substr($clean_phone, 6, 4);
+        } else {
+            $formatted_phone = $row->mobile;
+        }
+        
+        fputcsv($output, [
+            'AS' . $row->id,
+            $row->full_name,
+            $row->email,
+            $formatted_phone,
+            // $row->country_code,
+            $row->conversation_id,
+            $formatted_date
+        ]);
+    }
+    
+    fclose($output);
+    wp_die(); // Important for AJAX
 }

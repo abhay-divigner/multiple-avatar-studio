@@ -1,16 +1,20 @@
 <?php
 
 /**
- * Plugin Name: Avatar Studio (Multiple)
+ * Plugin Name: Avatar Studio
  * Plugin URI: https://divigner.com/avatar-studio
  * Description: Avatar Studio for your Interactive Avatar  
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Avanew
- * Requires at least: 6.8
+ * Requires at least: 6.0
+ * Tested up to: 6.8
  * Requires PHP: 8.0.3
  * Author URI: https://divigner.com
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * License: GPL2
  */
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -530,8 +534,6 @@ function avatar_studio_create_sessions_table()
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
 }
-
-
 
 
 // --- Register custom cron schedule (every 5 minutes) ---

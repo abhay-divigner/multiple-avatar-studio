@@ -87,7 +87,7 @@ global $wp_embed;
                         style="<?php echo $disclaimer_enable || $instruction_enable ? ' display:none; ' : '' ?>">
                         <?php echo $start_button_label; ?></button>
                 <?php } else if ($avatar_vendor == 'tavus') { ?>
-                        <button type="button" id="startSession" class="startSession" chatOnly="<?php echo $chat_only; ?>"
+                        <button type="button" id="startSession" class="startSession" chatOnly="<?php echo $chat_only; ?>" initial_message = "<?php echo $time_limit ?>"
                             videoEnable="<?php echo $video_enable; ?>" avatarContainerID="<?php echo $avatarContainerID; ?>"
                             timer="<?php echo $time_limit ?>" opening_text="<?php echo $opening_text['en'] ?? ''; ?>" <?php echo !$required_fields_complete ? ' disabled style="opacity:0.5;cursor:not-allowed;"' : '' ?>
                             style="<?php echo $disclaimer_enable || $instruction_enable ? ' display:none; ' : '' ?>"><?php echo $start_button_label; ?></button>
@@ -203,6 +203,10 @@ global $wp_embed;
                 <a href="#" onclick="setLanguage('fr', 'fr', 'Français')">
                     <img draggable="false" class="emoji" alt="fr"
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1eb-1f1f7.svg"> Français
+                </a>
+                <a href="#" onclick="setLanguage('de', 'de', 'Deutsch')">
+                    <img draggable="false" class="emoji" alt="de"
+                        src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1e9-1f1ea.svg"> Deutsch
                 </a>
             </div>
         </div><!-- .language-switcher -->
@@ -526,7 +530,7 @@ global $wp_embed;
 <?php } ?>
 
 
-<div class="overlayQuestion-container" id="overlayQuestion">
+<!--    
     <div class="overlayQuestion-content">
         <div class="overlayQuestion-header">
             <h3 class="overlayQuestion-title">Ask a question</h3>
@@ -542,4 +546,4 @@ global $wp_embed;
         </div>
 
     </div>
-</div>
+</div> -->
