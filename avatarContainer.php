@@ -187,8 +187,16 @@ global $wp_embed;
         <div class="language-switcher" title="Change Language">
             <span class="lang-icon" onclick="toggleLanguageDropdown()">
                 <span id="selectedLanguage">
-                    <i class="bi bi-translate"></i>
+                    <img draggable="false" class="emoji" alt="us"
+                        src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1fa-1f1f8.svg">
                 </span>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        setLanguage('en', 'us', 'English');
+                    });
+
+                </script>
+
             </span>
 
             <div class="dropdown" id="languageDropdown" style="display: none;">
@@ -209,7 +217,7 @@ global $wp_embed;
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1e9-1f1ea.svg"> Deutsch
                 </a>
             </div>
-        </div><!-- .language-switcher -->
+        </div>
     </div>
 
     <div id="transcriptContainer" class="transcriptContainer">

@@ -975,14 +975,14 @@ input[type="checkbox"] {
                         <div class="form-grid single-column">
                             <div class="form-field">
                                 <label for="chat_window_pages">
-                                    Chat Window Pages *
+                                    Chat Window Pages
                                     <span class="tooltip-wrapper">
                                         <span class="tooltip-icon">?</span>
                                         <span class="tooltip-content">Select pages where chat widget will appear</span>
                                     </span>
                                 </label>
                                 <?php $pages = $avatar && $avatar->pages ? json_decode($avatar->pages, true) : []; ?>
-                                <select name="pages[]" id="chat_window_pages" class="select2 full-width" multiple="multiple" required data-placeholder="Select pages for chat widget...">
+                                <select name="pages[]" id="chat_window_pages" class="select2 full-width" multiple="multiple" data-placeholder="Select pages for chat widget...">
                                     <option value=""></option>
                                     <?php
                                     foreach ($all_pages as $val) {
@@ -1009,7 +1009,7 @@ input[type="checkbox"] {
                 <div class="form-divider"></div>
                 <div class="container">
                     <div class="boxed">
-                        <h2>LiveKit & API Settings</h2>
+                        <h2>Custom RAG & API Settings</h2>
                         <table class="form-table">
                             <tr>
                                 <th>Enable LiveKit</th>
@@ -1022,11 +1022,10 @@ input[type="checkbox"] {
                                 </td>
                             </tr>
 
-                            <!-- Combined Row -->
-                            <tr>
+                            <!-- Combined Row - Hidden when LiveKit is disabled -->
+                            <tr id="api-settings-row" style="<?php echo ($avatar && !$avatar->livekit_enable) ? 'display: none;' : ''; ?>">
                                 <th colspan="2">
                                     <div style="display: flex; gap: 20px; width: 100%;">
-
                                         <!-- RAG API URL -->
                                         <div style="flex: 1;">
                                             <label id="rag_label"><strong>Custom RAG API URL</strong></label><br>
@@ -1046,12 +1045,373 @@ input[type="checkbox"] {
                                                 placeholder="Enter your Deepgram API key"
                                                 style="width: 100%; margin-top: 12px;">
                                         </div>
+                                    </div>
+                                </th>
+                            </tr>
 
+                            <!-- Headers Section - Hidden when LiveKit is disabled -->
+                            <tr id="headers-section" style="<?php echo ($avatar && !$avatar->livekit_enable) ? 'display: none;' : ''; ?>">
+                                <th colspan="2">
+                                    <div class="headers-wrapper">
+                                        <div class="headers-header">
+                                            <label><strong><i class="dashicons dashicons-admin-generic" style="vertical-align: middle;"></i> Custom API Headers</strong></label>
+                                            <span class="headers-info">
+                                                <small>Headers to include with RAG API requests</small>
+                                                <span class="tooltip-icon" title="Add authentication, content-type, or other custom headers that your RAG API requires">?</span>
+                                            </span>
+                                        </div>
+                                        
+                                        <div id="headers-container" class="headers-container">
+                                            <?php
+                                            // Decode existing headers or use empty array
+                                            $headers = $avatar && $avatar->headers ? json_decode($avatar->headers, true) : [];
+                                            if (empty($headers)) {
+                                                // Add one empty row by default
+                                                $headers = [['key' => '', 'value' => '']];
+                                            }
+                                            
+                                            foreach ($headers as $index => $header):
+                                            ?>
+                                            <div class="header-row" data-index="<?php echo $index; ?>">
+                                                <div class="header-inputs">
+                                                    <div class="header-input-group">
+                                                        <span class="header-label">Key</span>
+                                                        <input type="text" 
+                                                            name="headers[<?php echo $index; ?>][key]" 
+                                                            placeholder="e.g., Authorization, X-API-Key, Content-Type"
+                                                            value="<?php echo esc_attr($header['key'] ?? ''); ?>"
+                                                            class="header-key">
+                                                    </div>
+                                                    <div class="header-input-group">
+                                                        <span class="header-label">Value</span>
+                                                        <input type="text" 
+                                                            name="headers[<?php echo $index; ?>][value]" 
+                                                            placeholder="e.g., Bearer token_here, application/json"
+                                                            value="<?php echo esc_attr($header['value'] ?? ''); ?>"
+                                                            class="header-value">
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="button button-secondary remove-header" title="Remove this header">
+                                                    <span class="dashicons dashicons-trash"></span>
+                                                </button>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        
+                                        <div class="headers-footer">
+                                            <button type="button" id="add-header" class="button button-primary">
+                                                <span class="dashicons dashicons-plus-alt"></span> Add Header
+                                            </button>
+                                            <span class="headers-count" id="headers-count"><?php echo count($headers); ?> header(s) configured</span>
+                                        </div>
                                     </div>
                                 </th>
                             </tr>
                         </table>
                     </div>
+
+                    <style>
+                    .headers-wrapper {
+                        background: #f8f9fa;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        padding: 20px;
+                        margin-top: 15px;
+                    }
+
+                    .headers-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        margin-bottom: 20px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid #e0e0e0;
+                    }
+
+                    .headers-info {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    .tooltip-icon {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 18px;
+                        height: 18px;
+                        background: #2271b1;
+                        color: white;
+                        border-radius: 50%;
+                        font-size: 12px;
+                        cursor: help;
+                        font-weight: bold;
+                    }
+
+                    .headers-container {
+                        margin-bottom: 20px;
+                    }
+
+                    .header-row {
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 15px;
+                        margin-bottom: 15px;
+                        padding: 15px;
+                        background: white;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 6px;
+                        transition: all 0.2s ease;
+                    }
+
+                    .header-row:hover {
+                        border-color: #2271b1;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    }
+
+                    .header-inputs {
+                        flex: 1;
+                        display: flex;
+                        gap: 15px;
+                    }
+
+                    .header-input-group {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 6px;
+                    }
+
+                    .header-label {
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #666;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+
+                    .header-key,
+                    .header-value {
+                        width: 100%;
+                        padding: 10px 12px;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        transition: border-color 0.2s ease;
+                    }
+
+                    .header-key:focus,
+                    .header-value:focus {
+                        border-color: #2271b1;
+                        outline: none;
+                        box-shadow: 0 0 0 1px rgba(34, 113, 177, 0.2);
+                    }
+
+                    .remove-header {
+                        padding: 10px 12px;
+                        background: #dc3545;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        align-self: center;
+                    }
+
+                    .remove-header:hover {
+                        background: #c82333;
+                        transform: translateY(-1px);
+                    }
+
+                    .remove-header .dashicons {
+                        font-size: 16px;
+                        width: 16px;
+                        height: 16px;
+                        vertical-align: middle;
+                    }
+
+                    .headers-footer {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding-top: 15px;
+                        border-top: 1px solid #e0e0e0;
+                    }
+
+                    #add-header {
+                        padding: 10px 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    #add-header .dashicons {
+                        font-size: 16px;
+                        width: 16px;
+                        height: 16px;
+                    }
+
+                    .headers-count {
+                        font-size: 13px;
+                        color: #666;
+                        font-weight: 500;
+                    }
+
+                    /* Responsive design */
+                    @media (max-width: 768px) {
+                        .header-inputs {
+                            flex-direction: column;
+                            gap: 10px;
+                        }
+                        
+                        .header-row {
+                            flex-direction: column;
+                            gap: 10px;
+                        }
+                        
+                        .remove-header {
+                            align-self: flex-end;
+                        }
+                        
+                        .headers-footer {
+                            flex-direction: column;
+                            gap: 15px;
+                            align-items: flex-start;
+                        }
+                    }
+
+                    /* Smooth transition for showing/hiding sections */
+                    #api-settings-row,
+                    #headers-section {
+                        transition: opacity 0.3s ease, max-height 0.3s ease;
+                    }
+                    </style>
+
+                    <script>
+                    jQuery(document).ready(function($) {
+                        let headerIndex = <?php echo count($headers); ?>;
+                        
+                        // Toggle API settings sections based on LiveKit checkbox
+                        function toggleApiSections() {
+                            if ($('#livekit_enable').is(':checked')) {
+                                $('#api-settings-row').show();
+                                $('#headers-section').show();
+                            } else {
+                                $('#api-settings-row').hide();
+                                $('#headers-section').hide();
+                            }
+                        }
+                        
+                        // Initial toggle
+                        toggleApiSections();
+                        
+                        // Toggle on change
+                        $('#livekit_enable').on('change', toggleApiSections);
+                        
+                        // Update headers count
+                        function updateHeadersCount() {
+                            const count = $('.header-row').length;
+                            $('#headers-count').text(count + ' header(s) configured');
+                        }
+                        
+                        // Add new header row
+                        $('#add-header').on('click', function() {
+                            const rowHtml = `
+                                <div class="header-row" data-index="${headerIndex}">
+                                    <div class="header-inputs">
+                                        <div class="header-input-group">
+                                            <span class="header-label">Key</span>
+                                            <input type="text" 
+                                                name="headers[${headerIndex}][key]" 
+                                                placeholder="e.g., Authorization, X-API-Key, Content-Type"
+                                                value=""
+                                                class="header-key">
+                                        </div>
+                                        <div class="header-input-group">
+                                            <span class="header-label">Value</span>
+                                            <input type="text" 
+                                                name="headers[${headerIndex}][value]" 
+                                                placeholder="e.g., Bearer token_here, application/json"
+                                                value=""
+                                                class="header-value">
+                                        </div>
+                                    </div>
+                                    <button type="button" class="button button-secondary remove-header" title="Remove this header">
+                                        <span class="dashicons dashicons-trash"></span>
+                                    </button>
+                                </div>
+                            `;
+                            $('#headers-container').append(rowHtml);
+                            headerIndex++;
+                            updateHeadersCount();
+                            
+                            // Focus on the new key input
+                            $('#headers-container .header-row:last-child .header-key').focus();
+                        });
+                        
+                        // Remove header row
+                        $(document).on('click', '.remove-header', function() {
+                            const $row = $(this).closest('.header-row');
+                            const totalRows = $('.header-row').length;
+                            
+                            // Don't remove if it's the last row (keep at least one)
+                            if (totalRows > 1) {
+                                $row.fadeOut(300, function() {
+                                    $(this).remove();
+                                    reindexHeaders();
+                                    updateHeadersCount();
+                                });
+                            } else {
+                                // Clear the last row instead of removing it
+                                $row.find('.header-key, .header-value').val('');
+                                $row.find('.header-key').focus();
+                            }
+                        });
+                        
+                        // Reindex header rows after removal
+                        function reindexHeaders() {
+                            $('.header-row').each(function(index) {
+                                $(this).attr('data-index', index);
+                                $(this).find('.header-key').attr('name', `headers[${index}][key]`);
+                                $(this).find('.header-value').attr('name', `headers[${index}][value]`);
+                            });
+                            headerIndex = $('.header-row').length;
+                        }
+                        
+                        // Auto-focus next input when Enter is pressed in key field
+                        $(document).on('keydown', '.header-key', function(e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                $(this).closest('.header-row').find('.header-value').focus();
+                            }
+                        });
+                        
+                        // Auto-focus next row or add new when Enter is pressed in value field
+                        $(document).on('keydown', '.header-value', function(e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const $row = $(this).closest('.header-row');
+                                const $nextRow = $row.next('.header-row');
+                                
+                                if ($nextRow.length > 0) {
+                                    $nextRow.find('.header-key').focus();
+                                } else {
+                                    $('#add-header').click();
+                                }
+                            }
+                        });
+                        
+                        // Show/hide tooltip on mobile
+                        $('.tooltip-icon').on('click', function() {
+                            if ($(window).width() <= 768) {
+                                alert($(this).attr('title'));
+                            }
+                        });
+                        
+                        // Initial count update
+                        updateHeadersCount();
+                    });
+                    </script>
 
                     <script>
                     document.addEventListener('DOMContentLoaded', function() {
@@ -1272,6 +1632,720 @@ input[type="checkbox"] {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Add this after the Opening Texts / Welcome Messages section -->
+                    <div class="form-divider"></div>                
+                    <div class="boxed mb-20">
+    <h2 style="display: flex; align-items: center; gap: 8px;">
+        Manage Toast Notifications
+    </h2>
+    <span>Custom toast notifications that appear during the chat session at specified times.</span>
+    
+    <?php
+    $toast_messages = $avatar && $avatar->toast_messages ? json_decode($avatar->toast_messages, true) : [];
+    ?>
+    
+    <div id="toast-messages-wrapper" class="toast-messages-wrapper" style="margin-top: 20px;">
+        <div class="toast-messages-header">
+            <label><strong><i class="dashicons dashicons-megaphone" style="vertical-align: middle;"></i> Toast Messages Configuration</strong></label>
+            <span class="toast-messages-info">
+                <small>Messages will appear as notifications during the chat session</small>
+                <span class="tooltip-icon" title="Add messages that will pop up as toast notifications at specific times during the session">?</span>
+            </span>
+        </div>
+        
+        <div id="toast-messages-container" class="toast-messages-container">
+            <?php
+            if (empty($toast_messages)) {
+                // Add one empty row by default
+                $toast_messages = [['message' => '', 'type' => '', 'time' => '']];
+            }
+            
+            foreach ($toast_messages as $index => $toast):
+            ?>
+            <div class="toast-message-row" data-index="<?php echo $index; ?>">
+                <div class="toast-message-inputs">
+                    <!-- Message Input (Larger) -->
+                    <div class="toast-input-group message-group">
+                        <span class="toast-label">Message</span>
+                        <input type="text" 
+                            name="toast_messages[<?php echo $index; ?>][message]" 
+                            placeholder="Enter your message here..."
+                            value="<?php echo esc_attr($toast['message'] ?? ''); ?>"
+                            class="toast-message">
+                    </div>
+                    
+                    <!-- Type Select (Smaller) -->
+                    <div class="toast-input-group type-group">
+                        <span class="toast-label">Type</span>
+                        <select name="toast_messages[<?php echo $index; ?>][type]" class="toast-type">
+                            <option value="" <?php echo empty($toast['type'] ?? '') ? 'selected' : ''; ?>>Select Type</option>
+                            <option value="success" <?php echo ($toast['type'] ?? '') == 'success' ? 'selected' : ''; ?>>Success</option>
+                            <option value="error" <?php echo ($toast['type'] ?? '') == 'error' ? 'selected' : ''; ?>>Error</option>
+                            <option value="warning" <?php echo ($toast['type'] ?? '') == 'warning' ? 'selected' : ''; ?>>Warning</option>
+                            <option value="info" <?php echo ($toast['type'] ?? '') == 'info' ? 'selected' : ''; ?>>Info</option>
+                        </select>
+
+                    </div>
+                    
+                    <!-- Time Input (Smaller) -->
+                    <div class="toast-input-group time-group">
+                        <span class="toast-label">Time (seconds)</span>
+                        <div class="time-input-wrapper">
+                            <input type="number" 
+                                name="toast_messages[<?php echo $index; ?>][time]" 
+                                placeholder="Sec"
+                                min="1"
+                                value="<?php echo esc_attr($toast['time'] ?? ''); ?>"
+                                class="toast-time">
+                        </div>
+                        <div class="toast-time-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
+                    </div>
+                </div>
+                <button style="margin-top: 24px;" type="button" class="button button-secondary remove-toast-message" title="Remove this toast message">
+                    <span class="dashicons dashicons-trash"></span>
+                </button>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        
+        <div class="toast-messages-footer">
+            <button type="button" id="add-toast-message" class="button button-primary">
+                <span class="dashicons dashicons-plus-alt"></span> Add Toast Message
+            </button>
+            <span class="toast-messages-count" id="toast-messages-count"><?php echo count($toast_messages); ?> message(s) configured</span>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Toast Messages Styles */
+.toast-messages-wrapper {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.toast-messages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.toast-messages-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toast-messages-container {
+    margin-bottom: 20px;
+}
+
+.toast-message-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.toast-message-row:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.toast-message-inputs {
+    flex: 1;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+/* Input Group Sizing */
+.toast-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Message field - Larger (60%) */
+.toast-input-group.message-group {
+    flex: 3; /* Takes 3 parts of available space */
+    min-width: 0;
+}
+
+/* Type and Time fields - Smaller (20% each) */
+.toast-input-group.type-group,
+.toast-input-group.time-group {
+    flex: 1; /* Takes 1 part each */
+    min-width: 150px;
+}
+
+.toast-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Make all inputs equal height */
+.toast-message,
+.toast-type,
+.toast-time {
+    width: 100%;
+    padding: 12px; /* Consistent padding */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    height: 44px; /* Fixed equal height */
+    line-height: 20px;
+}
+
+.toast-message:focus,
+.toast-type:focus,
+.toast-time:focus {
+    border-color: #2271b1;
+    outline: none;
+    box-shadow: 0 0 0 1px rgba(34, 113, 177, 0.2);
+}
+
+/* Select specific styling */
+.toast-type {
+    background: white url('data:image/svg+xml;charset=US-ASCII,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 10px center;
+    background-size: 16px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 35px;
+    cursor: pointer;
+}
+
+/* Required field indicators */
+.toast-type:required,
+.toast-time:required {
+    border-left: 3px solid #dc3545 !important;
+}
+
+.toast-type:required:valid,
+.toast-time:required:valid {
+    border-left-color: #198754 !important;
+}
+
+/* Time input specific */
+.time-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.time-input-wrapper::after {
+    content: 'sec';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    pointer-events: none;
+}
+
+.toast-time {
+    padding-right: 40px;
+}
+
+.remove-toast-message {
+    padding: 12px 15px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    align-self: flex-start;
+    height: 44px; /* Match input height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+}
+
+.remove-toast-message:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.remove-toast-message .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
+
+.toast-messages-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+#add-toast-message {
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px; /* Match input height */
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#add-toast-message .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.toast-messages-count {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Type color indicators - show in the select itself */
+.toast-type {
+    color: inherit;
+}
+
+.toast-type option[value="success"] {
+    color: #198754;
+    font-weight: 500;
+}
+
+.toast-type option[value="error"] {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.toast-type option[value="warning"] {
+    color: #fd7e14;
+    font-weight: 500;
+}
+
+.toast-type option[value="info"] {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.toast-type:required,
+.toast-time:required {
+    border-left: 3px solid #dc3545 !important;
+}
+
+.toast-type:required:valid,
+.toast-time:required:valid {
+    border-left-color: #198754 !important;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .toast-input-group.message-group {
+        flex: 2;
+    }
+    
+    .toast-input-group.type-group,
+    .toast-input-group.time-group {
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .toast-message-inputs {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .toast-message-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .toast-input-group.message-group,
+    .toast-input-group.type-group,
+    .toast-input-group.time-group {
+        width: 100%;
+        flex: none;
+        min-width: auto;
+    }
+    
+    .remove-toast-message {
+        align-self: flex-end;
+        height: 40px;
+        min-width: 40px;
+    }
+    
+    .toast-messages-footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .toast-message,
+    .toast-type,
+    .toast-time {
+        height: 40px;
+        padding: 10px;
+        font-size: 13px;
+    }
+    
+    .remove-toast-message,
+    #add-toast-message {
+        height: 40px;
+    }
+}
+</style>
+
+<script>
+jQuery(document).ready(function($) {
+    let toastIndex = <?php echo count($toast_messages); ?>;
+    let timeLimit = <?php echo $avatar && $avatar->time_limit ? $avatar->time_limit * 60 : 3600; ?>; // Convert minutes to seconds
+    
+    // Update time limit from the time_limit input
+    function updateTimeLimit() {
+        const minutes = $('#time_limit').val();
+        if (minutes && !isNaN(minutes)) {
+            timeLimit = minutes * 60; // Convert to seconds
+        }
+    }
+    
+    // Monitor time limit changes
+    $('#time_limit').on('change input', function() {
+        updateTimeLimit();
+        validateAllToastTimesAndTypes();
+    });
+    
+    // Update toast messages count
+    function updateToastMessagesCount() {
+        const count = $('.toast-message-row').length;
+        $('#toast-messages-count').text(count + ' message(s) configured');
+    }
+    
+    // Toggle required fields based on message input
+    function toggleRequiredFields($row) {
+        const $messageInput = $row.find('.toast-message');
+        const $typeSelect = $row.find('.toast-type');
+        const $timeInput = $row.find('.toast-time');
+        
+        const hasMessage = $messageInput.val().trim() !== '';
+        
+        // Toggle required attribute based on message input
+        if (hasMessage) {
+            $typeSelect.attr('required', 'required');
+            $timeInput.attr('required', 'required');
+        } else {
+            $typeSelect.removeAttr('required');
+            $timeInput.removeAttr('required');
+            $typeSelect.css('border-color', '#ddd');
+            $timeInput.css('border-color', '#ddd');
+        }
+    }
+    
+    // Validate type selection
+    function validateToastType($select) {
+        const $row = $select.closest('.toast-message-row');
+        const $messageInput = $row.find('.toast-message');
+        const hasMessage = $messageInput.val().trim() !== '';
+        const hasType = $select.val() !== '';
+        
+        // Only validate type if message exists
+        if (hasMessage && !hasType) {
+            $select.css('border-color', '#dc3545');
+            return false;
+        } else {
+            $select.css('border-color', '#ddd');
+            return true;
+        }
+    }
+    
+    // Validate toast time
+    function validateToastTime($input) {
+        const time = parseInt($input.val());
+        const $row = $input.closest('.toast-message-row');
+        const $validation = $row.find('.toast-time-validation');
+        const allTimes = [];
+        const $messageInput = $row.find('.toast-message');
+        const $typeSelect = $row.find('.toast-type');
+        const hasMessage = $messageInput.val().trim() !== '';
+        const hasType = $typeSelect.val() !== '';
+        
+        // Collect all times
+        $('.toast-time').each(function() {
+            if (this !== $input[0] && $(this).val().trim() !== '') {
+                allTimes.push(parseInt($(this).val()));
+            }
+        });
+        
+        // Clear previous validation
+        $validation.hide().text('');
+        $input.css('border-color', '#ddd');
+        
+        // If message exists, validate type and time
+        if (hasMessage) {
+            // Validate type if message exists
+            if (!hasType) {
+                $typeSelect.css('border-color', '#dc3545');
+                $validation.text('Type is required when message is entered').show();
+                $input.css('border-color', '#dc3545');
+                return false;
+            } else {
+                $typeSelect.css('border-color', '#ddd');
+            }
+            
+            // Validate time if message exists
+            if (isNaN(time)) {
+                $validation.text('Time is required when message is entered').show();
+                $input.css('border-color', '#dc3545');
+                return false;
+            }
+            
+            if (time < 1) {
+                $validation.text('Time must be at least 1 second').show();
+                $input.css('border-color', '#dc3545');
+                return false;
+            }
+            
+            if (time > timeLimit) {
+                $validation.text('Time cannot exceed session limit (' + (timeLimit/60) + ' minutes)').show();
+                $input.css('border-color', '#dc3545');
+                return false;
+            }
+            
+            if (allTimes.includes(time)) {
+                $validation.text('This time is already used by another message').show();
+                $input.css('border-color', '#dc3545');
+                return false;
+            }
+        } else {
+            // If no message, clear any validation and remove required
+            $typeSelect.css('border-color', '#ddd');
+            $typeSelect.removeAttr('required');
+            $input.removeAttr('required');
+        }
+        
+        return true;
+    }
+    
+    // Validate all toast times and types
+    function validateAllToastTimesAndTypes() {
+        let allValid = true;
+        $('.toast-message-row').each(function() {
+            const $row = $(this);
+            const $messageInput = $row.find('.toast-message');
+            const $typeSelect = $row.find('.toast-type');
+            const $timeInput = $row.find('.toast-time');
+            
+            const hasMessage = $messageInput.val().trim() !== '';
+            
+            if (hasMessage) {
+                // Validate type
+                if (!validateToastType($typeSelect)) {
+                    allValid = false;
+                }
+                
+                // Validate time
+                if (!validateToastTime($timeInput)) {
+                    allValid = false;
+                }
+            }
+        });
+        return allValid;
+    }
+    
+    // Add new toast message row
+    $('#add-toast-message').on('click', function() {
+        const rowHtml = `
+            <div class="toast-message-row" data-index="${toastIndex}">
+                <div class="toast-message-inputs">
+                    <div class="toast-input-group message-group">
+                        <span class="toast-label">Message</span>
+                        <input type="text" 
+                            name="toast_messages[${toastIndex}][message]" 
+                            placeholder="Enter your message here..."
+                            value=""
+                            class="toast-message">
+                    </div>
+                    
+                    <div class="toast-input-group type-group">
+                        <span class="toast-label">Type</span>
+                        <select name="toast_messages[${toastIndex}][type]" class="toast-type">
+                            <option value="">Select Type</option>
+                            <option value="success">Success</option>
+                            <option value="error">Error</option>
+                            <option value="warning">Warning</option>
+                            <option value="info">Info</option>
+                        </select>
+                    </div>
+                    
+                    <div class="toast-input-group time-group">
+                        <span class="toast-label">Time (seconds)</span>
+                        <div class="time-input-wrapper">
+                            <input type="number" 
+                                name="toast_messages[${toastIndex}][time]" 
+                                placeholder="Sec"
+                                min="1"
+                                value=""
+                                class="toast-time">
+                        </div>
+                        <div class="toast-time-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
+                    </div>
+                </div>
+                <button style="margin-top: 24px;" type="button" class="button button-secondary remove-toast-message" title="Remove this toast message">
+                    <span class="dashicons dashicons-trash"></span>
+                </button>
+            </div>
+        `;
+        
+        $('#toast-messages-container').append(rowHtml);
+        toastIndex++;
+        updateToastMessagesCount();
+        
+        // Focus on the new message input
+        $('#toast-messages-container .toast-message-row:last-child .toast-message').focus();
+        
+        // Initialize required fields for the new row
+        toggleRequiredFields($('#toast-messages-container .toast-message-row:last-child'));
+    });
+    
+    // Remove toast message row
+    $(document).on('click', '.remove-toast-message', function() {
+        const $row = $(this).closest('.toast-message-row');
+        const totalRows = $('.toast-message-row').length;
+        
+        // Don't remove if it's the last row (keep at least one)
+        if (totalRows > 1) {
+            $row.fadeOut(300, function() {
+                $(this).remove();
+                reindexToastMessages();
+                updateToastMessagesCount();
+                validateAllToastTimesAndTypes();
+            });
+        } else {
+            // Clear the last row instead of removing it
+            $row.find('.toast-message, .toast-time').val('');
+            $row.find('.toast-type').val('');
+            $row.find('.toast-message').focus();
+            toggleRequiredFields($row);
+            validateAllToastTimesAndTypes();
+        }
+    });
+    
+    // Reindex toast message rows after removal
+    function reindexToastMessages() {
+        $('.toast-message-row').each(function(index) {
+            $(this).attr('data-index', index);
+            
+            // Update message field
+            $(this).find('.toast-message').attr('name', `toast_messages[${index}][message]`);
+            
+            // Update type field
+            $(this).find('.toast-type').attr('name', `toast_messages[${index}][type]`);
+            
+            // Update time field
+            $(this).find('.toast-time').attr('name', `toast_messages[${index}][time]`);
+        });
+        toastIndex = $('.toast-message-row').length;
+    }
+    
+    // Event listener for message input changes
+    $(document).on('input', '.toast-message', function() {
+        const $row = $(this).closest('.toast-message-row');
+        toggleRequiredFields($row);
+        validateAllToastTimesAndTypes();
+    });
+    
+    // Event listener for type select changes
+    $(document).on('change', '.toast-type', function() {
+        validateToastType($(this));
+        validateAllToastTimesAndTypes();
+    });
+    
+    // Validate time input on blur
+    $(document).on('blur', '.toast-time', function() {
+        validateToastTime($(this));
+    });
+    
+    // Auto-focus next input when Enter is pressed
+    $(document).on('keydown', '.toast-message', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            $(this).closest('.toast-message-row').find('.toast-type').focus();
+        }
+    });
+    
+    $(document).on('keydown', '.toast-type', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            $(this).closest('.toast-message-row').find('.toast-time').focus();
+        }
+    });
+    
+    $(document).on('keydown', '.toast-time', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const $row = $(this).closest('.toast-message-row');
+            const $nextRow = $row.next('.toast-message-row');
+            
+            if ($nextRow.length > 0) {
+                $nextRow.find('.toast-message').focus();
+            } else {
+                $('#add-toast-message').click();
+            }
+        }
+    });
+    
+    // Show/hide tooltip on mobile
+    $('.tooltip-icon').on('click', function() {
+        if ($(window).width() <= 768) {
+            alert($(this).attr('title'));
+        }
+    });
+    
+    // Initial setup
+    updateTimeLimit();
+    updateToastMessagesCount();
+    validateAllToastTimesAndTypes();
+    
+    // Initialize required fields for existing rows
+    $('.toast-message-row').each(function() {
+        toggleRequiredFields($(this));
+    });
+    
+    // Form submission validation
+    $('#avatarForm').on('submit', function(e) {
+        if (!validateAllToastTimesAndTypes()) {
+            e.preventDefault();
+            alert('Please fix the toast message validation errors before saving.');
+            $('.toast-message-row:has(.toast-message:not(:empty)) .toast-type:invalid, .toast-time:invalid').first().focus();
+            return false;
+        }
+    });
+});
+</script>
+
                 </div>
             </div>
 
