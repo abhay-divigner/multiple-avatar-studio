@@ -297,24 +297,24 @@ function avatar_studio_shortcode($atts)
     $PLUGIN_OPTIONS['disclaimer_enable'] = $disclaimer_enable;
     $PLUGIN_OPTIONS['user_form_enable'] = $user_form_enable;
 
-    if ($livekit_enable) {
-        // Define the variables to pass
-        $API_CONFIG = array(
-            'serverUrl' => 'https://api.heygen.com',
-        );
-        $API_CONFIG['RAG_API_URL'] = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
-        $STT_CONFIG = array();
-        $STT_CONFIG['deepgramKEY'] = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
+    // if ($livekit_enable) {
+    //     // Define the variables to pass
+    //     $API_CONFIG = array(
+    //         'serverUrl' => 'https://api.heygen.com',
+    //     );
+    //     $API_CONFIG['RAG_API_URL'] = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
+    //     $STT_CONFIG = array();
+    //     $STT_CONFIG['deepgramKEY'] = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
 
-        // Pass them to the script
+    //     // Pass them to the script
 
-        wp_enqueue_script('avatar_studio-livekit', 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js', array('jquery'), AvatarStudioVersion, true);
-        wp_enqueue_script('avatar_studio-audio-recorder', plugins_url('assets/js/audio-recorder.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
-        wp_enqueue_script('avatar_studio-livekit-script', plugins_url('assets/js/livekit-script.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
+    //     wp_enqueue_script('avatar_studio-livekit', 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js', array('jquery'), AvatarStudioVersion, true);
+    //     wp_enqueue_script('avatar_studio-audio-recorder', plugins_url('assets/js/audio-recorder.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
+    //     wp_enqueue_script('avatar_studio-livekit-script', plugins_url('assets/js/livekit-script.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
 
-        wp_localize_script('avatar_studio-livekit-script', 'API_CONFIG', $API_CONFIG);
-        wp_localize_script('avatar_studio-audio-recorder', 'STT_CONFIG', $STT_CONFIG);
-    }
+    //     wp_localize_script('avatar_studio-livekit-script', 'API_CONFIG', $API_CONFIG);
+    //     wp_localize_script('avatar_studio-audio-recorder', 'STT_CONFIG', $STT_CONFIG);
+    // }
     wp_enqueue_script('avatar_studio-jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), AvatarStudioVersion, true);
 
     wp_enqueue_script('avatar_studio-script', plugins_url('assets/js/avatar_studio-script.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
@@ -323,7 +323,7 @@ function avatar_studio_shortcode($atts)
     
     ob_start();
 
-    if (!$livekit_enable) {
+    // if (!$livekit_enable) {
 
         if ($avatar_vendor == 'tavus') {
             echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion . '"></script>';
@@ -332,7 +332,7 @@ function avatar_studio_shortcode($atts)
         } else {
             echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion . '"></script>';
         }
-    }
+    // }
     echo ' <input type="hidden" id="ajaxURL" value="' . admin_url('admin-ajax.php') . '" />';
     echo ' <input type="hidden" id="avatar_studio_nonce" value="' . wp_create_nonce('avatar_studio_nonce_action') . '" />';
     echo ' <input type="hidden" id="heygen_assets" value="' . plugin_dir_url(__FILE__) . 'assets " />';

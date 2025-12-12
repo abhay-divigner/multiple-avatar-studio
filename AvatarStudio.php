@@ -4,7 +4,7 @@
  * Plugin Name: Avatar Studio
  * Plugin URI: https://divigner.com/avatar-studio
  * Description: Avatar Studio for your Interactive Avatar  
- * Version: 1.0.3
+ * Version: 1.0.3 Custom RAG
  * Author: Avanew
  * Requires at least: 6.0
  * Tested up to: 6.8
@@ -165,24 +165,24 @@ function enqueue_avatar_studio_script()
         if (stripos($userAgent, 'Firefox') !== false && !$livekit_enable) {
             return '';
         }
-        if ($livekit_enable) {
-            // Define the variables to pass
-            $API_CONFIG = array(
-                'serverUrl' => 'https://api.heygen.com',
-            );
-            $API_CONFIG['RAG_API_URL'] = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
-            $STT_CONFIG = array();
-            $STT_CONFIG['deepgramKEY'] = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
+        // if ($livekit_enable) {
+        //     // Define the variables to pass
+        //     $API_CONFIG = array(
+        //         'serverUrl' => 'https://api.heygen.com',
+        //     );
+        //     $API_CONFIG['RAG_API_URL'] = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
+        //     $STT_CONFIG = array();
+        //     $STT_CONFIG['deepgramKEY'] = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
 
-            // Pass them to the script
+        //     // Pass them to the script
 
-            wp_enqueue_script('avatar_studio-livekit', 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js', array('jquery'), AvatarStudioVersion, true);
-            wp_enqueue_script('avatar_studio-audio-recorder', $dir . 'assets/js/audio-recorder.js', array('jquery'), AvatarStudioVersion, true);
-            wp_enqueue_script('avatar_studio-livekit-script', $dir . 'assets/js/livekit-script.js', array('jquery'), AvatarStudioVersion, true);
+        //     wp_enqueue_script('avatar_studio-livekit', 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js', array('jquery'), AvatarStudioVersion, true);
+        //     wp_enqueue_script('avatar_studio-audio-recorder', $dir . 'assets/js/audio-recorder.js', array('jquery'), AvatarStudioVersion, true);
+        //     wp_enqueue_script('avatar_studio-livekit-script', $dir . 'assets/js/livekit-script.js', array('jquery'), AvatarStudioVersion, true);
 
-            wp_localize_script('avatar_studio-livekit-script', 'API_CONFIG', $API_CONFIG);
-            wp_localize_script('avatar_studio-audio-recorder', 'STT_CONFIG', $STT_CONFIG);
-        }
+        //     wp_localize_script('avatar_studio-livekit-script', 'API_CONFIG', $API_CONFIG);
+        //     wp_localize_script('avatar_studio-audio-recorder', 'STT_CONFIG', $STT_CONFIG);
+        // }
         wp_enqueue_script('avatar_studio-jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), AvatarStudioVersion, true);
         wp_enqueue_script('avatar_studio-script', $dir . 'assets/js/avatar_studio-script.js', array('jquery'), AvatarStudioVersion, true);
         wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
@@ -252,7 +252,7 @@ add_action('wp_footer', function () {
         return '';
     }
     if ($avatar_studio_enable && $isAvatarStudioPage && !post_password_required()) {
-        if (!$livekit_enable) {
+        // if (!$livekit_enable) {
 
             if ($avatar_vendor == 'tavus') {
                 echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion . '"></script>';
@@ -263,7 +263,7 @@ add_action('wp_footer', function () {
             }
 
 
-        }
+        // }
         echo ' <input type="hidden" id="ajaxURL" value="' . admin_url('admin-ajax.php') . '" />';
         echo ' <input type="hidden" id="avatar_studio_nonce" value="' . wp_create_nonce('avatar_studio_nonce_action') . '" />';
         echo ' <input type="hidden" id="heygen_assets" value="' . plugin_dir_url(__FILE__) . 'assets " />';
@@ -347,6 +347,8 @@ function create_avatar_studio_avaters_table()
         instruction_enable  TINYINT NULL DEFAULT '0',
         RAG_API_URL VARCHAR(300) NULL,
         deepgramKEY VARCHAR(300) NULL,
+        headers TEXT NULL,
+        toast_messages LONGTEXT NULL,
         voice_emotion TEXT NULL,
         pages TEXT NULL,
         styles TEXT NULL, 
@@ -357,9 +359,6 @@ function create_avatar_studio_avaters_table()
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
-
-
-
 }
 
 
@@ -426,12 +425,11 @@ function deactivate_avatar_studio()
     $table_name = $wpdb->prefix . 'avatar_studio_questionnaires';
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
 
-
     $table_name = $wpdb->prefix . 'avatar_studio_avatars';
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
 
-    // avatar_studio_user_logs
-
+    // Clear cron jobs
+    wp_clear_scheduled_hook('avatar_studio_export_cron_job');
 }
 
 function avatarStudioUpdateCheck()
@@ -446,9 +444,23 @@ function avatarStudioUpdateCheck()
 add_action('plugins_loaded', 'avatarStudioUpdateCheck');
 function avatarStudioUpdateDatabase()
 {
-
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_avatars';
+    
+    // Check and add toast_messages column if it doesn't exist
+    $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'toast_messages'));
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN toast_messages LONGTEXT NULL DEFAULT NULL AFTER headers");
+        error_log('Added toast_messages column to avatar_studio_avatars table');
+    }
+    
+    // Check and add headers column if it doesn't exist
+    $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'headers'));
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN headers TEXT NULL DEFAULT NULL");
+    }
+    
+    // Existing column checks...
     $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'disclaimer_title'));
     if (empty($column_exists)) {
         $wpdb->query("ALTER TABLE $table_name ADD COLUMN disclaimer_title VARCHAR(255) DEFAULT ''");
@@ -472,7 +484,6 @@ function avatarStudioUpdateDatabase()
     if (empty($column_exists)) {
         $wpdb->query("ALTER TABLE $table_name ADD COLUMN user_form_enable TINYINT NULL DEFAULT '0'");
     }
-
 }
 
 // Register table creation on plugin activation

@@ -1106,6 +1106,53 @@ public function render_edit_avatar_settings_page()
         global $wpdb;
         $id = intval($_REQUEST['id']);
 
+        // Process headers array
+        $headers_array = [];
+        if (isset($_POST['headers']) && is_array($_POST['headers'])) {
+            foreach ($_POST['headers'] as $header) {
+                $key = isset($header['key']) ? (string) $header['key'] : '';
+                $value = isset($header['value']) ? (string) $header['value'] : '';
+                
+                // Only add if both key and value are not empty
+                if (!empty($key) && !empty($value)) {
+                    $headers_array[] = [
+                        'key' => $key,
+                        'value' => $value
+                    ];
+                }
+            }
+        }
+        
+        // Convert to JSON
+        $headers_json = !empty($headers_array) ? json_encode($headers_array) : null;
+
+        // Process toast messages array
+        $toast_messages_array = [];
+        if (isset($_POST['toast_messages']) && is_array($_POST['toast_messages'])) {
+            foreach ($_POST['toast_messages'] as $toast) {
+                $message = isset($toast['message']) ? (string) $toast['message'] : '';
+                $type = isset($toast['type']) ? (string) $toast['type'] : '';
+                $time = isset($toast['time']) ? (string) $toast['time'] : 0;
+                
+                // Only add if message is not empty and time is valid
+                if (!empty($message) && $time > 0) {
+                    $toast_messages_array[] = [
+                        'message' => sanitize_text_field($message),
+                        'type' => sanitize_text_field($type),
+                        'time' => $time
+                    ];
+                }
+            }
+        }
+
+        // Sort by time ascending
+        usort($toast_messages_array, function($a, $b) {
+            return $a['time'] <=> $b['time'];
+        });
+
+        // Convert to JSON
+        $toast_messages_json = !empty($toast_messages_array) ? json_encode($toast_messages_array) : null;
+
         $result = $wpdb->update("{$wpdb->prefix}avatar_studio_avatars", [
             'api_key' => sanitize_text_field($_POST['api_key']),
             'vendor' => sanitize_text_field($_POST['vendor']),
@@ -1122,6 +1169,8 @@ public function render_edit_avatar_settings_page()
             'voice_emotion' => isset($_POST['voice_emotion']) ? sanitize_textarea_field($_POST['voice_emotion']) : '',
             'RAG_API_URL' => isset($_POST['RAG_API_URL']) ? sanitize_textarea_field($_POST['RAG_API_URL']) : '',
             'deepgramKEY' => isset($_POST['deepgramKEY']) ? sanitize_textarea_field($_POST['deepgramKEY']) : '',
+            'headers' => $headers_json,
+            'toast_messages' => $toast_messages_json,
             'time_limit' => isset($_POST['time_limit']) ? intval($_POST['time_limit']) : 60,
             'open_on_desktop' => isset($_POST['open_on_desktop']) ? intval($_POST['open_on_desktop']) : 0,
             'show_on_mobile' => isset($_POST['show_on_mobile']) ? intval($_POST['show_on_mobile']) : 0,
@@ -1170,6 +1219,53 @@ public function render_edit_avatar_settings_page()
 
         global $wpdb;
 
+        // Process headers array
+        $headers_array = [];
+        if (isset($_POST['headers']) && is_array($_POST['headers'])) {
+            foreach ($_POST['headers'] as $header) {
+                $key = isset($header['key']) ? (string) $header['key'] : '';
+                $value = isset($header['value']) ? (string) $header['value'] : '';
+                
+                // Only add if both key and value are not empty
+                if (!empty($key) && !empty($value)) {
+                    $headers_array[] = [
+                        'key' => $key,
+                        'value' => $value
+                    ];
+                }
+            }
+        }
+        
+        // Convert to JSON
+        $headers_json = !empty($headers_array) ? json_encode($headers_array) : null;
+
+        // Process toast messages array
+        $toast_messages_array = [];
+        if (isset($_POST['toast_messages']) && is_array($_POST['toast_messages'])) {
+            foreach ($_POST['toast_messages'] as $toast) {
+                $message = isset($toast['message']) ? (string) $toast['message'] : '';
+                $type = isset($toast['type']) ? (string) $toast['type'] : '';
+                $time = isset($toast['time']) ? (string) $toast['time'] : 0;
+                
+                // Only add if message is not empty and time is valid
+                if (!empty($message) && $time > 0) {
+                    $toast_messages_array[] = [
+                        'message' => sanitize_text_field($message),
+                        'type' => sanitize_text_field($type),
+                        'time' => $time
+                    ];
+                }
+            }
+        }
+
+        // Sort by time ascending
+        usort($toast_messages_array, function($a, $b) {
+            return $a['time'] <=> $b['time'];
+        });
+
+        // Convert to JSON
+        $toast_messages_json = !empty($toast_messages_array) ? json_encode($toast_messages_array) : null;
+
         $data = [
             'api_key' => sanitize_text_field($_POST['api_key']),
             'vendor' => sanitize_text_field($_POST['vendor']),
@@ -1186,6 +1282,8 @@ public function render_edit_avatar_settings_page()
             'voice_emotion' => isset($_POST['voice_emotion']) ? sanitize_textarea_field($_POST['voice_emotion']) : '',
             'RAG_API_URL' => isset($_POST['RAG_API_URL']) ? sanitize_textarea_field($_POST['RAG_API_URL']) : '',
             'deepgramKEY' => isset($_POST['deepgramKEY']) ? sanitize_textarea_field($_POST['deepgramKEY']) : '',
+            'headers' => $headers_json,
+            'toast_messages' => $toast_messages_json,
             'time_limit' => isset($_POST['time_limit']) ? intval($_POST['time_limit']) : 60,
             'open_on_desktop' => isset($_POST['open_on_desktop']) ? intval($_POST['open_on_desktop']) : 0,
             'show_on_mobile' => isset($_POST['show_on_mobile']) ? intval($_POST['show_on_mobile']) : 0,
@@ -1297,6 +1395,8 @@ public function render_edit_avatar_settings_page()
             'voice_emotion' => isset($avatar->voice_emotion) ? $avatar->voice_emotion : '',
             'RAG_API_URL' => isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '',
             'deepgramKEY' => isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '',
+            'headers' => isset($avatar->headers) ? $avatar->headers : null,
+            'toast_messages' => isset($avatar->toast_messages) ? $avatar->toast_messages : null,
             'time_limit' => isset($avatar->time_limit) ? $avatar->time_limit : 60,
             'open_on_desktop' => isset($avatar->open_on_desktop) ? $avatar->open_on_desktop : 0,
             'show_on_mobile' => isset($avatar->show_on_mobile) ? $avatar->show_on_mobile : 0,
