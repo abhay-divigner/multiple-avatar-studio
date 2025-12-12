@@ -538,6 +538,100 @@ global $wp_embed;
 <?php } ?>
 
 
+<!-- Toast Notification Container -->
+<div id="toast-notification-container" class="toast-notification-container" 
+    style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+</div>
+<style>
+.toast-notification-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 350px;
+}
+
+.toast-notification {
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-notification.hide {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.toast-notification.success {
+    background-color: #198754;
+    border-left: 4px solid #0f5132;
+}
+
+.toast-notification.error {
+    background-color: #dc3545;
+    border-left: 4px solid #842029;
+}
+
+.toast-notification.warning {
+    background-color: #fd7e14;
+    border-left: 4px solid #984c0c;
+}
+
+.toast-notification.info {
+    background-color: #0dcaf0;
+    border-left: 4px solid #087990;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+</style>
+
+<div id="notification-container" class="toast-notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+
+</div>
+<style>
+    .notification {
+        color: red;
+        padding: 10px;
+        border: 1px solid red;
+    }
+    .success {
+        color: green;
+    }
+    .error {
+        color: red;
+    }
+    .warn {
+        color: yellow;
+    }
+    .info {
+        color: grey;
+    }
+</style>
+
 <!--    
     <div class="overlayQuestion-content">
         <div class="overlayQuestion-header">
