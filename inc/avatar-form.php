@@ -464,16 +464,13 @@ input[type=checkbox]:checked::before {
     background: white;
     border-radius: 12px;
     padding: 20px 30px;
-    /* margin-bottom: 24px; */
 }
 
 .boxed h2 {
-    /* color: #2c3e50; */
     font-size: 24px;
+    line-height: 30px;
     font-weight: 700;
-    /* margin-bottom: 24px; */
     padding-bottom: 12px;
-    /* border-bottom: 2px solid #e9ecef; */
     background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -892,6 +889,45 @@ input[type="checkbox"] {
                             </div>
                         </div>
 
+                        <div class="form-field">
+                            <label>
+                                Chat Only
+                                <span class="tooltip-wrapper">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-content">Enable text-only chat without video</span>
+                                </span>
+                            </label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="chat_only" id="chat_only_yes" value="1" 
+                                        <?php echo ($avatar && $avatar->chat_only == 1) ? 'checked' : ''; ?>>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="chat_only" id="chat_only_no" value="0" 
+                                        <?php echo (!$avatar || $avatar->chat_only == 0) ? 'checked' : ''; ?>>
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="time_limit">
+                                Time Limit (minutes) *
+                                <span class="tooltip-wrapper">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-content">Specify how many minutes the avatar chat session can run</span>
+                                </span>
+                            </label>
+                            <input type="number" min="0" name="time_limit" id="time_limit" style="width: 160px;" 
+                                value="<?php echo $avatar && $avatar->time_limit ? esc_attr($avatar->time_limit) : 60 ?>" required />
+                            <p class="field-description">Avatar chat duration in minutes</p>
+                        </div>
+
+                    </div>
+                    
+                    <!-- Row 7: Chat Window Pages (Full Width) -->
+                    <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
                         <?php if ($avatar_vendor === 'tavus'): ?>
                             <div class="form-field">
                                 <label>
@@ -916,44 +952,6 @@ input[type="checkbox"] {
                             </div>
                         <?php endif; ?>
 
-                        <div class="form-field">
-                            <label>
-                                Chat Only
-                                <span class="tooltip-wrapper">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltip-content">Enable text-only chat without video</span>
-                                </span>
-                            </label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="chat_only" id="chat_only_yes" value="1" 
-                                        <?php echo ($avatar && $avatar->chat_only == 1) ? 'checked' : ''; ?>>
-                                    <span>Yes</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="chat_only" id="chat_only_no" value="0" 
-                                        <?php echo (!$avatar || $avatar->chat_only == 0) ? 'checked' : ''; ?>>
-                                    <span>No</span>
-                                </label>
-                            </div>
-                        </div>
-
-                    </div>
-                    
-                    <!-- Row 7: Chat Window Pages (Full Width) -->
-                    <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
-                        <div class="form-field">
-                            <label for="time_limit">
-                                Time Limit (minutes) *
-                                <span class="tooltip-wrapper">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltip-content">Specify how many minutes the avatar chat session can run</span>
-                                </span>
-                            </label>
-                            <input type="number" min="0" name="time_limit" id="time_limit" style="width: 160px;" 
-                                value="<?php echo $avatar && $avatar->time_limit ? esc_attr($avatar->time_limit) : 60 ?>" required />
-                            <p class="field-description">Avatar chat duration in minutes</p>
-                        </div>
                         <?php if ($avatar_vendor === 'heygen'): ?>
                             <div class="form-field voice-emotion-row">
                                 <label for="voice_emotion" style="margin-bottom: 8px;">
@@ -972,6 +970,7 @@ input[type="checkbox"] {
                                 </select>
                             </div>
                         <?php endif; ?>
+
                         <div class="form-grid single-column">
                             <div class="form-field">
                                 <label for="chat_window_pages">
@@ -994,6 +993,7 @@ input[type="checkbox"] {
                                 <p class="field-description">Select pages where the avatar chat should appear</p>
                             </div>
                         </div>
+                        
                     </div>
                     <script>
                     jQuery(document).ready(function($) {
@@ -1010,6 +1010,10 @@ input[type="checkbox"] {
                 <div class="container">
                     <div class="boxed">
                         <h2>Custom RAG & API Settings</h2>
+                        <!-- Tooltip for the section -->
+                        <div class="tooltip" style="font-size: 13px; color: #666;">
+                            <span style="font-weight: bold;">Advanced API Settings:</span> Configure custom RAG (Retrieval-Augmented Generation) endpoints and API integrations. LiveKit enables real-time audio/video streaming. Deepgram API key is required for browser compatibility.
+                        </div>
                         <table class="form-table">
                             <tr>
                                 <th>Enable LiveKit</th>
@@ -1029,7 +1033,7 @@ input[type="checkbox"] {
                                         <!-- RAG API URL -->
                                         <div style="flex: 1;">
                                             <label id="rag_label"><strong>Custom RAG API URL</strong></label><br>
-                                            <small>Leave blank to use HeyGen knowledge base</small>
+                                            <small>Leave blank to use default knowledge base</small>
                                             <input type="url" name="RAG_API_URL" id="RAG_API_URL"
                                                 value="<?php echo $avatar && $avatar->RAG_API_URL ? esc_attr($avatar->RAG_API_URL) : ''; ?>"
                                                 placeholder="https://api.example.com/rag"
@@ -1445,20 +1449,25 @@ input[type="checkbox"] {
                     <div class="form-divider"></div>                
                         <div class="boxed">
                             <h2>Disclaimer</h2>
+                            <!-- Tooltip for the section -->
+                            <div class="tooltip" style="font-size: 13px; color: #666;">
+                                <span style="font-weight: bold;">Info:</span> Configure a disclaimer that users must accept before interacting with the avatar. This is useful for compliance, terms of service, or privacy notices.
+                            </div>
                             <table class="form-table">
                                 <tr>
                                     <th>Enable Disclaimer</th>
                                     <td>
                                         <div class="toggle-wrapper">
                                             <input type="checkbox" name="disclaimer_enable" value="1" id="disclaimer_enable" 
-                                                <?php echo $avatar && $avatar->disclaimer_enable ? 'checked' : ''; ?> />
+                                                <?php echo $avatar && $avatar->disclaimer_enable ? 'checked' : ''; ?> 
+                                                onchange="toggleDisclaimerFields(this.checked)" />
                                             <label for="disclaimer_enable" class="toggle-label">Show disclaimer to users</label>
                                         </div>
                                     </td>
                                 </tr>
 
-                                <!-- New Combined Row -->
-                                <tr>
+                                <!-- New Combined Row - Wrapped in a container with ID for toggling -->
+                                <tr id="disclaimer_fields_row" style="<?php echo (!$avatar || !$avatar->disclaimer_enable) ? 'display: none;' : ''; ?>">
                                     <th colspan="2">
                                         <div style="display: flex; gap: 30px;">
 
@@ -1498,9 +1507,33 @@ input[type="checkbox"] {
                             </table>
                         </div>
 
+                        <script>
+                        function toggleDisclaimerFields(isEnabled) {
+                            const disclaimerFieldsRow = document.getElementById('disclaimer_fields_row');
+                            
+                            if (isEnabled) {
+                                disclaimerFieldsRow.style.display = '';
+                            } else {
+                                disclaimerFieldsRow.style.display = 'none';
+                            }
+                        }
+
+                        // Initialize on page load
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const disclaimerCheckbox = document.getElementById('disclaimer_enable');
+                            if (disclaimerCheckbox) {
+                                toggleDisclaimerFields(disclaimerCheckbox.checked);
+                            }
+                        });
+                        </script>
+
                     <div class="form-divider"></div>                
                     <div class="boxed">
                         <h2>User Form</h2>
+                        <!-- Updated tooltip for the section -->
+                        <div class="tooltip" style="font-size: 13px; color: #666;">
+                            <span style="font-weight: bold;">User Information Collection:</span> When enabled, users can be prompted to provide information before starting the conversation with the avatar. Useful for personalization, surveys, or compliance purposes.
+                        </div>
                         <table class="form-table">
                             <tr>
                                 <th>Enable User Form</th>
@@ -1519,39 +1552,38 @@ input[type="checkbox"] {
                     
                     <div class="boxed">
                         <h2>Video Instructions <span class="section-badge">(Optional)</span></h2>
+                        <!-- Tooltip for the section -->
+                        <div class="tooltip" style="font-size: 13px; color: #666;">
+                            <span style="font-weight: bold;">Video Instructions:</span> Add instructional content to help users interact with your avatar. You can include video links, step-by-step guides, or usage tips. Enable the "Skip Video Instruction" option if you want to skip the instruction video.
+                        </div>
                         <table class="form-table">
-
-                            <!-- Row 1: Enable Instruction + Skip Instruction Video -->
+                            <!-- Row 1: Enable Video Instruction -->
                             <tr>
-                                <th colspan="2">
-                                    <div style="display: flex; gap: 30px;">
-
-                                        <!-- Enable Instruction -->
-                                        <div style="flex: 1;">
-                                            <label><strong>Enable Video Instruction</strong></label><br>
-                                            <div class="toggle-wrapper" style="margin-top: 12px;">
-                                                <input type="checkbox" name="instruction_enable" value="1" id="instruction_enable" 
-                                                    <?php echo $avatar && $avatar->instruction_enable ? 'checked' : ''; ?> />
-                                                <label for="instruction_enable" class="toggle-label">Show instructions to users</label>
-                                            </div>
-                                        </div>
-
-                                        <!-- Skip Instruction Video -->
-                                        <div style="flex: 1;">
-                                            <label><strong>Skip Video Instruction</strong></label><br>
-                                            <div class="toggle-wrapper" style="margin-top: 12px;">
-                                                <input type="checkbox" name="skip_instruction_video" value="1" id="skip_instruction_video" 
-                                                    <?php echo $avatar && $avatar->skip_instruction_video ? 'checked' : ''; ?> />
-                                                <label for="skip_instruction_video" class="toggle-label">Hide instruction video</label>
-                                            </div>
-                                        </div>
-
+                                <th>Enable Video Instruction</th>
+                                <td>
+                                    <div class="toggle-wrapper">
+                                        <input type="checkbox" name="instruction_enable" value="1" id="instruction_enable" 
+                                            <?php echo $avatar && $avatar->instruction_enable ? 'checked' : ''; ?> 
+                                            onchange="toggleInstructionFields(this.checked)" />
+                                        <label for="instruction_enable" class="toggle-label">Show instructions to users</label>
                                     </div>
-                                </th>
+                                </td>
                             </tr>
 
-                            <!-- Row 2: Heading + Instruction Content -->
-                            <tr>
+                            <!-- Row 2: Skip Video Instruction - Hidden by default -->
+                            <tr id="skip_instruction_row" style="<?php echo (!$avatar || !$avatar->instruction_enable) ? 'display: none;' : ''; ?>">
+                                <th>Skip Video Instruction</th>
+                                <td>
+                                    <div class="toggle-wrapper">
+                                        <input type="checkbox" name="skip_instruction_video" value="1" id="skip_instruction_video" 
+                                            <?php echo $avatar && $avatar->skip_instruction_video ? 'checked' : ''; ?> />
+                                        <label for="skip_instruction_video" class="toggle-label">Skip instruction video</label>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3: Heading + Instruction Content - Hidden by default -->
+                            <tr id="instruction_fields_row" style="<?php echo (!$avatar || !$avatar->instruction_enable) ? 'display: none;' : ''; ?>">
                                 <th colspan="2">
                                     <div style="display: flex; gap: 30px;">
 
@@ -1590,6 +1622,29 @@ input[type="checkbox"] {
 
                         </table>
                     </div>
+
+                    <script>
+                    function toggleInstructionFields(isEnabled) {
+                        const skipInstructionRow = document.getElementById('skip_instruction_row');
+                        const instructionFieldsRow = document.getElementById('instruction_fields_row');
+                        
+                        if (isEnabled) {
+                            skipInstructionRow.style.display = '';
+                            instructionFieldsRow.style.display = '';
+                        } else {
+                            skipInstructionRow.style.display = 'none';
+                            instructionFieldsRow.style.display = 'none';
+                        }
+                    }
+
+                    // Initialize on page load
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const instructionCheckbox = document.getElementById('instruction_enable');
+                        if (instructionCheckbox) {
+                            toggleInstructionFields(instructionCheckbox.checked);
+                        }
+                    });
+                    </script>
 
                     <div class="form-divider"></div>                
                     <div class="boxed mb-20">
@@ -1637,9 +1692,9 @@ input[type="checkbox"] {
                     <div class="form-divider"></div>                
                     <div class="boxed mb-20">
                         <h2 style="display: flex; align-items: center; gap: 8px;">
-                            Manage Toast Notifications
+                            Manage Flash Notifications
                         </h2>
-                        <span>Custom toast notifications that appear during the chat session at specified times.</span>
+                        <span>Custom flash notifications that appear during the chat session at specified times.</span>
                         
                         <?php
                         $toast_messages = $avatar && $avatar->toast_messages ? json_decode($avatar->toast_messages, true) : [];
@@ -1647,7 +1702,7 @@ input[type="checkbox"] {
                         
                         <div id="toast-messages-wrapper" class="toast-messages-wrapper" style="margin-top: 20px;">
                             <div class="toast-messages-header">
-                                <label><strong><i class="dashicons dashicons-megaphone" style="vertical-align: middle;"></i> Toast Messages Configuration</strong></label>
+                                <label><strong><i class="dashicons dashicons-megaphone" style="vertical-align: middle;"></i> Flash Messages Configuration</strong></label>
                                 <span class="toast-messages-info">
                                     <small>Messages will appear as notifications during the chat session</small>
                                     <span class="tooltip-icon" title="Add messages that will pop up as toast notifications at specific times during the session">?</span>
@@ -1682,7 +1737,7 @@ input[type="checkbox"] {
                                                 <option value="" <?php echo empty($toast['type'] ?? '') ? 'selected' : ''; ?>>Select Type</option>
                                                 <option value="success" <?php echo ($toast['type'] ?? '') == 'success' ? 'selected' : ''; ?>>Success</option>
                                                 <option value="error" <?php echo ($toast['type'] ?? '') == 'error' ? 'selected' : ''; ?>>Error</option>
-                                                <option value="warning" <?php echo ($toast['type'] ?? '') == 'warning' ? 'selected' : ''; ?>>Warning</option>
+                                                <option value="warn" <?php echo ($toast['type'] ?? '') == 'warn' ? 'selected' : ''; ?>>Warning</option>
                                                 <option value="info" <?php echo ($toast['type'] ?? '') == 'info' ? 'selected' : ''; ?>>Info</option>
                                             </select>
 
@@ -1711,7 +1766,7 @@ input[type="checkbox"] {
                             
                             <div class="toast-messages-footer">
                                 <button type="button" id="add-toast-message" class="button button-primary">
-                                    <span class="dashicons dashicons-plus-alt"></span> Add Toast Message
+                                    <span class="dashicons dashicons-plus-alt"></span> Add Flash Message
                                 </button>
                                 <span class="toast-messages-count" id="toast-messages-count"><?php echo count($toast_messages); ?> message(s) configured</span>
                             </div>
@@ -1939,7 +1994,7 @@ input[type="checkbox"] {
                         font-weight: 500;
                     }
 
-                    .toast-type option[value="warning"] {
+                    .toast-type option[value="warn"] {
                         color: #fd7e14;
                         font-weight: 500;
                     }
@@ -2195,7 +2250,7 @@ input[type="checkbox"] {
                                                 <option value="">Select Type</option>
                                                 <option value="success">Success</option>
                                                 <option value="error">Error</option>
-                                                <option value="warning">Warning</option>
+                                                <option value="warn">Warn</option>
                                                 <option value="info">Info</option>
                                             </select>
                                         </div>

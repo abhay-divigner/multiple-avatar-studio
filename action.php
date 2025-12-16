@@ -17,7 +17,33 @@ function handle_avatar_studio_heygenToken()
     
     global $wpdb;
     
+    // Get page_id and avatar_studio_id from POST
+    $pageId = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
+    $avatar_studio_id = isset($_POST['avatar_studio_id']) ? intval($_POST['avatar_studio_id']) : 0;
+    
     $heygen_api_key = esc_attr(get_option('avatar_studio_heygen_api_key'));
+
+    // Get avatar info based on page_id or avatar_studio_id
+    $avatar = null;
+    if ($avatar_studio_id) {
+        $avatar = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d",
+            $avatar_studio_id
+        ));
+    } else if ($pageId) {
+        $avatar = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE JSON_CONTAINS(pages, '\"%d\"')",
+            $pageId
+        ));
+    }
+
+    if (!$avatar) {
+        wp_send_json_error(['message' => 'No avatar configured for this page']);
+        wp_die();
+    }
+
+    // Get toast_messages from avatar
+    $toast_messages = isset($avatar->toast_messages) ? json_decode($avatar->toast_messages, true) : [];
 
     // Get raw userInfo data from POST
     $user_info_raw = isset($_POST['userInfo']) ? wp_unslash($_POST['userInfo']) : '';
@@ -156,24 +182,6 @@ function handle_avatar_studio_heygenToken()
     if (!empty($session_id)) {
         $table_name = $wpdb->prefix . 'avatar_studio_sessions';
         
-        // Get page_id and avatar_studio_id
-        $pageId = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
-        $avatar_studio_id = isset($_POST['avatar_studio_id']) ? intval($_POST['avatar_studio_id']) : 0;
-        
-        // Get avatar info
-        $avatar = null;
-        if ($avatar_studio_id) {
-            $avatar = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d",
-                $avatar_studio_id
-            ));
-        } else if ($pageId) {
-            $avatar = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE JSON_CONTAINS(pages, '\"%d\"')",
-                $pageId
-            ));
-        }
-
         // Prepare session data
         $session_data = [
             'session_id'  => sanitize_text_field($session_id),
@@ -216,7 +224,8 @@ function handle_avatar_studio_heygenToken()
     $result['code'] = $data['code'];
     $result['message'] = $data['message'];
     $result['token'] = isset($data['data']['token']) ? $data['data']['token'] : '';
-    $result['session_id'] = $session_id; // Return session_id to frontend
+    $result['session_id'] = $session_id;
+    $result['toast_messages'] = $toast_messages;
     
     wp_send_json_success($result);
     wp_die();

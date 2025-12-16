@@ -3832,7 +3832,6 @@ function vr(i, e = "info") {
   (r.className = `notification ${e}`),
     (r.innerHTML = `
       <span>${i}</span>
-      <span class="close-btn">&times;</span>
   `),
     t.appendChild(r),
     setTimeout(() => r.classList.add("show"), 50),
