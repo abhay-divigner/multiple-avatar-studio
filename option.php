@@ -12,14 +12,14 @@
             'dashicons-admin-generic',  // Icon for the menu
             6                           // Position in the menu
         );
-        add_submenu_page(
-            'avatar_studio_main', 
-            'User Info',
-            'User Info',
-            'manage_options',
-            'avatar_studio_user_info',
-            'avatar_studio_user_info_page'
-        );
+        // add_submenu_page(
+        //     'avatar_studio_main', 
+        //     'User Info',
+        //     'User Info',
+        //     'manage_options',
+        //     'avatar_studio_user_info',
+        //     'avatar_studio_user_info_page'
+        // );
 
         // Add Sessions submenu only if Google Drive is enabled
         if (get_option('avatar_studio_enable_google_drive') == '1') {
@@ -996,7 +996,7 @@
         <div class="avatar-studio-card conditional-section <?php echo !$has_tavus_key ? 'disabled' : ''; ?>" id="google-drive-section">
             <div class="card-header collapsible" data-target="google-drive-body">
                 <h2>
-                    Google Drive Integration (User Transcripts – Tavus Only)
+                    Google Drive Integration (User Transcript - Tavus Only | Heygen Coming Soon!)
                     <span class="section-status <?php echo $has_tavus_key ? 'active' : 'inactive'; ?>">
                         <?php echo $has_tavus_key ? 'Tavus API Available' : 'Tavus API Required'; ?>
                     </span>
@@ -1013,15 +1013,29 @@
                 </div>
                 <?php endif; ?>
                 
+
+                <div style="display: flex; flex-direction: row; gap: 20px;">
+  
                 <!-- Purpose Description -->
-                <div class="alert-box" style="background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
+                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
                     <p style="color: #1e293b;">
-                        <strong style="color: #333;">Export User Conversation Transcripts</strong><br>
-                        This integration automatically exports user conversation transcripts from Tavus to Google Drive. 
-                        Perfect for backup, analysis, or compliance purposes. Transcripts contain full conversation logs 
-                        between users and your AI avatars.
+                    <strong style="color: #333;">Export Conversation Transcripts</strong><br>
+                    This integration automatically exports user conversation transcripts from Tavus to Google Drive. 
+                    Perfect for backup, analysis, or compliance purposes. Transcripts contain full conversation logs 
+                    between users and your AI avatars.
                     </p>
                 </div>
+
+                <!-- Perception Analysis Note -->
+                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
+                    <p style="color: #1e293b;">
+                    <strong style="color: #333;">Export Perception Analysis Data</strong><br>
+                    Perception analysis reveals insights into user interactions with AI avatars by capturing emotions, engagement, and behavior. It helps understand user sentiment, improve avatar performance, and optimize conversations using emotion detection, engagement scores, attention metrics, and interaction quality indicators.
+                    </p>
+                </div>
+
+                </div>
+
                 
                 <table class="form-table">
                     <tr valign="top">
@@ -1088,7 +1102,7 @@
                                                 style="flex: 1;"
                                                 <?php echo !$has_tavus_key ? 'disabled' : ''; ?>
                                             />
-                                            <button type="button" class="button toggle-visibility google-drive-toggle" data-target="avatar_studio_google_client_secret" style="white-space: nowrap;" <?php echo !$has_tavus_key ? 'disabled' : ''; ?>>Show</button>
+                                            <button type="button" class="button toggle-visibility" data-target="avatar_studio_google_client_secret" style="white-space: nowrap;" <?php echo !$has_tavus_key ? 'disabled' : ''; ?>>Show</button>
                                         </div>
                                         <p class="description" style="margin-top: 6px;">OAuth 2.0 Client Secret from Google Cloud Console</p>
                                     </div>
@@ -1192,14 +1206,14 @@
                         </table>
                         
                         <!-- Transcript Information -->
-                        <div class="alert-box" style="margin-top: 20px; background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);">
+                        <!-- <div class="alert-box" style="margin-top: 20px; background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);">
                             <p style="color: #1e293b;">
                                 <strong style="color: #333;">What gets exported?</strong><br>
                                 Each exported transcript includes the complete conversation log between a user and your AI avatar, 
                                 including timestamps, user messages, avatar responses, and metadata. Files are organized by date 
                                 and session ID for easy reference.
                             </p>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -1316,8 +1330,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!input) return;
 
-            // Toggle masked class
-            if (input.classList.contains('masked')) {
+            // Check if input uses type="password" or masked class
+            if (input.type === 'password') {
+                // Handle password type inputs
+                input.type = 'text';
+                this.textContent = 'Hide';
+            } else if (input.type === 'text') {
+                // Already showing, hide it
+                input.type = 'password';
+                this.textContent = 'Show';
+            } else if (input.classList.contains('masked')) {
+                // Handle masked class approach
                 input.classList.remove('masked');
                 this.textContent = 'Hide';
             } else {
@@ -2158,6 +2181,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     .btn-user-details {
+        display: none !important;
         background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
         color: #fff;
         border: none;
@@ -2676,7 +2700,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     
                                     <!-- Hidden user data for JavaScript -->
                                     <script type="application/json" id="user-data-<?php echo esc_attr($session->id); ?>">
-                                        <?php echo json_encode($user_data); ?>
+                                        <?php echo wp_json_encode($user_data); ?>
                                     </script>
                                 </td>
                             </tr>
@@ -4412,7 +4436,8 @@ document.addEventListener('DOMContentLoaded', function () {
         $selected_log = isset($_GET['logfile']) ? $_GET['logfile'] : basename($log_files[0]);
         
         echo '<form method="get">';
-        echo '<input type="hidden" name="page" value="' . esc_attr($_GET['page']) . '">';
+        $page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+        echo '<input type="hidden" name="page" value="' . esc_attr($page) . '">';
         echo '<select name="logfile" onchange="this.form.submit()">';
         foreach ($log_files as $log_file) {
             $basename = basename($log_file);
@@ -5457,7 +5482,7 @@ document.addEventListener('DOMContentLoaded', function () {
             content: '📋';
             display: block;
             font-size: 48px;
-            margin-bottom: 12px;
+            margin-bottom: 28px;
             opacity: 0.5;
         }
 

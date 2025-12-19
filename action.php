@@ -48,12 +48,18 @@ function handle_avatar_studio_heygenToken()
     // Get raw userInfo data from POST
     $user_info_raw = isset($_POST['userInfo']) ? wp_unslash($_POST['userInfo']) : '';
 
+    // Get additional avatar configuration
+    $RAG_API_URL = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
+    $deepgramKEY = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
+    $livekit_enable = isset($avatar->livekit_enable) ? $avatar->livekit_enable : '';
+
     // Initialize an empty array
     $user_info = [];
 
     // Check if it's a non-empty string and looks like JSON
     if (!empty($user_info_raw)) {
         if (is_string($user_info_raw)) {
+            $user_info_raw = isset($user_info_raw) ? sanitize_text_field($user_info_raw) : '';
             $decoded = json_decode($user_info_raw, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 $user_info = $decoded;
@@ -226,6 +232,31 @@ function handle_avatar_studio_heygenToken()
     $result['token'] = isset($data['data']['token']) ? $data['data']['token'] : '';
     $result['session_id'] = $session_id;
     $result['toast_messages'] = $toast_messages;
+
+    // Add Deepgram token
+    if ($RAG_API_URL !== '' && $deepgramKEY !== '' && $livekit_enable == 1) {
+        $res = updateDeepgramToken($deepgramKEY, $RAG_API_URL);
+        if ($res['status'] != 200) {
+            avatar_studio_log_error('HeyGen - Deepgram token creation failed', [
+                'session_id' => $session_id,
+                'error' => $res['error'],
+                'status' => $res['status'],
+                'function' => __FUNCTION__
+            ]);
+            
+            // Don't fail the entire request, just log the error
+            $result['deepgram_error'] = $res['error'];
+        } else {
+            // Add token to the response
+            $result['deepgram_token'] = $res['token'];
+            
+            avatar_studio_log_error('HeyGen - Deepgram token added successfully', [
+                'session_id' => $session_id,
+                'level' => 'info',
+                'function' => __FUNCTION__
+            ]);
+        }
+    }
     
     wp_send_json_success($result);
     wp_die();
@@ -344,7 +375,7 @@ function handle_avatar_studio_tavusConversation()
     if ($RAG_API_URL !== '' && $deepgramKEY !== '' && $livekit_enable == 1) {
        $res = updateDeepgramToken($deepgramKEY, $RAG_API_URL);
        if ($res['status'] != 200) {
-            echo json_encode([
+            echo wp_json_encode([
                 "error" => $res['error'],
                 "status" => $res['status']
             ]);
@@ -360,7 +391,7 @@ function handle_avatar_studio_tavusConversation()
 
 
     if ($response === false) {
-        echo json_encode([
+        echo wp_json_encode([
             "error" => curl_error($ch)
         ]);
     } else {
@@ -641,10 +672,7 @@ function handle_ask_question() {
         // Send success response
         wp_send_json_success($response_data);
         
-    } catch (Exception $e) {
-        // Log the error
-        error_log('AJAX handle_ask_question error: ' . $e->getMessage() . ' (Code: ' . $e->getCode() . ')');
-        
+    } catch (Exception $e) {    
         // Get appropriate HTTP status code
         $status_code = $e->getCode() ?: 500;
         $status_code = ($status_code < 100) ? 500 : $status_code;
@@ -652,7 +680,7 @@ function handle_ask_question() {
         // Send error response
         wp_send_json_error(
             [
-                'message' => $e->getMessage(),
+                'message' => $e,
                 'code' => $status_code
             ],
             $status_code
@@ -738,7 +766,10 @@ function handle_send_avatar_studio_pdf_email()
         wp_send_json_error(['message' => 'Missing data']);
     }
 
-    $transcript_data = json_decode(stripslashes($_POST['transcript_data']), true);
+    $transcript_data = isset($_POST['transcript_data']) ? 
+    json_decode(stripslashes(sanitize_text_field($_POST['transcript_data'])), true) : 
+    array();
+
     $to_email = sanitize_email($_POST['to_email']);
 
     if (!filter_var($to_email, FILTER_VALIDATE_EMAIL)) {
@@ -1008,6 +1039,206 @@ function handle_avatar_studio_export_csv() {
     
     fclose($output);
     wp_die(); // Important for AJAX
+}
+
+// Add AJAX handler for Form Submissions CSV export
+add_action('wp_ajax_avatar_studio_export_submissions_csv', 'handle_avatar_studio_export_submissions_csv');
+add_action('wp_ajax_nopriv_avatar_studio_export_submissions_csv', 'handle_avatar_studio_export_submissions_csv');
+
+function handle_avatar_studio_export_submissions_csv() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'export_submissions_csv_action')) {
+        wp_die('Security check failed');
+    }
+    
+    global $wpdb;
+    
+    // Get form_id from POST
+    $form_id = isset($_POST['form_id']) ? intval($_POST['form_id']) : 0;
+    
+    if (!$form_id) {
+        wp_die('Form ID is required.');
+    }
+    
+    // Get form details
+    $form_table = $wpdb->prefix . 'avatar_forms';
+    $submissions_table = $wpdb->prefix . 'avatar_form_submissions';
+    
+    $form = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM {$form_table} WHERE id = %d",
+        $form_id
+    ));
+    
+    if (!$form) {
+        wp_die('Form not found.');
+    }
+    
+    $form_data = json_decode($form->form_data, true);
+    $fields = $form_data['fields'] ?? [];
+    
+    // Build query based on export type
+    if (isset($_POST['export_all']) && $_POST['export_all'] === '1') {
+        // Export all submissions for this form
+        $export_query = $wpdb->prepare(
+            "SELECT * FROM {$submissions_table} WHERE form_id = %d ORDER BY submitted_at DESC",
+            $form_id
+        );
+        $export_results = $wpdb->get_results($export_query);
+        $filename_suffix = 'all-submissions-form-' . $form_id;
+    } else {
+        // Export selected submissions
+        if (!empty($_POST['selected_submissions'])) {
+            $selected_submissions = array_map('intval', $_POST['selected_submissions']);
+            $placeholders = implode(',', array_fill(0, count($selected_submissions), '%d'));
+            
+            $export_query = $wpdb->prepare(
+                "SELECT * FROM {$submissions_table} WHERE form_id = %d AND id IN ($placeholders) ORDER BY submitted_at DESC",
+                array_merge([$form_id], $selected_submissions)
+            );
+            $export_results = $wpdb->get_results($export_query);
+            $filename_suffix = 'selected-submissions-form-' . $form_id;
+        } else {
+            wp_die('No submissions selected for export.');
+        }
+    }
+    
+    // Clear any previous output
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=form-submissions-' . $filename_suffix . '-' . date('Y-m-d-H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    
+    // Create output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for UTF-8
+    fputs($output, "\xEF\xBB\xBF");
+    
+    // Prepare CSV headers
+    $headers = [
+        'Submission ID',
+        'Session ID', 
+        'Avatar Studio ID'
+    ];
+    
+    // Add form fields as headers
+    foreach ($fields as $field) {
+        $headers[] = $field['label'];
+    }
+    
+    $headers[] = 'Submitted At';
+    
+    // Write headers
+    fputcsv($output, $headers);
+    
+    // Add data rows
+    foreach ($export_results as $row) {
+        $data = json_decode($row->submission_data, true);
+        
+        $row_data = [
+            'FS' . $row->id,
+            $row->session_id,
+            $row->avatar_studio_id ? 'AS' . $row->avatar_studio_id : 'N/A'
+        ];
+        
+        // Add form field values
+        foreach ($fields as $field) {
+            $field_value = isset($data[$field['label']]) ? $data[$field['label']] : '';
+            if (is_array($field_value)) {
+                $field_value = implode(', ', $field_value);
+            }
+            $row_data[] = $field_value;
+        }
+        
+        // Format date
+        $submitted_date = DateTime::createFromFormat('Y-m-d H:i:s', $row->submitted_at);
+        $formatted_date = $submitted_date ? $submitted_date->format('m-d-Y H:i:s') : $row->submitted_at;
+        $row_data[] = $formatted_date;
+        
+        fputcsv($output, $row_data);
+    }
+    
+    fclose($output);
+    wp_die(); // Important for AJAX
+}
+
+// In your save_avatar or update_avatar function, add:
+function save_avatar_callback() {
+    
+    // Get form data
+    $data = [
+        'vendor' => sanitize_text_field($_POST['vendor']),
+        'api_key' => sanitize_text_field($_POST['api_key']),
+        'title' => sanitize_text_field($_POST['title']),
+        'avatar_name' => sanitize_text_field($_POST['avatar_name']),
+        'avatar_id' => sanitize_text_field($_POST['avatar_id']),
+        'knowledge_id' => sanitize_text_field($_POST['knowledge_id']),
+        'preview_image' => esc_url_raw($_POST['preview_image']),
+        'thumbnail_mini' => esc_url_raw($_POST['thumbnail_mini']),
+        'thumbnail_medium' => esc_url_raw($_POST['thumbnail_medium']),
+        'thumbnail_large' => esc_url_raw($_POST['thumbnail_large']),
+        'active_thumbnail' => sanitize_text_field($_POST['active_thumbnail']),
+        'time_limit' => intval($_POST['time_limit']),
+        'open_on_desktop' => isset($_POST['open_on_desktop']) ? 1 : 0,
+        'livekit_enable' => isset($_POST['livekit_enable']) ? 1 : 0,
+        'video_enable' => isset($_POST['video_enable']) ? 1 : 0,
+        'chat_only' => isset($_POST['chat_only']) ? 1 : 0,
+        'disclaimer_title' => sanitize_text_field($_POST['disclaimer_title']),
+        'disclaimer' => wp_kses_post($_POST['disclaimer']),
+        'disclaimer_enable' => isset($_POST['disclaimer_enable']) ? 1 : 0,
+        'user_form_enable' => isset($_POST['user_form_enable']) ? 1 : 0,
+        'selected_form_id' => isset($_POST['selected_form_id']) ? intval($_POST['selected_form_id']) : 0,        'instruction_title' => sanitize_text_field($_POST['instruction_title']),
+        'instruction' => wp_kses_post($_POST['instruction']),
+        'skip_instruction_video' => isset($_POST['skip_instruction_video']) ? 1 : 0,
+        'instruction_enable' => isset($_POST['instruction_enable']) ? 1 : 0,
+        'RAG_API_URL' => esc_url_raw($_POST['RAG_API_URL']),
+        'deepgramKEY' => sanitize_text_field($_POST['deepgramKEY']),
+        'voice_emotion' => sanitize_text_field($_POST['voice_emotion']),
+        'pages' => json_encode(array_map('intval', $_POST['pages'])),
+        'styles' => json_encode($_POST['styles']),
+        'welcome_message' => json_encode($_POST['welcome_message']),
+        'start_button_label' => sanitize_text_field($_POST['start_button_label'])
+    ];
+    
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'avatar_studio_avatars';
+    
+    if (isset($_POST['id']) && intval($_POST['id']) > 0) {
+        // UPDATE existing avatar
+        $wpdb->update(
+            $table_name,
+            $data,
+            ['id' => intval($_POST['id'])],
+            [
+                '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 
+                '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%s', '%s', 
+                '%d', '%d', '%d', '%s', '%s', '%d', '%d', '%s', '%s', 
+                '%s', '%s', '%s', '%s'
+            ], // ✅ Make sure format matches all fields
+            ['%d']
+        );
+    } else {
+        // INSERT new avatar
+        $wpdb->insert(
+            $table_name,
+            $data,
+            [
+                '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 
+                '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%s', '%s', 
+                '%d', '%d', '%d', '%s', '%s', '%d', '%d', '%s', '%s', 
+                '%s', '%s', '%s', '%s'
+            ] // ✅ Make sure format matches all fields
+        );
+    }
+    
+    // Redirect or return success
+    wp_redirect(admin_url('admin.php?page=avatar_studio-avatars'));
+    exit;
 }
 
 add_action('admin_init', 'avatar_studio_force_check_database');

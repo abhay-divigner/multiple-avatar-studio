@@ -664,7 +664,7 @@ class avatarManager
                 /* Empty State */
                 .empty-state {
                     text-align: center;
-                    padding: 40px;
+                    padding: 32px;
                     color: #333;
                 }
 
@@ -918,7 +918,7 @@ class avatarManager
                 $default_avatar_url = wp_get_attachment_url($default_avatar_id);
             }
             
-            echo '<div class="empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px;">';
+            echo '<div class="empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 280px;">';
             
             // Upload Section
             echo '<form id="default-avatar-form" method="post" action="' . admin_url('admin-post.php') . '">';
@@ -1332,6 +1332,7 @@ public function render_edit_avatar_settings_page()
             'disclaimer' => isset($_POST['disclaimer']) ? $_POST['disclaimer'] : '',
             'disclaimer_enable' => isset($_POST['disclaimer_enable']) ? intval($_POST['disclaimer_enable']) : 0,
             'user_form_enable' => isset($_POST['user_form_enable']) ? intval($_POST['user_form_enable']) : 0,
+            'selected_form_id' => isset($_POST['selected_form_id']) ? intval($_POST['selected_form_id']) : 0,
             'instruction_title' => isset($_POST['instruction_title']) ? $_POST['instruction_title'] : '',
             'instruction' => isset($_POST['instruction']) ? wp_kses_post($_POST['instruction']) : '',
             'skip_instruction_video' => isset($_POST['skip_instruction_video']) ? intval($_POST['skip_instruction_video']) : 0,
@@ -1445,6 +1446,7 @@ public function render_edit_avatar_settings_page()
             'disclaimer' => isset($_POST['disclaimer']) ? $_POST['disclaimer'] : '',
             'disclaimer_enable' => isset($_POST['disclaimer_enable']) ? intval($_POST['disclaimer_enable']) : 0,
             'user_form_enable' => isset($_POST['user_form_enable']) ? intval($_POST['user_form_enable']) : 0,
+            'selected_form_id' => isset($_POST['selected_form_id']) ? intval($_POST['selected_form_id']) : 0,
             'instruction_title' => isset($_POST['instruction_title']) ? $_POST['instruction_title'] : '',
             'instruction' => isset($_POST['instruction']) ? wp_kses_post($_POST['instruction']) : '',
             'skip_instruction_video' => isset($_POST['skip_instruction_video']) ? intval($_POST['skip_instruction_video']) : 0,
@@ -1558,6 +1560,7 @@ public function render_edit_avatar_settings_page()
             'disclaimer' => isset($avatar->disclaimer) ? $avatar->disclaimer : '',
             'disclaimer_enable' => isset($avatar->disclaimer_enable) ? $avatar->disclaimer_enable : 0,
             'user_form_enable' => isset($avatar->user_form_enable) ? $avatar->user_form_enable : 0,
+            'selected_form_id' => isset($avatar->selected_form_id) ? $avatar->selected_form_id : 0,
             'instruction_title' => isset($avatar->instruction_title) ? $avatar->instruction_title : '',
             'instruction' => isset($avatar->instruction) ? $avatar->instruction : '',
             'skip_instruction_video' => isset($avatar->skip_instruction_video) ? $avatar->skip_instruction_video : 0,

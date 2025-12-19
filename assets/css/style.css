@@ -428,7 +428,7 @@
 }
 
 .userVideoContainer #userVideo {
-  width: min(max(120px, 25%), 120px);
+  width: min(max(120px, 25%), 180px);
   border-radius: 12px;
   position: absolute;
   left: 6px;
@@ -764,7 +764,8 @@ button.exportTranscript {
 .transcriptContainer p {
   font-size: 14px;
   position: relative;
-  min-height: 28px;
+  min-height: 20px;
+  margin-bottom: 0.5rem !important;
 }
 
 #transcriptContainer .transcript-inner {
@@ -855,6 +856,12 @@ button.exportTranscript {
 .fullwidth #chat-widget #transcriptContainer #voiceTranscript,
 .fullwidth #chat-widget.text_mode #transcriptContainer #voiceTranscript {
   height: 370px;
+}
+
+.showTranscript:not(.fullwidth)
+  .avatarAndTranscriptWrapper
+  .transcriptContainer {
+  margin-left: 12px !important;
 }
 
 #chat-widget.voice_mode #transcriptContainer #voiceTranscript {

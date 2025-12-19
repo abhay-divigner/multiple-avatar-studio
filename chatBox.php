@@ -97,3 +97,60 @@ if ($previewThumbnail == '') {
     </script>
 
 <?php } ?>
+
+
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    // Function to update voice transcript height based on fullscreen state
+    function updateTranscriptHeight() {
+        const $voiceTranscript = $('#voiceTranscript');
+        const isFullscreen = $('.bi-arrows-angle-contract').is(':visible');
+        
+        if (isFullscreen) {
+            // Exit Fullscreen icon is visible - we're in fullscreen mode
+            $voiceTranscript.css('height', '470px');
+        } else {
+            // Fullscreen icon is visible - we're in normal mode
+            $voiceTranscript.css('height', '176px');
+        }
+    }
+    
+    // Initial height set on page load
+    updateTranscriptHeight();
+    
+    // Listen for fullscreen toggle clicks
+    $(document).on('click', '.action-fullscreen, .chatBox-fullscreen', function() {
+        // Use setTimeout to let the icons switch first
+        setTimeout(updateTranscriptHeight, 50);
+    });
+    
+    // Also listen for the actual fullscreen change event
+    $(document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange msfullscreenchange', function() {
+        updateTranscriptHeight();
+    });
+    
+    // Observer to watch for icon visibility changes (more reliable)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const target = $(mutation.target);
+                if (target.hasClass('bi-fullscreen') || target.hasClass('bi-arrows-angle-contract')) {
+                    updateTranscriptHeight();
+                }
+            }
+        });
+    });
+    
+    // Start observing the fullscreen icons
+    const fullscreenIcon = document.querySelector('.bi-fullscreen');
+    const exitFullscreenIcon = document.querySelector('.bi-arrows-angle-contract');
+    
+    if (fullscreenIcon) {
+        observer.observe(fullscreenIcon, { attributes: true, attributeFilter: ['style'] });
+    }
+    
+    if (exitFullscreenIcon) {
+        observer.observe(exitFullscreenIcon, { attributes: true, attributeFilter: ['style'] });
+    }
+});
+</script>
