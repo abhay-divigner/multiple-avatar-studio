@@ -17,7 +17,33 @@ function handle_avatar_studio_heygenToken()
     
     global $wpdb;
     
+    // Get page_id and avatar_studio_id from POST
+    $pageId = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
+    $avatar_studio_id = isset($_POST['avatar_studio_id']) ? intval($_POST['avatar_studio_id']) : 0;
+    
     $heygen_api_key = esc_attr(get_option('avatar_studio_heygen_api_key'));
+
+    // Get avatar info based on page_id or avatar_studio_id
+    $avatar = null;
+    if ($avatar_studio_id) {
+        $avatar = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d",
+            $avatar_studio_id
+        ));
+    } else if ($pageId) {
+        $avatar = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE JSON_CONTAINS(pages, '\"%d\"')",
+            $pageId
+        ));
+    }
+
+    if (!$avatar) {
+        wp_send_json_error(['message' => 'No avatar configured for this page']);
+        wp_die();
+    }
+
+    // Get toast_messages from avatar
+    $toast_messages = isset($avatar->toast_messages) ? json_decode($avatar->toast_messages, true) : [];
 
     // Get raw userInfo data from POST
     $user_info_raw = isset($_POST['userInfo']) ? wp_unslash($_POST['userInfo']) : '';
@@ -156,24 +182,6 @@ function handle_avatar_studio_heygenToken()
     if (!empty($session_id)) {
         $table_name = $wpdb->prefix . 'avatar_studio_sessions';
         
-        // Get page_id and avatar_studio_id
-        $pageId = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
-        $avatar_studio_id = isset($_POST['avatar_studio_id']) ? intval($_POST['avatar_studio_id']) : 0;
-        
-        // Get avatar info
-        $avatar = null;
-        if ($avatar_studio_id) {
-            $avatar = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d",
-                $avatar_studio_id
-            ));
-        } else if ($pageId) {
-            $avatar = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE JSON_CONTAINS(pages, '\"%d\"')",
-                $pageId
-            ));
-        }
-
         // Prepare session data
         $session_data = [
             'session_id'  => sanitize_text_field($session_id),
@@ -216,7 +224,8 @@ function handle_avatar_studio_heygenToken()
     $result['code'] = $data['code'];
     $result['message'] = $data['message'];
     $result['token'] = isset($data['data']['token']) ? $data['data']['token'] : '';
-    $result['session_id'] = $session_id; // Return session_id to frontend
+    $result['session_id'] = $session_id;
+    $result['toast_messages'] = $toast_messages;
     
     wp_send_json_success($result);
     wp_die();
@@ -248,11 +257,17 @@ function handle_avatar_studio_tavusConversation()
 
 
     $opening_text = $avatar && $avatar->welcome_message ? json_decode($avatar->welcome_message, true) : [];
+    $toast_messages = isset($avatar->toast_messages) ? json_decode($avatar->toast_messages, true) : [];
 
 
     $tavus_api_key = isset($avatar->api_key) ? $avatar->api_key : '';
     $local_avatar_id = isset($avatar->avatar_id) ? $avatar->avatar_id : '';
     $local_knowledge_id = isset($avatar->knowledge_id) ? $avatar->knowledge_id : '';
+    $RAG_API_URL = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
+    $deepgramKEY = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
+    $livekit_enable = isset($avatar->livekit_enable) ? $avatar->livekit_enable : '';
+    $headers = isset($avatar->headers) ? json_decode($avatar->headers, true) : [];
+ 
     if (empty($tavus_api_key) || empty($local_avatar_id) || empty($local_knowledge_id)) {
         wp_send_json_error(['message' => 'Avatar is not properly configured']);
         wp_die();
@@ -325,6 +340,25 @@ function handle_avatar_studio_tavusConversation()
 
     $response = curl_exec($ch);
 
+
+    if ($RAG_API_URL !== '' && $deepgramKEY !== '' && $livekit_enable == 1) {
+       $res = updateDeepgramToken($deepgramKEY, $RAG_API_URL);
+       if ($res['status'] != 200) {
+            echo json_encode([
+                "error" => $res['error'],
+                "status" => $res['status']
+            ]);
+            exit; 
+        } else {
+            // Add token into existing response
+            $decoded = json_decode($response, true);
+            $decoded['deepgram_token'] = $res['token'];
+
+            $response = json_encode($decoded);
+        }
+    }
+
+
     if ($response === false) {
         echo json_encode([
             "error" => curl_error($ch)
@@ -358,8 +392,8 @@ function handle_avatar_studio_tavusConversation()
             }
         }
 
-         // Store session information
-     if (!empty($conversation_id)) {
+        // Store session information
+        if (!empty($conversation_id)) {
             global $wpdb;
 
             $table_name = $wpdb->prefix . 'avatar_studio_sessions';
@@ -390,6 +424,18 @@ function handle_avatar_studio_tavusConversation()
             }
         }
 
+        // Decode the response to add toast messages
+        $response_array = json_decode($response, true);
+
+        $response_array['toast_messages'] = $toast_messages;
+
+        if (!empty($toast_messages)) {
+            error_log('Tavus - Adding toast messages to response: ' . count($toast_messages) . ' messages');
+        }
+
+        // Encode back to JSON
+        $response = json_encode($response_array);
+
         echo $response;
     }
 
@@ -398,6 +444,223 @@ function handle_avatar_studio_tavusConversation()
 }
 
 
+
+function updateDeepgramToken($deepgramKEY, $RAG_API_URL) {
+    global $deepgramToken;
+
+    // Validate input before making cURL call
+    if (empty($RAG_API_URL) || empty($deepgramKEY)) {
+        return [
+            "error" => "Missing API URL or API Key",
+            "status" => 400
+        ];
+    }
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://api.deepgram.com/v1/auth/grant");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Token " . $deepgramKEY,
+        "Content-Type: application/json"
+    ]);
+
+    // If you need to send a body (check Deepgram docs):
+    // $data = json_encode(['scopes' => ['usage:write']]);
+    // curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+
+    $response = curl_exec($ch);  // Actually execute the request
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Handle non-200 status
+    if ($httpCode !== 200) {
+        error_log("Deepgram API error: HTTP $httpCode — $response");
+
+
+        $resTest = json_decode($response, true);
+        return [
+            "error" => "Deepgram APIError: $resTest",
+            "status" => $httpCode
+        ];
+    }
+
+    $data = json_decode($response, true);
+
+    if (empty($data['access_token'])) {
+        error_log("No access_token in Deepgram response: " . $response);
+
+        return [
+            "error" => "No access_token in response",
+            "status" => 500
+        ];
+    }
+
+    // ⬅️ Update global token only
+    $deepgramToken = $data['access_token'];
+
+    return [
+        "token" => $deepgramToken,
+        "status" => 200
+    ];
+}
+
+
+
+add_action('wp_ajax_askQuestion', 'handle_ask_question');
+add_action('wp_ajax_nopriv_askQuestion', 'handle_ask_question');
+
+function handle_ask_question() {
+    try {
+        // // Verify nonce for security (recommended)
+        // if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'ask_question_nonce')) {
+        //     wp_send_json_error(['message' => 'Security verification failed'], 403);
+        //     wp_die();
+        // }
+        
+        // Get and sanitize POST parameters
+        $avatarID = isset($_POST['avatarID']) ? intval($_POST['avatarID']) : 0;
+        $sessionID = isset($_POST['sessionID']) ? sanitize_text_field($_POST['sessionID']) : '';
+        $language = isset($_POST['language']) ? sanitize_text_field($_POST['language']) : 'en';
+        $query = isset($_POST['query']) ? sanitize_textarea_field($_POST['query']) : '';
+        
+        // Validate required fields
+        if (empty($avatarID)) {
+            throw new Exception('Avatar ID is required', 400);
+        }
+        
+        if (empty($query)) {
+            throw new Exception('Query cannot be empty', 400);
+        }
+        
+        // Validate query length
+        if (strlen($query) > 5000) {
+            throw new Exception('Query exceeds maximum length of 5000 characters', 400);
+        }
+        
+        global $wpdb;
+        
+        // Fetch avatar details
+        $avatar = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d", 
+            $avatarID
+        ));
+        
+        if ($wpdb->last_error) {
+            throw new Exception('Database query failed: ' . $wpdb->last_error, 500);
+        }
+        
+        if (!$avatar) {
+            throw new Exception('Avatar not found for the provided ID', 404);
+        }
+        
+        // Extract and validate RAG API URL
+        $RAG_API_URL = isset($avatar->RAG_API_URL) ? trim($avatar->RAG_API_URL) : '';
+        
+        if (empty($RAG_API_URL)) {
+            throw new Exception('RAG API URL not configured for this avatar', 500);
+        }
+        
+        // Validate URL format
+        if (!filter_var($RAG_API_URL, FILTER_VALIDATE_URL)) {
+            throw new Exception('Invalid RAG API URL format', 500);
+        }
+        
+        // Parse headers from JSON
+        $headers = ['Content-Type' => 'application/json'];
+        
+        if (isset($avatar->headers) && !empty($avatar->headers)) {
+            try {
+                $headers_array = json_decode($avatar->headers, true);
+                
+                if (!is_array($headers_array)) {
+                    throw new Exception('Invalid headers format');
+                }
+                
+                foreach ($headers_array as $header) {
+                    if (isset($header['key']) && isset($header['value']) && !empty($header['key'])) {
+                        $headers[$header['key']] = sanitize_text_field($header['value']);
+                    }
+                }
+            } catch (Exception $e) {
+                throw new Exception('Failed to parse avatar headers: ' . $e->getMessage(), 500);
+            }
+        }
+        
+        // Prepare request body
+        $body = json_encode([
+            'query' => $query,
+            'lng' => $language,
+            'sessionId' => $sessionID
+        ]);
+        
+        if ($body === false) {
+            throw new Exception('Failed to encode request body', 500);
+        }
+        
+        // Make API call
+        $response = wp_remote_post($RAG_API_URL, [
+            'headers' => $headers,
+            'body' => $body,
+            'timeout' => 30,
+            'sslverify' => true
+        ]);
+        
+        // Check for WP errors
+        if (is_wp_error($response)) {
+            $error_message = $response->get_error_message();
+            throw new Exception('API request failed: ' . $error_message, 500);
+        }
+        
+        // Check HTTP status code
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code < 200 || $response_code >= 300) {
+            $response_body = wp_remote_retrieve_body($response);
+            throw new Exception(
+                'API returned error status ' . $response_code . ': ' . substr($response_body, 0, 200),
+                $response_code
+            );
+        }
+        
+        // Parse response
+        $response_body = wp_remote_retrieve_body($response);
+        
+        if (empty($response_body)) {
+            throw new Exception('Empty response from RAG API', 500);
+        }
+        
+        $response_data = json_decode($response_body, true);
+        
+        if ($response_data === null && json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception(
+                'Failed to decode API response: ' . json_last_error_msg(),
+                500
+            );
+        }
+        
+        // Send success response
+        wp_send_json_success($response_data);
+        
+    } catch (Exception $e) {
+        // Log the error
+        error_log('AJAX handle_ask_question error: ' . $e->getMessage() . ' (Code: ' . $e->getCode() . ')');
+        
+        // Get appropriate HTTP status code
+        $status_code = $e->getCode() ?: 500;
+        $status_code = ($status_code < 100) ? 500 : $status_code;
+        
+        // Send error response
+        wp_send_json_error(
+            [
+                'message' => $e->getMessage(),
+                'code' => $status_code
+            ],
+            $status_code
+        );
+    } finally {
+        wp_die();
+    }
+}
 
 function avatar_studio_is_same_origin_request()
 {
@@ -745,4 +1008,10 @@ function handle_avatar_studio_export_csv() {
     
     fclose($output);
     wp_die(); // Important for AJAX
+}
+
+add_action('admin_init', 'avatar_studio_force_check_database');
+function avatar_studio_force_check_database() {
+    // Run database update on every admin page load temporarily
+    avatarStudioUpdateDatabase();
 }

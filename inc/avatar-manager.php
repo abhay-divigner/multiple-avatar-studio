@@ -14,6 +14,7 @@ class avatarManager
         add_action('admin_post_copy_avatar', [$this, 'handle_copy_avatar']);
         add_action('admin_head', [$this, 'add_custom_styles']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
+        add_action('admin_post_save_default_avatar_thumbnail', array($this, 'handle_save_default_avatar_thumbnail'));
     }
 
     public function enqueue_admin_assets($hook)
@@ -759,6 +760,9 @@ class avatarManager
         if (!empty($_GET['copied'])) {
             echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> Avatar duplicated successfully.</p></div>';
         }
+        if (!empty($_GET['thumbnail_updated'])) {
+            echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> Default avatar thumbnail updated successfully.</p></div>';
+        }
 
         echo '<div class="avatar-studio-content">';
         
@@ -807,6 +811,92 @@ class avatarManager
                         $(this).fadeOut(300);
                     }
                 });
+
+                // Media Library Upload for Default Avatar Thumbnail
+                var mediaUploader;
+                
+                // Show/hide overlay on hover with smooth fade
+                $('.avatar-preview-wrapper').on('mouseenter', function() {
+                    $(this).find('.avatar-hover-overlay').css('opacity', '1');
+                }).on('mouseleave', function() {
+                    $(this).find('.avatar-hover-overlay').css('opacity', '0');
+                });
+                
+                // Hover effect on action buttons
+                $('.avatar-action-btn').on('mouseenter', function() {
+                    $(this).css('transform', 'scale(1.1)');
+                }).on('mouseleave', function() {
+                    $(this).css('transform', 'scale(1)');
+                });
+                
+                // Hover effect on placeholder
+                $('#default-avatar-placeholder').on('mouseenter', function() {
+                    $(this).css({
+                        'background': '#e5e7eb',
+                        'border-color': '#9ca3af'
+                    });
+                }).on('mouseleave', function() {
+                    $(this).css({
+                        'background': '#f3f4f6',
+                        'border-color': '#d1d5db'
+                    });
+                });
+                
+                // Click on placeholder or edit button to upload
+                $('#default-avatar-placeholder, #edit-avatar-btn').on('click', function(e) {
+                    e.preventDefault();
+                    openMediaUploader();
+                });
+                
+                // Click on preview image to upload (when no overlay is shown)
+                $('#default-avatar-preview').on('click', function(e) {
+                    if ($(this).siblings('.avatar-hover-overlay').css('opacity') == '0') {
+                        e.preventDefault();
+                        openMediaUploader();
+                    }
+                });
+                
+                function openMediaUploader() {
+                    if (mediaUploader) {
+                        mediaUploader.open();
+                        return;
+                    }
+                    
+                    mediaUploader = wp.media({
+                        title: 'Choose Default Avatar Thumbnail',
+                        button: {
+                            text: 'Use this image'
+                        },
+                        multiple: false,
+                        library: {
+                            type: 'image'
+                        }
+                    });
+                    
+                    mediaUploader.on('select', function() {
+                        var attachment = mediaUploader.state().get('selection').first().toJSON();
+                        $('#default-avatar-preview').attr('src', attachment.url).css('display', 'block');
+                        $('#default-avatar-placeholder').hide();
+                        $('#default-avatar-image-id').val(attachment.id);
+                        $('.avatar-hover-overlay').css('display', 'flex');
+                        
+                        // Auto-save the image
+                        $('#default-avatar-form').submit();
+                    });
+                    
+                    mediaUploader.open();
+                }
+                
+                $('#remove-avatar-btn').on('click', function(e) {
+                    e.preventDefault();
+                    $('#default-avatar-preview').attr('src', '').hide();
+                    $('#default-avatar-placeholder').css('display', 'flex');
+                    $('#default-avatar-image-id').val('');
+                    $('.avatar-hover-overlay').css('display', 'none');
+                    
+                    // Auto-save the removal
+                    $('#default-avatar-form').submit();
+                });
             });
         </script>
         <?php
@@ -821,12 +911,50 @@ class avatarManager
         echo '<div class="avatar-table-wrapper">';
         
         if (empty($avatars)) {
-            echo '<div class="empty-state">';
-            // echo '<i class="bi bi-robot"></i>';
-            echo '<img style="width: 160px; margin-bottom: 10px; border-radius: 10px;" src="' . get_site_url() . '/wp-content/plugins/AvatarStudio/assets/images/avatar.jpeg" alt="Preview Avatar">';
+            // Get saved default avatar thumbnail
+            $default_avatar_id = get_option('avatar_studio_default_thumbnail', '');
+            $default_avatar_url = '';
+            if ($default_avatar_id) {
+                $default_avatar_url = wp_get_attachment_url($default_avatar_id);
+            }
+            
+            echo '<div class="empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px;">';
+            
+            // Upload Section
+            echo '<form id="default-avatar-form" method="post" action="' . admin_url('admin-post.php') . '">';
+            echo '<input type="hidden" name="action" value="save_default_avatar_thumbnail">';
+            echo wp_nonce_field('save_default_avatar_thumbnail', 'avatar_thumbnail_nonce', true, false);
+            echo '<input type="hidden" id="default-avatar-image-id" name="default_avatar_image_id" value="' . esc_attr($default_avatar_id) . '">';
+            
+            echo '<div class="default-avatar-upload" style="margin-bottom: 30px;">';
+            echo '<div class="avatar-preview-wrapper" style="position: relative; display: inline-block;">';
+            
+            if ($default_avatar_url) {
+                // Show image with hover overlay
+                echo '<img id="default-avatar-preview" src="' . esc_url($default_avatar_url) . '" style="width: 160px; height: 160px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer;" alt="Default Avatar">';
+                echo '<div class="avatar-hover-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 160px; height: 160px; background: rgba(0,0,0,0.6); border-radius: 10px; opacity: 0; transition: opacity 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 12px;">';
+                echo '<button type="button" class="avatar-action-btn" id="edit-avatar-btn" style="background: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" title="Change Image"><i class="bi bi-pencil" style="font-size: 18px; color: #333; margin: 0;"></i></button>';
+                echo '<button type="button" class="avatar-action-btn" id="remove-avatar-btn" style="background: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" title="Remove Image"><i class="bi bi-trash" style="font-size: 18px; color: #dc2626; margin: 0;"></i></button>';
+                echo '</div>';
+            } else {
+                // Show placeholder only
+                echo '<div id="default-avatar-placeholder" style="width: 160px; height: 160px; background: #f3f4f6; border: 2px dashed #d1d5db; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; transition: all 0.2s ease;">';
+                echo '<i class="bi bi-cloud-upload" style="font-size: 48px; color: #9ca3af; margin-bottom: 10px;"></i>';
+                echo '<span style="color: #6b7280; font-size: 14px;">Click to upload your default Avatar image</span>';
+                echo '</div>';
+                echo '<img id="default-avatar-preview" src="" style="width: 160px; height: 160px; object-fit: cover; border-radius: 10px; display: none; cursor: pointer;" alt="Default Avatar">';
+                echo '<div class="avatar-hover-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 160px; height: 160px; background: rgba(0,0,0,0.6); border-radius: 10px; opacity: 0; transition: opacity 0.2s ease; display: none; align-items: center; justify-content: center; gap: 12px;">';
+                echo '<button type="button" class="avatar-action-btn" id="edit-avatar-btn" style="background: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" title="Change Image"><i class="bi bi-pencil" style="font-size: 18px; color: #333;"></i></button>';
+                echo '<button type="button" class="avatar-action-btn" id="remove-avatar-btn" style="background: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" title="Remove Image"><i class="bi bi-trash" style="font-size: 18px; color: #dc2626;"></i></button>';
+                echo '</div>';
+            }
+            
+            echo '</div>';
+            echo '</div>';
+            echo '</form>';
 
-            echo '<h3>No Avatars Yet</h3>';
-            echo '<p>Create your first avatar to get started!</p>';
+            echo '<h3 style="margin: 0 0 10px 0;">No Avatars Yet</h3>';
+            echo '<p style="margin: 0; color: #6b7280;">Create your first avatar to get started!</p>';
             echo '</div>';
         } else {
             echo '<table class="avatar-table">';
@@ -838,7 +966,7 @@ class avatarManager
             echo '<th style="width: 180px;">Avatar/Replica ID</th>';
             echo '<th style="width: 180px;">Knowledge/Persona ID</th>';
             echo '<th style="width: auto;">Actions</th>';
-            echo '<th style="width: 50px;">See Details</th>'; // Expand icon
+            echo '<th style="width: 50px;">See Details</th>';
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
@@ -926,25 +1054,11 @@ class avatarManager
                 
                 // Description
                 if (!empty($avatar->description)) {
-                    echo '<div class="detail-item" style="grid-column: span 2; style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
+                    echo '<div class="detail-item" style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
                     echo '<label>Description</label>';
                     echo '<div class="value">' . esc_html($avatar->description) . '</div>';
                     echo '</div>';
                 }
-                
-                // Full Avatar ID
-                // echo '<div class="detail-item">';
-                // echo '<label>Avatar/Replica ID</label>';
-                // echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->avatar_id) . '</div>';
-                // echo '</div>';
-                
-                // Full Knowledge ID
-                // if (!empty($avatar->knowledge_id)) {
-                //     echo '<div class="detail-item">';
-                //     echo '<label>Knowledge/Persona ID</label>';
-                //     echo '<div class="value" style="word-break:break-all;font-family:monospace;font-size:12px;color:#333;">' . esc_html($avatar->knowledge_id) . '</div>';
-                //     echo '</div>';
-                // }
 
                 // Shortcode Section
                 echo '<div class="detail-item" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
@@ -955,9 +1069,9 @@ class avatarManager
                 echo '</div>';
                 echo '</div>';
                 
-                echo '</div>'; // End details-grid
+                echo '</div>';
                 
-                echo '</div>'; // End details-content
+                echo '</div>';
                 echo '</td>';
                 echo '</tr>';
             }
@@ -966,10 +1080,47 @@ class avatarManager
             echo '</table>';
         }
         
-        echo '</div>'; // End avatar-table-wrapper
+        echo '</div>';
 
-        echo '</div>'; // End avatar-studio-content
-        echo '</div>'; // End wrap
+        echo '</div>';
+        echo '</div>';
+    }
+
+    // Add this handler function to save the default avatar thumbnail
+    public function handle_save_default_avatar_thumbnail()
+    {
+        // Debug: Log that function was called
+        error_log('Save avatar thumbnail function called');
+        error_log('POST data: ' . print_r($_POST, true));
+        
+        // Verify nonce
+        if (!isset($_POST['avatar_thumbnail_nonce']) || !wp_verify_nonce($_POST['avatar_thumbnail_nonce'], 'save_default_avatar_thumbnail')) {
+            error_log('Nonce verification failed');
+            wp_die('Security check failed');
+        }
+
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            error_log('User does not have manage_options capability');
+            wp_die('Unauthorized access');
+        }
+
+        $image_id = isset($_POST['default_avatar_image_id']) ? intval($_POST['default_avatar_image_id']) : 0;
+        error_log('Image ID to save: ' . $image_id);
+
+        if ($image_id > 0) {
+            $result = update_option('avatar_studio_default_thumbnail', $image_id);
+            error_log('Update option result: ' . ($result ? 'success' : 'failed'));
+        } else {
+            $result = delete_option('avatar_studio_default_thumbnail');
+            error_log('Delete option result: ' . ($result ? 'success' : 'failed'));
+        }
+
+        $redirect_url = add_query_arg('thumbnail_updated', '1', wp_get_referer());
+        error_log('Redirecting to: ' . $redirect_url);
+        
+        wp_redirect($redirect_url);
+        exit;
     }
 
     function avatar_studio_avatars_add_screen_options()
@@ -1106,6 +1257,53 @@ public function render_edit_avatar_settings_page()
         global $wpdb;
         $id = intval($_REQUEST['id']);
 
+        // Process headers array
+        $headers_array = [];
+        if (isset($_POST['headers']) && is_array($_POST['headers'])) {
+            foreach ($_POST['headers'] as $header) {
+                $key = isset($header['key']) ? (string) $header['key'] : '';
+                $value = isset($header['value']) ? (string) $header['value'] : '';
+                
+                // Only add if both key and value are not empty
+                if (!empty($key) && !empty($value)) {
+                    $headers_array[] = [
+                        'key' => $key,
+                        'value' => $value
+                    ];
+                }
+            }
+        }
+        
+        // Convert to JSON
+        $headers_json = !empty($headers_array) ? json_encode($headers_array) : null;
+
+        // Process toast messages array
+        $toast_messages_array = [];
+        if (isset($_POST['toast_messages']) && is_array($_POST['toast_messages'])) {
+            foreach ($_POST['toast_messages'] as $toast) {
+                $message = isset($toast['message']) ? (string) $toast['message'] : '';
+                $type = isset($toast['type']) ? (string) $toast['type'] : '';
+                $time = isset($toast['time']) ? (string) $toast['time'] : 0;
+                
+                // Only add if message is not empty and time is valid
+                if (!empty($message) && $time > 0) {
+                    $toast_messages_array[] = [
+                        'message' => sanitize_text_field($message),
+                        'type' => sanitize_text_field($type),
+                        'time' => $time
+                    ];
+                }
+            }
+        }
+
+        // Sort by time ascending
+        usort($toast_messages_array, function($a, $b) {
+            return $a['time'] <=> $b['time'];
+        });
+
+        // Convert to JSON
+        $toast_messages_json = !empty($toast_messages_array) ? json_encode($toast_messages_array) : null;
+
         $result = $wpdb->update("{$wpdb->prefix}avatar_studio_avatars", [
             'api_key' => sanitize_text_field($_POST['api_key']),
             'vendor' => sanitize_text_field($_POST['vendor']),
@@ -1122,6 +1320,8 @@ public function render_edit_avatar_settings_page()
             'voice_emotion' => isset($_POST['voice_emotion']) ? sanitize_textarea_field($_POST['voice_emotion']) : '',
             'RAG_API_URL' => isset($_POST['RAG_API_URL']) ? sanitize_textarea_field($_POST['RAG_API_URL']) : '',
             'deepgramKEY' => isset($_POST['deepgramKEY']) ? sanitize_textarea_field($_POST['deepgramKEY']) : '',
+            'headers' => $headers_json,
+            'toast_messages' => $toast_messages_json,
             'time_limit' => isset($_POST['time_limit']) ? intval($_POST['time_limit']) : 60,
             'open_on_desktop' => isset($_POST['open_on_desktop']) ? intval($_POST['open_on_desktop']) : 0,
             'show_on_mobile' => isset($_POST['show_on_mobile']) ? intval($_POST['show_on_mobile']) : 0,
@@ -1170,6 +1370,53 @@ public function render_edit_avatar_settings_page()
 
         global $wpdb;
 
+        // Process headers array
+        $headers_array = [];
+        if (isset($_POST['headers']) && is_array($_POST['headers'])) {
+            foreach ($_POST['headers'] as $header) {
+                $key = isset($header['key']) ? (string) $header['key'] : '';
+                $value = isset($header['value']) ? (string) $header['value'] : '';
+                
+                // Only add if both key and value are not empty
+                if (!empty($key) && !empty($value)) {
+                    $headers_array[] = [
+                        'key' => $key,
+                        'value' => $value
+                    ];
+                }
+            }
+        }
+        
+        // Convert to JSON
+        $headers_json = !empty($headers_array) ? json_encode($headers_array) : null;
+
+        // Process toast messages array
+        $toast_messages_array = [];
+        if (isset($_POST['toast_messages']) && is_array($_POST['toast_messages'])) {
+            foreach ($_POST['toast_messages'] as $toast) {
+                $message = isset($toast['message']) ? (string) $toast['message'] : '';
+                $type = isset($toast['type']) ? (string) $toast['type'] : '';
+                $time = isset($toast['time']) ? (string) $toast['time'] : 0;
+                
+                // Only add if message is not empty and time is valid
+                if (!empty($message) && $time > 0) {
+                    $toast_messages_array[] = [
+                        'message' => sanitize_text_field($message),
+                        'type' => sanitize_text_field($type),
+                        'time' => $time
+                    ];
+                }
+            }
+        }
+
+        // Sort by time ascending
+        usort($toast_messages_array, function($a, $b) {
+            return $a['time'] <=> $b['time'];
+        });
+
+        // Convert to JSON
+        $toast_messages_json = !empty($toast_messages_array) ? json_encode($toast_messages_array) : null;
+
         $data = [
             'api_key' => sanitize_text_field($_POST['api_key']),
             'vendor' => sanitize_text_field($_POST['vendor']),
@@ -1186,6 +1433,8 @@ public function render_edit_avatar_settings_page()
             'voice_emotion' => isset($_POST['voice_emotion']) ? sanitize_textarea_field($_POST['voice_emotion']) : '',
             'RAG_API_URL' => isset($_POST['RAG_API_URL']) ? sanitize_textarea_field($_POST['RAG_API_URL']) : '',
             'deepgramKEY' => isset($_POST['deepgramKEY']) ? sanitize_textarea_field($_POST['deepgramKEY']) : '',
+            'headers' => $headers_json,
+            'toast_messages' => $toast_messages_json,
             'time_limit' => isset($_POST['time_limit']) ? intval($_POST['time_limit']) : 60,
             'open_on_desktop' => isset($_POST['open_on_desktop']) ? intval($_POST['open_on_desktop']) : 0,
             'show_on_mobile' => isset($_POST['show_on_mobile']) ? intval($_POST['show_on_mobile']) : 0,
@@ -1297,6 +1546,8 @@ public function render_edit_avatar_settings_page()
             'voice_emotion' => isset($avatar->voice_emotion) ? $avatar->voice_emotion : '',
             'RAG_API_URL' => isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '',
             'deepgramKEY' => isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '',
+            'headers' => isset($avatar->headers) ? $avatar->headers : null,
+            'toast_messages' => isset($avatar->toast_messages) ? $avatar->toast_messages : null,
             'time_limit' => isset($avatar->time_limit) ? $avatar->time_limit : 60,
             'open_on_desktop' => isset($avatar->open_on_desktop) ? $avatar->open_on_desktop : 0,
             'show_on_mobile' => isset($avatar->show_on_mobile) ? $avatar->show_on_mobile : 0,

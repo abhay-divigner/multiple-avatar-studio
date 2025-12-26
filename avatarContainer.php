@@ -68,6 +68,12 @@ global $wp_embed;
             <i class="bi bi-x-lg"></i>
         </div>
 
+        <div id="notification-container" class="toast-notification-container">
+
+        </div>
+
+        </style>
+
         <div class="welcomeContainer">
             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024"
                 class=" loading-icon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
@@ -132,6 +138,7 @@ global $wp_embed;
         <div id="avatarError"
             style="width: 100%;font-size: 13px;position: absolute; background: rgba(255,255,255,.8);color: red; text-align:center;">
         </div>
+
         <div class="actionContainer">
 
             <div id="switchInteractionMode" class="switchMode" title="Switch to Voice/Chat">
@@ -187,8 +194,16 @@ global $wp_embed;
         <div class="language-switcher" title="Change Language">
             <span class="lang-icon" onclick="toggleLanguageDropdown()">
                 <span id="selectedLanguage">
-                    <i class="bi bi-translate"></i>
+                    <img draggable="false" class="emoji" alt="us"
+                        src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1fa-1f1f8.svg">
                 </span>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        setLanguage('en', 'us', 'English');
+                    });
+
+                </script>
+
             </span>
 
             <div class="dropdown" id="languageDropdown" style="display: none;">
@@ -209,7 +224,7 @@ global $wp_embed;
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1e9-1f1ea.svg"> Deutsch
                 </a>
             </div>
-        </div><!-- .language-switcher -->
+        </div>
     </div>
 
     <div id="transcriptContainer" class="transcriptContainer">
@@ -529,6 +544,186 @@ global $wp_embed;
     </div>
 <?php } ?>
 
+<style>
+    .toast-notification-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: absolute !important;
+        z-index: 10000 !important;
+        top: 60px;
+        right: 16px;
+    }
+    
+    .notification {
+        padding: 12px 16px;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 14px;
+        font-weight: 500;
+        animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        min-width: fit-content;
+        max-width: 400px;
+        cursor: pointer;
+    }
+    
+    .notification::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+    }
+    
+    .notification:hover {
+        transform: translateX(-5px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Success Theme - Green */
+    .notification.success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        border: 2px solid #34d399;
+    }
+    
+    .notification.success::before {
+        background: #d1fae5;
+    }
+    
+    /* Error Theme - Red */
+    .notification.error {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #ffffff;
+        border: 2px solid #f87171;
+    }
+
+    .notification.error::before {
+        background: #d1fae5;
+    }
+    
+    /* Warning Theme - Yellow */
+    .notification.warn {
+        background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
+        color: #ffffff !important;
+        border: 2px solid #fff !important;
+    }
+
+    .notification.warn::before {
+        background: #d1fae5;
+    }
+
+    /* Info Theme - Purple */
+    .notification.info {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: #ffffff;
+        border: 2px solid #a78bfa;
+    }
+
+    .notification.info::before {
+        background: #d1fae5;
+    }
+    
+    /* Message Text */
+    .notification-message {
+        flex: 1;
+        line-height: 1.5;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        word-wrap: break-word;
+    }
+    
+    /* Animations */
+    @keyframes slideIn {
+        from {
+            transform: translateX(450px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(450px) scale(0.8);
+            opacity: 0;
+        }
+    }
+    
+    .notification.removing {
+        animation: slideOut 0.3s ease-in forwards;
+    }
+    
+    /* Progress Bar */
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 0 0 12px 12px;
+        animation: progress 5s linear forwards;
+    }
+    
+    @keyframes progress {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+    
+    /* Glow Effect */
+    .notification.success {
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.1);
+    }
+    
+    .notification.error {
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.1);
+    }
+    
+    .notification.warn {
+        box-shadow: 0 6px 20px rgba(234, 179, 8, 0.4), 0 0 40px rgba(234, 179, 8, 0.1);
+    }
+    
+    .notification.info {
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.1);
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .toast-notification-container {
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+        
+        .notification {
+            padding: 14px 16px;
+            font-size: 13px;
+            min-width: auto;
+        }
+        
+        .notification-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+        }
+    }
+</style>
 
 <!--    
     <div class="overlayQuestion-content">
