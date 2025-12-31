@@ -808,6 +808,62 @@
         text-security: disc;         /* Firefox (partial support) */
     }
 
+    #wpbody-content {
+        padding-bottom: 10px !important;
+    }
+
+    .footer-links {
+        margin-top: 80px;
+        padding: 20px 0;
+        border-top: 2px solid transparent;
+        background: linear-gradient(90deg, transparent 0%, rgba(56, 177, 197, 0.2) 50%, transparent 100%);
+        text-align: center;
+    }
+
+    .footer-links-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .footer-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #334155;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .footer-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(56, 177, 197, 0.3);
+        color: #1e293b;
+    }
+
+    .footer-link .link-text {
+        position: relative;
+    }
+
+    .footer-link .link-text::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+        transition: width 0.3s ease;
+    }
+
+    .footer-link:hover .link-text::after {
+        width: 100%;
+    }
+
     /* Responsive */
     @media (max-width: 782px) {
         .avatar-studio-wrap {
@@ -848,6 +904,18 @@
         }
     }
     /* Responsive adjustments */
+    @media (max-width: 782px) {
+        .footer-links-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .footer-link {
+            width: 100%;
+            max-width: 280px;
+            justify-content: center;
+        }
+    }
     @media screen and (max-width: 1200px) {
         td > div[style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
@@ -934,7 +1002,7 @@
                             <td>
                                 <div class="input-wrapper">
                                     <input 
-                                        type="text" 
+                                        type="password" 
                                         id="avatar_studio_tavus_api_key" 
                                         name="avatar_studio_tavus_api_key" 
                                         value="<?php echo esc_attr($tavus_api_key); ?>" 
@@ -1221,6 +1289,19 @@
 
         <?php submit_button('Save All Settings', 'primary', 'submit', false); ?>
     </form>
+
+    <!-- Footer Links -->
+    <div class="footer-links">
+        <div class="footer-links-container">
+            <a href="https://avanew.ai/privacy-policy/" target="_blank" class="footer-link">
+                <span class="link-text">Privacy Policy</span>
+            </a>
+            
+            <a href="https://avanew.ai/interactivestudio/terms-and-conditions/" target="_blank" class="footer-link">
+                <span class="link-text">Terms of Service</span>
+            </a>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1330,20 +1411,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!input) return;
 
-            // Check if input uses type="password" or masked class
-            if (input.type === 'password') {
-                // Handle password type inputs
+            // Check current state
+            const isMasked = input.classList.contains('masked') || input.type === 'password';
+            
+            if (isMasked) {
+                // Show the content
                 input.type = 'text';
-                this.textContent = 'Hide';
-            } else if (input.type === 'text') {
-                // Already showing, hide it
-                input.type = 'password';
-                this.textContent = 'Show';
-            } else if (input.classList.contains('masked')) {
-                // Handle masked class approach
                 input.classList.remove('masked');
                 this.textContent = 'Hide';
             } else {
+                // Hide the content
+                if (input.type === 'password') {
+                    input.type = 'password';
+                }
                 input.classList.add('masked');
                 this.textContent = 'Show';
             }
@@ -2164,6 +2244,13 @@ document.addEventListener('DOMContentLoaded', function () {
         box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
     }
 
+    .btn-export:hover:not(.disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
     .btn-export:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
@@ -2174,6 +2261,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .btn-export.disabled {
         background: #e5e7eb;
         color: #9ca3af;
+        filter: blur(0.5px);
         cursor: not-allowed;
         opacity: 0.5;
         pointer-events: none;
@@ -2216,6 +2304,23 @@ document.addEventListener('DOMContentLoaded', function () {
     .btn-user-details:active {
         transform: translateY(0);
         box-shadow: 0 2px 4px rgba(56, 177, 197, 0.3);
+    }
+
+    /* Different disabled states for visual feedback */
+    .btn-export.disabled.drive-not-connected {
+        background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+        color: #666666;
+    }
+
+    .btn-export.disabled.time-restricted {
+        background: linear-gradient(135deg, #ffd166 0%, #ffb347 100%);
+        color: #333333;
+    }
+
+    .btn-export.disabled.already-exported {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        opacity: 0.7;
     }
 
     /* Modal Styles */
@@ -2401,7 +2506,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     .empty-state-icon {
-        font-size: 64px;
+        font-size: 36px;
         margin-bottom: 16px;
         opacity: 0.5;
     }
@@ -2659,8 +2764,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                                         <path d="M3 3v5h5"></path>
-                                    </svg>
-                                    ' : 'Export';
+                                    </svg>' : 'Export';
                                     
                                     // Check if one hour has passed
                                     $created_timestamp = strtotime($session->created_at);
@@ -2669,18 +2773,32 @@ document.addEventListener('DOMContentLoaded', function () {
                                     $is_disabled = $time_elapsed < 3600;
                                     $remaining_minutes = $is_disabled ? ceil((3600 - $time_elapsed) / 60) : 0;
                                     
-                                    // Show button for all cases except 'exported'
-                                    if ($google_connected && $export_status !== 'exported'): 
+                                    // Determine if button should be enabled
+                                    $is_export_enabled = $google_connected && $export_status !== 'exported';
+                                    $is_fully_disabled = !$google_connected || $is_disabled || $export_status === 'exported';
+                                    
+                                    // Create appropriate title/tooltip
+                                    if (!$google_connected) {
+                                        $tooltip = 'Connect Google Drive to enable export';
+                                    } elseif ($export_status === 'exported') {
+                                        $tooltip = 'Already exported to Google Drive';
+                                    } elseif ($is_disabled) {
+                                        $tooltip = 'Export available in ' . $remaining_minutes . ' min';
+                                    } else {
+                                        $tooltip = 'Export to Google Drive';
+                                    }
                                     ?>
-                                        <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
-                                        class="btn-export <?php echo $is_disabled ? 'disabled' : ''; ?>"
-                                        title="<?php echo $is_disabled ? 'Export available in ' . $remaining_minutes . ' min' : 'Export to Google Drive'; ?>"
-                                        <?php if ($is_disabled): ?>
-                                            onclick="return false;"
-                                        <?php endif; ?>>
-                                            <?php echo $btn_text; ?>
-                                        </a>
-                                    <?php endif; ?>
+                                    
+                                    <!-- Export Button - Always visible but with different states -->
+                                    <a href="<?php echo $is_export_enabled && !$is_disabled ? wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce') : '#'; ?>" 
+                                    class="btn-export <?php echo $is_fully_disabled ? 'disabled' : ''; ?>"
+                                    title="<?php echo $tooltip; ?>"
+                                    <?php if ($is_fully_disabled): ?>
+                                        onclick="return false;"
+                                        style="opacity: 0.5; filter: blur(0.5px); cursor: not-allowed;"
+                                    <?php endif; ?>>
+                                        <?php echo $btn_text; ?>
+                                    </a>
                                     
                                     <!-- User Details Button -->
                                     <?php
@@ -4251,74 +4369,6 @@ document.addEventListener('DOMContentLoaded', function () {
     
     return true;
 }
-
-    foreach ($sessions as $session) {
-        ?>
-        <tr>
-            <td><?php echo esc_html($session->session_id); ?></td>
-            <td><?php echo esc_html($session->avatar_id); ?></td>
-
-            <!-- ✅ Paste your action buttons block here -->
-            <td>
-                <?php 
-                // Transcript Export Button
-                if ($google_connected && in_array($export_status, ['failed', 'not_exported'])): 
-                    $btn_text = [
-                        'exported' => '',
-                        'failed' => 'Retry Export',
-                        'not_exported' => 'Export'
-                    ];
-                    
-                    $created_timestamp = strtotime($session->created_at);
-                    $current_timestamp = current_time('timestamp');
-                    $one_hour_in_seconds = 3600;
-                    $time_elapsed = $current_timestamp - $created_timestamp;
-                    $is_disabled = $time_elapsed < $one_hour_in_seconds;
-                    
-                    $remaining_seconds = $one_hour_in_seconds - $time_elapsed;
-                    $remaining_minutes = ceil($remaining_seconds / 60);
-                ?>
-                    <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
-                    class="button button-small <?php echo $is_disabled ? 'disabled' : ''; ?>"
-                    <?php if ($is_disabled): ?>
-                        style="pointer-events: none; opacity: 0.5; cursor: not-allowed;"
-                        title="Export will be available in <?php echo $remaining_minutes; ?> minute<?php echo $remaining_minutes > 1 ? 's' : ''; ?>"
-                        onclick="return false;"
-                    <?php endif; ?>>
-                        <?php echo $btn_text[$export_status] ?? 'Export'; ?>
-                    </a>
-                <?php endif; ?>
-                
-                <?php 
-                // Perception Export Button
-                $perception_status = $session->perception_status ?? 'not_processed';
-                if ($google_connected && in_array($perception_status, ['failed', 'not_processed', 'unavailable'])): 
-                    $perception_btn_text = [
-                        'processed' => '',
-                        'failed' => 'Retry Perception',
-                        'not_processed' => 'Export Perception',
-                        'unavailable' => 'Retry Perception'
-                    ];
-                    
-                    $is_disabled = $time_elapsed < $one_hour_in_seconds;
-                ?>
-                    <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
-                    class="button button-small <?php echo $is_disabled ? 'disabled' : ''; ?>"
-                    <?php if ($is_disabled): ?>
-                        style="pointer-events: none; opacity: 0.5; cursor: not-allowed; margin-left: 5px;"
-                        title="Perception export will be available in <?php echo $remaining_minutes; ?> minute<?php echo $remaining_minutes > 1 ? 's' : ''; ?>"
-                        onclick="return false;"
-                    <?php else: ?>
-                        style="margin-left: 5px;"
-                    <?php endif; ?>>
-                        <?php echo $perception_btn_text[$perception_status] ?? 'Export Perception'; ?>
-                    </a>
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php
-    }
-
 
     /**
      * Helper function to refresh Google OAuth token
@@ -6258,9 +6308,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="search-card">
                         <h3 class="search-title">Search Users</h3>
                         <form method="get" action="" class="search-form-wrapper">
-                            <?php if (isset($_GET['page'])) : ?>
-                                <input type="hidden" name="page" value="<?php echo esc_attr($_GET['page']); ?>">
-                            <?php endif; ?>
+                            <?php
+                            if ( isset( $_GET['page'] ) ) {
+                                $page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+                                ?>
+                                <input type="hidden" name="page" value="<?php echo esc_attr( $page ); ?>">
+                            <?php } ?>
                             
                             <?php if (isset($_GET['orderby'])) : ?>
                                 <input type="hidden" name="orderby" value="<?php echo esc_attr($_GET['orderby']); ?>">
@@ -6284,8 +6337,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </svg>
                                     Search
                                 </button>
-                                <?php if (!empty($search)) : ?>
-                                    <a href="?page=<?php echo esc_attr($_GET['page']); ?>" class="search-clear">
+                                <?php
+                                $page = '';
+                                if ( isset( $_GET['page'] ) ) {
+                                    $page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+                                }
+                                ?>
+                                <?php if ( ! empty( $search ) ) : ?>
+                                    <a href="<?php echo esc_url( add_query_arg( 'page', $page ) ); ?>" class="search-clear">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
                                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -6293,6 +6352,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         Clear
                                     </a>
                                 <?php endif; ?>
+
                             </div>
                         </form>
                     </div>

@@ -56,8 +56,7 @@ global $wp_embed;
         display: none;
     }
 </style>
-<link rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>assets/css/fontawesome/css/all.min.css">
 <input type="hidden" name="CURRENT_TIMESTAMP" value="<?php echo time() ?>">
 <div class="avatarAndTranscriptWrapper">
 
@@ -71,7 +70,7 @@ global $wp_embed;
         </div>
 
         <div id="chatBox-close" title="Close Window">
-            <i class="bi bi-x-lg"></i>
+            <i class="fa fa-times"></i>
         </div>
 
         <div id="notification-container" class="toast-notification-container">
@@ -121,21 +120,21 @@ global $wp_embed;
                 <button type="button" id="transcriptToggleButton" class="transcriptToggleButton view-transcript-button"
                     aria-label="View Transcript button">
                     <div class="icon icon-view" title="View Transcript">
-                        <i class="bi bi-arrow-left-square"></i>
+                        <i class="fa fa-arrow-left"></i>
                     </div>
                     <div class="icon icon-hide" title="Close Transcript" style="display: none;">
-                        <i class="bi bi-arrow-right-square"></i>
+                        <i class="fa fa-arrow-right"></i>
                     </div>
 
                 </button>
             </div>
-            <div class="chatBox-fullscreen position-absolute r-10 b-10">
+            <div id="fullscreen" class="chatBox-fullscreen position-absolute r-10 b-10">
                 <div class="action-fullscreen">
-                    <i class="bi bi-fullscreen" title="Fullscreen"></i>
-                    <i class="bi bi-arrows-angle-contract" title="Exit Fullscreen" style="display:none;"></i>
+                    <i class="fa fa-expand" title="Fullscreen"></i>
+                    <i class="fa fa-compress" title="Exit Fullscreen" style="display:none;"></i>
                 </div>
             </div>
-        </div>
+        </div>  
         <div id="video_holder">
             <video id="avatarVideo" class="avatarVideo" poster="<?php echo $previewImage; ?>" autoplay playsinline>
                 <track kind="captions" />
@@ -148,43 +147,78 @@ global $wp_embed;
         <div class="actionContainer">
 
             <div id="switchInteractionMode" class="switchMode" title="Switch to Voice/Chat">
-                <i class="bi bi-chat-square-text"></i>
+                <i class="fa fa-comment-alt"></i>
             </div>
             <div id="listeningIcon" class="listeningIcon ">
             </div>
             <?php if (!$chat_only) { ?>
                 <button type="button" id="micToggler" class="micToggler">
-                    <i id="micIcon" class="fa-solid fa-microphone"></i>
+                    <i id="micIcon" class="fa fa-microphone"></i>
                 </button>
             <?php } ?>
             <?php if ($video_enable) { ?>
-                <button type="button" id="cameraToggler"
-                    class="cameraToggler <?php echo ($avatar_vendor == 'heygen') ? 'hide ' : '' ?>">
-                    <i id="cameraIcon" class="fa-solid fa-video"></i>
+                <button type="button" id="cameraToggler" class="cameraToggler <?php echo ($avatar_vendor == 'heygen') ? 'hide ' : '' ?>">
+                    <i id="cameraIcon" class="fa fa-video"></i>
                 </button>
             <?php } ?>
             <button type="button" id="endSession" class="endSession">
-                <i class="fa-solid fa-phone" style="transform: rotate(135deg);   "></i>
+                <i class="fa fa-phone-slash" style="transform: rotate(135deg);"></i>
             </button>
 
             <div class="action-view-transcript">
                 <button type="button" id="transcriptToggleButton" class="transcriptToggleButton view-transcript-button"
                     aria-label="View Transcript button">
                     <div class="icon icon-view" title="View Transcript">
-                        <i class="bi bi-arrow-left-square"></i>
+                        <i class="fa fa-arrow-left"></i>
                     </div>
                     <div class="icon icon-hide" title="Close Transcript" style="display: none;">
-                        <i class="bi bi-arrow-right-square"></i>
+                        <i class="fa fa-arrow-right"></i>
                     </div>
 
                 </button>
             </div>
-            <button type="button" class="chatBox-fullscreen">
+            <div type="button" class="chatBox-fullscreen">
                 <div class="action-fullscreen">
-                    <i class="bi bi-fullscreen" title="Fullscreen"></i>
-                    <i class="bi bi-arrows-angle-contract" title="Exit Fullscreen" style="display:none;"></i>
+                    <i class="fa fa-expand" title="Fullscreen"></i>
+                    <i class="fa fa-compress" title="Exit Fullscreen" style="display:none;"></i>
                 </div>
-            </button>
+            </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get all fullscreen button containers
+                const fullscreenContainers = document.querySelectorAll('.chatBox-fullscreen');
+                
+                // Function to toggle all icons
+                function toggleAllFullscreenIcons() {
+                    // Get all expand and compress icons
+                    const allExpandIcons = document.querySelectorAll('.fa-expand');
+                    const allCompressIcons = document.querySelectorAll('.fa-compress');
+                    
+                    // Check the state by looking at the first expand icon
+                    const expandVisible = allExpandIcons[0] && allExpandIcons[0].style.display !== 'none';
+                    
+                    // Toggle all icons
+                    if (expandVisible) {
+                        // Switch all to compress icon
+                        allExpandIcons.forEach(icon => icon.style.display = 'none');
+                        allCompressIcons.forEach(icon => icon.style.display = 'inline-block');
+                    } else {
+                        // Switch all to expand icon
+                        allExpandIcons.forEach(icon => icon.style.display = 'inline-block');
+                        allCompressIcons.forEach(icon => icon.style.display = 'none');
+                    }
+                }
+                
+                // Add click event to each container
+                fullscreenContainers.forEach(function(container) {
+                    container.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        toggleAllFullscreenIcons();
+                    });
+                });
+            });
+            </script>
+
         </div>
         <?php if ($video_enable) { ?>
             <?php
@@ -282,11 +316,11 @@ global $wp_embed;
                 <h4>Chat</h4>
                 <button type="button" id="exportTranscriptToPDF" class="exportTranscript" style="display:none;"
                     title="Export to PDF">
-                    <div class="flex gap-10"><i class="bi bi-file-earmark-pdf"></i> Export</div>
+                    <div class="flex gap-10"><i class="fa fa-file"></i>Export</div>
                 </button>
                 <button type="button" id="sendTranscriptToEmail" class="exportTranscript" style="display:none;"
                     title="Send to Email">
-                    <div class="flex gap-10"><i class="bi bi-envelope-arrow-up"></i> Send
+                    <div class="flex gap-10"><i class="fa fa-envelope"></i>Send</div>
                 </button>
             </div>
         </div>
@@ -297,7 +331,7 @@ global $wp_embed;
             <div class="textInput-wrapper">
                 <input type="text" id="userInput" class="textInput" placeholder="Let’s chat!" />
                 <div id="<?php echo $avatar_vendor == 'tavus' ? 'send-btn' : 'speakButton' ?>" class="speakButton">
-                    <i class="bi bi-arrow-right-short"></i>
+                    <i class="fa fa-arrow-up"></i>
                 </div>
             </div>
         </div>
@@ -310,7 +344,7 @@ global $wp_embed;
         <div class="disclaimer-content">
             <div class="disclaimer-header">
                 <?php echo $disclaimer_title != '' ? '<h3 class="disclaimer-title">' . $disclaimer_title . '</h3>' : '' ?>
-                <button type="button" id="closeDisclaimer" class="closeDisclaimer"><i class="fa fa-close"></i></button>
+                <button type="button" id="closeDisclaimer" class="closeDisclaimer"><i class="fa fa-times"></i></button>
             </div>
             <div class="disclaimer-body">
                 <?php
@@ -640,351 +674,319 @@ global $wp_embed;
     </style>
     
    <script>
-jQuery(document).ready(function($) {
-    // Store the instruction enable state in a variable for easy access
-    const instructionEnabled = <?php echo $instruction_enable ? 'true' : 'false'; ?>;
-    
-    // Store form ID in a variable for easy access
-    const currentFormId = <?php echo $form_id_to_use; ?>;
-    
-    // Check if instruction video section exists
-    const instructionSectionExists = $('#instruction').length > 0;
-    
-    // Debug: Log initial state
-    console.log('=== AVATAR FORM DEBUG ===');
-    console.log('Form ID:', currentFormId);
-    console.log('Instruction Enabled:', instructionEnabled);
-    console.log('Instruction Section Exists:', instructionSectionExists);
-    console.log('Form Container (#userform) found:', $('#userform').length);
-    console.log('Form Container HTML:', $('#userform')[0] ? $('#userform')[0].outerHTML.substring(0, 100) + '...' : 'NOT FOUND');
-    
-    // Handle instruction agree button click
-    $(document).on('click', '#instructionAgree', function(e) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        console.log('Instruction agree button clicked');
+    jQuery(document).ready(function($) {
+        // Store the instruction enable state in a variable for easy access
+        const instructionEnabled = <?php echo $instruction_enable ? 'true' : 'false'; ?>;
         
-        // Hide instruction section
-        $('#instruction').hide(300, function() {
-            console.log('Instruction section hidden');
-            startSession();
+        // Store form ID in a variable for easy access
+        const currentFormId = <?php echo $form_id_to_use; ?>;
+        
+        // Check if instruction video section exists
+        const instructionSectionExists = $('#instruction').length > 0;
+        
+        // Debug: Log initial state
+        console.log('=== AVATAR FORM DEBUG ===');
+        console.log('Form ID:', currentFormId);
+        console.log('Instruction Enabled:', instructionEnabled);
+        console.log('Instruction Section Exists:', instructionSectionExists);
+        console.log('Form Container (#userform) found:', $('#userform').length);
+        console.log('Form Container HTML:', $('#userform')[0] ? $('#userform')[0].outerHTML.substring(0, 100) + '...' : 'NOT FOUND');
+        
+        // Handle instruction agree button click
+        $(document).on('click', '#instructionAgree', function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            console.log('Instruction agree button clicked');
+            
+            // Hide instruction section
+            $('#instruction').hide(300, function() {
+                console.log('Instruction section hidden');
+                startSession();
+            });
         });
-    });
-    
-    // Form submission handler
-    $('#userDetailsForm').on('submit', function(e) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        console.log('=== FORM SUBMIT TRIGGERED ===');
         
-        // Clear previous error messages
-        $('.error-message').remove();
+        // Form submission handler
+        $('#userDetailsForm').on('submit', function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            console.log('=== FORM SUBMIT TRIGGERED ===');
+            
+            // Clear previous error messages
+            $('.error-message').remove();
+            
+            // Validate form
+            let isValid = true;
+            let firstErrorField = null;
+            
+            $('.form-field.required').each(function() {
+                const $field = $(this);
+                const $input = $field.find('input, select, textarea').first();
+                const value = $input.val();
+                
+                // For checkboxes
+                if ($input.is('[type="checkbox"]')) {
+                    const name = $input.attr('name');
+                    const checked = $(`input[name="${name}"]:checked`).length > 0;
+                    if (!checked) {
+                        isValid = false;
+                        $field.addClass('error');
+                        if (!firstErrorField) firstErrorField = $field;
+                    } else {
+                        $field.removeClass('error');
+                    }
+                } 
+                // For radio buttons
+                else if ($input.is('[type="radio"]')) {
+                    const name = $input.attr('name');
+                    const checked = $(`input[name="${name}"]:checked`).length > 0;
+                    if (!checked) {
+                        isValid = false;
+                        $field.addClass('error');
+                        if (!firstErrorField) firstErrorField = $field;
+                    } else {
+                        $field.removeClass('error');
+                    }
+                }
+                // For other fields
+                else if (!value || value.trim() === '') {
+                    isValid = false;
+                    $field.addClass('error');
+                    if (!firstErrorField) firstErrorField = $field;
+                } else {
+                    $field.removeClass('error');
+                }
+            });
+            
+            // Show error if validation fails
+            if (!isValid) {
+                console.log('Form validation failed');
+                $('#userDetailsForm').prepend('<div class="error-message" style="color: #ef4444; padding: 10px; margin-bottom: 15px; background: #fef2f2; border-radius: 6px; border: 1px solid #fecaca;">Please fill in all required fields marked with *</div>');
+                
+                // Scroll to first error field
+                if (firstErrorField) {
+                    $('html, body').animate({
+                        scrollTop: firstErrorField.offset().top - 100
+                    }, 500);
+                }
+                return false;
+            }
+            
+            console.log('Form validation passed, hiding form...');
+            
+            // HIDE THE FORM IMMEDIATELY AND PERMANENTLY
+            $('#userform').css({
+                'opacity': '0',
+                'height': '0',
+                'overflow': 'hidden',
+                'margin': '0',
+                'padding': '0',
+                'border': 'none',
+                'visibility': 'hidden',
+                'pointer-events': 'none',
+                'position': 'absolute',
+                'z-index': '-9999'
+            }).hide().off();
+            
+            console.log('Form should be hidden now. Checking visibility:', $('#userform').is(':visible'));
+            
+            // Collect form data
+            const formData = {};
+            $('.form-field').each(function() {
+                const $field = $(this);
+                const label = $field.find('label').first().text().replace(' *', '').trim();
+                const $input = $field.find('input, select, textarea').first();
+                
+                if (!$input.length || !label) return;
+                
+                // Handle checkboxes (multiple values)
+                if ($input.is('[type="checkbox"]')) {
+                    const name = $input.attr('name');
+                    if (!name) return;
+                    
+                    const values = [];
+                    $field.find(`input[name="${name}"]:checked`).each(function() {
+                        values.push($(this).val());
+                    });
+                    formData[label] = values.length > 0 ? values : [];
+                } 
+                // Handle radio buttons (single value)
+                else if ($input.is('[type="radio"]')) {
+                    const name = $input.attr('name');
+                    if (!name) return;
+                    
+                    const value = $field.find(`input[name="${name}"]:checked`).val();
+                    formData[label] = value || '';
+                }
+                // Handle other input types
+                else {
+                    formData[label] = $input.val() || '';
+                }
+            });
+            
+            console.log('Form data collected:', formData);
+            
+            // Get session ID
+            let sessionId = $('input[name="session_id"]').val();
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now();
+            }
+            
+            // Get avatar studio ID
+            const avatarStudioId = $('input[name="avatar_studio_id"]').val() || 0;
+            
+            console.log('Submitting form via AJAX...');
+            
+            // Submit via AJAX
+            $.ajax({
+                url: '<?php echo admin_url("admin-ajax.php"); ?>',
+                type: 'POST',
+                data: {
+                    action: 'submit_avatar_form',
+                    form_id: currentFormId,
+                    session_id: sessionId,
+                    avatar_studio_id: avatarStudioId,
+                    form_data: JSON.stringify(formData)
+                },
+                beforeSend: function() {
+                    // Disable the button during submission
+                    $('#nextBtn').prop('disabled', true);
+                    console.log('AJAX request sent');
+                },
+                success: function(response) {
+                    console.log('AJAX response received:', response);
+                    
+                    if (response.success) {
+                        console.log('Form submitted successfully via AJAX');
+                        
+                        // Double-check form is hidden
+                        $('#userform').hide();
+                        
+                        // Form is already hidden, now decide where to go next
+                        if (instructionEnabled && instructionSectionExists) {
+                            console.log('Redirecting to instruction section');
+                            scrollToInstruction();
+                        } else {
+                            console.log('Starting session directly');
+                            startSession();
+                        }
+                    } else {
+                        // AJAX failed but form stays hidden
+                        console.log('AJAX submission failed, form stays hidden');
+                        // Show error in console only
+                        console.error('Form submission error:', response.data);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error:', error);
+                    // AJAX network error but form stays hidden
+                    console.log('AJAX network error, form stays hidden');
+                },
+                complete: function() {
+                    // Re-enable button after AJAX completes (success or error)
+                    $('#nextBtn').prop('disabled', false);
+                    console.log('AJAX request complete');
+                }
+            });
+            
+            return false;
+        });
         
-        // Validate form
-        let isValid = true;
-        let firstErrorField = null;
-        
-        $('.form-field.required').each(function() {
-            const $field = $(this);
+        // Real-time validation
+        $('.form-field.required input, .form-field.required select, .form-field.required textarea').on('blur change', function() {
+            const $field = $(this).closest('.form-field');
             const $input = $field.find('input, select, textarea').first();
             const value = $input.val();
             
-            // For checkboxes
-            if ($input.is('[type="checkbox"]')) {
+            if ($input.is('[type="checkbox"], [type="radio"]')) {
                 const name = $input.attr('name');
                 const checked = $(`input[name="${name}"]:checked`).length > 0;
                 if (!checked) {
-                    isValid = false;
                     $field.addClass('error');
-                    if (!firstErrorField) firstErrorField = $field;
                 } else {
                     $field.removeClass('error');
+                    $('.error-message').remove();
                 }
-            } 
-            // For radio buttons
-            else if ($input.is('[type="radio"]')) {
-                const name = $input.attr('name');
-                const checked = $(`input[name="${name}"]:checked`).length > 0;
-                if (!checked) {
-                    isValid = false;
-                    $field.addClass('error');
-                    if (!firstErrorField) firstErrorField = $field;
-                } else {
-                    $field.removeClass('error');
-                }
-            }
-            // For other fields
-            else if (!value || value.trim() === '') {
-                isValid = false;
-                $field.addClass('error');
-                if (!firstErrorField) firstErrorField = $field;
-            } else {
-                $field.removeClass('error');
-            }
-        });
-        
-        // Show error if validation fails
-        if (!isValid) {
-            console.log('Form validation failed');
-            $('#userDetailsForm').prepend('<div class="error-message" style="color: #ef4444; padding: 10px; margin-bottom: 15px; background: #fef2f2; border-radius: 6px; border: 1px solid #fecaca;">Please fill in all required fields marked with *</div>');
-            
-            // Scroll to first error field
-            if (firstErrorField) {
-                $('html, body').animate({
-                    scrollTop: firstErrorField.offset().top - 100
-                }, 500);
-            }
-            return false;
-        }
-        
-        console.log('Form validation passed, hiding form...');
-        
-        // HIDE THE FORM IMMEDIATELY AND PERMANENTLY
-        $('#userform').css({
-            'opacity': '0',
-            'height': '0',
-            'overflow': 'hidden',
-            'margin': '0',
-            'padding': '0',
-            'border': 'none',
-            'visibility': 'hidden',
-            'pointer-events': 'none',
-            'position': 'absolute',
-            'z-index': '-9999'
-        }).hide().off();
-        
-        console.log('Form should be hidden now. Checking visibility:', $('#userform').is(':visible'));
-        
-        // Collect form data
-        const formData = {};
-        $('.form-field').each(function() {
-            const $field = $(this);
-            const label = $field.find('label').first().text().replace(' *', '').trim();
-            const $input = $field.find('input, select, textarea').first();
-            
-            if (!$input.length || !label) return;
-            
-            // Handle checkboxes (multiple values)
-            if ($input.is('[type="checkbox"]')) {
-                const name = $input.attr('name');
-                if (!name) return;
-                
-                const values = [];
-                $field.find(`input[name="${name}"]:checked`).each(function() {
-                    values.push($(this).val());
-                });
-                formData[label] = values.length > 0 ? values : [];
-            } 
-            // Handle radio buttons (single value)
-            else if ($input.is('[type="radio"]')) {
-                const name = $input.attr('name');
-                if (!name) return;
-                
-                const value = $field.find(`input[name="${name}"]:checked`).val();
-                formData[label] = value || '';
-            }
-            // Handle other input types
-            else {
-                formData[label] = $input.val() || '';
-            }
-        });
-        
-        console.log('Form data collected:', formData);
-        
-        // Get session ID
-        let sessionId = $('input[name="session_id"]').val();
-        if (!sessionId) {
-            sessionId = 'session_' + Date.now();
-        }
-        
-        // Get avatar studio ID
-        const avatarStudioId = $('input[name="avatar_studio_id"]').val() || 0;
-        
-        console.log('Submitting form via AJAX...');
-        
-        // Submit via AJAX
-        $.ajax({
-            url: '<?php echo admin_url("admin-ajax.php"); ?>',
-            type: 'POST',
-            data: {
-                action: 'submit_avatar_form',
-                form_id: currentFormId,
-                session_id: sessionId,
-                avatar_studio_id: avatarStudioId,
-                form_data: JSON.stringify(formData)
-            },
-            beforeSend: function() {
-                // Disable the button during submission
-                $('#nextBtn').prop('disabled', true);
-                console.log('AJAX request sent');
-            },
-            success: function(response) {
-                console.log('AJAX response received:', response);
-                
-                if (response.success) {
-                    console.log('Form submitted successfully via AJAX');
-                    
-                    // Double-check form is hidden
-                    $('#userform').hide();
-                    
-                    // Form is already hidden, now decide where to go next
-                    if (instructionEnabled && instructionSectionExists) {
-                        console.log('Redirecting to instruction section');
-                        scrollToInstruction();
-                    } else {
-                        console.log('Starting session directly');
-                        startSession();
-                    }
-                } else {
-                    // AJAX failed but form stays hidden
-                    console.log('AJAX submission failed, form stays hidden');
-                    // Show error in console only
-                    console.error('Form submission error:', response.data);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX error:', error);
-                // AJAX network error but form stays hidden
-                console.log('AJAX network error, form stays hidden');
-            },
-            complete: function() {
-                // Re-enable button after AJAX completes (success or error)
-                $('#nextBtn').prop('disabled', false);
-                console.log('AJAX request complete');
-            }
-        });
-        
-        return false;
-    });
-    
-    // Real-time validation
-    $('.form-field.required input, .form-field.required select, .form-field.required textarea').on('blur change', function() {
-        const $field = $(this).closest('.form-field');
-        const $input = $field.find('input, select, textarea').first();
-        const value = $input.val();
-        
-        if ($input.is('[type="checkbox"], [type="radio"]')) {
-            const name = $input.attr('name');
-            const checked = $(`input[name="${name}"]:checked`).length > 0;
-            if (!checked) {
+            } else if (!value || value.trim() === '') {
                 $field.addClass('error');
             } else {
                 $field.removeClass('error');
                 $('.error-message').remove();
             }
-        } else if (!value || value.trim() === '') {
-            $field.addClass('error');
-        } else {
-            $field.removeClass('error');
-            $('.error-message').remove();
-        }
-    });
-    
-    // Skip button handler
-    // $('#skipBtn').on('click', function(e) {
-    //     e.preventDefault();
-    //     e.stopImmediatePropagation();
-    //     console.log('Skip button clicked');
+        });
         
-    //     // Hide the form immediately and permanently
-    //     $('#userform').css({
-    //         'opacity': '0',
-    //         'height': '0',
-    //         'overflow': 'hidden',
-    //         'margin': '0',
-    //         'padding': '0',
-    //         'border': 'none',
-    //         'visibility': 'hidden',
-    //         'pointer-events': 'none',
-    //         'position': 'absolute',
-    //         'z-index': '-9999'
-    //     }).hide().off();
-        
-    //     console.log('Form skipped and hidden');
-        
-    //     // Check where to go next
-    //     if (instructionEnabled && instructionSectionExists) {
-    //         scrollToInstruction();
-    //     } else {
-    //         startSession();
-    //     }
-        
-    //     return false;
-    // });
-    
-    // Function to scroll to instruction section
-    function scrollToInstruction() {
-        console.log('Scrolling to instruction section');
-        
-        const $instructionSection = $('#instruction');
-        
-        if ($instructionSection.length > 0) {
-            // Show instruction section if hidden
-            if ($instructionSection.is(':hidden')) {
-                $instructionSection.show();
+        // Function to scroll to instruction section
+        function scrollToInstruction() {
+            console.log('Scrolling to instruction section');
+            
+            const $instructionSection = $('#instruction');
+            
+            if ($instructionSection.length > 0) {
+                // Show instruction section if hidden
+                if ($instructionSection.is(':hidden')) {
+                    $instructionSection.show();
+                }
+                
+                // Briefly highlight the section
+                $instructionSection.css({
+                    'display': 'flex' 
+                });
+                
+            } else {
+                console.log('No instruction section found, starting session');
+                startSession();
             }
-            
-            // Briefly highlight the section
-            $instructionSection.css({
-                'display': 'flex' 
-            });
-            
-        } else {
-            console.log('No instruction section found, starting session');
-            startSession();
         }
-    }
-    
-    // Function to start the session
-    function startSession() {
-        console.log('Starting session...');
         
-        // Method 1: Trigger click on start session button
-        if ($('#startSession').length > 0) {
-            console.log('Found #startSession button, triggering click');
-            $('#startSession').trigger('click');
-        }
-        // Method 2: Call startSession function if it exists
-        else if (typeof window.startSession === 'function') {
-            console.log('Calling window.startSession() function');
-            window.startSession();
-        }
-        // Method 3: Try other common session start selectors
-        else {
-            const sessionTriggers = [
-                '#beginSession',
-                '.start-session',
-                '[data-start-session]',
-                '.session-start-btn',
-                '#start-session-btn'
-            ];
+        // Function to start the session
+        function startSession() {
+            console.log('Starting session...');
             
-            let sessionFound = false;
-            for (const selector of sessionTriggers) {
-                if ($(selector).length > 0) {
-                    console.log('Found session trigger:', selector);
-                    $(selector).trigger('click');
-                    sessionFound = true;
-                    break;
+            // Method 1: Trigger click on start session button
+            if ($('#startSession').length > 0) {
+                console.log('Found #startSession button, triggering click');
+                $('#startSession').trigger('click');
+            }
+            // Method 2: Call startSession function if it exists
+            else if (typeof window.startSession === 'function') {
+                console.log('Calling window.startSession() function');
+                window.startSession();
+            }
+            // Method 3: Try other common session start selectors
+            else {
+                const sessionTriggers = [
+                    '#beginSession',
+                    '.start-session',
+                    '[data-start-session]',
+                    '.session-start-btn',
+                    '#start-session-btn'
+                ];
+                
+                let sessionFound = false;
+                for (const selector of sessionTriggers) {
+                    if ($(selector).length > 0) {
+                        console.log('Found session trigger:', selector);
+                        $(selector).trigger('click');
+                        sessionFound = true;
+                        break;
+                    }
+                }
+                
+                // If no trigger found, log a message
+                if (!sessionFound) {
+                    console.log('No session start trigger found');
                 }
             }
-            
-            // If no trigger found, log a message
-            if (!sessionFound) {
-                console.log('No session start trigger found');
-            }
         }
-    }
-    
-    // Prevent any other code from showing the form
-    // $(document).on('show hide slideDown slideUp fadeIn fadeOut', '#userform', function(e) {
-    //     e.preventDefault();
-    //     e.stopImmediatePropagation();
-    //     console.log('Blocked attempt to change #userform visibility');
-    //     return false;
-    // });
-});
-</script>
+        
+        // Prevent any other code from showing the form
+        // $(document).on('show hide slideDown slideUp fadeIn fadeOut', '#userform', function(e) {
+        //     e.preventDefault();
+        //     e.stopImmediatePropagation();
+        //     console.log('Blocked attempt to change #userform visibility');
+        //     return false;
+        // });
+    });
+    </script>
 <?php } ?>
 <style>
 
@@ -1033,7 +1035,7 @@ jQuery(document).ready(function($) {
         <div class="instruction-content">
             <div class="instruction-header">
                 <?php echo $instruction_title != '' ? '<h3 class="instruction-title">' . $instruction_title . '</h3>' : '' ?>
-                <button type="button" id="closeInstruction" class="closeInstruction"><i class="fa fa-close"></i></button>
+                <button type="button" id="closeInstruction" class="closeInstruction"><i class="fa fa-times"></i></button>
             </div>
             <div class="instruction-body">
                 <?php

@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Plugin Name: Avatar Studio
- * Plugin URI: https://divigner.com/avatar-studio
+ * Plugin Name: Interactive Avatar Studio
+ * Plugin URI: https://avanew.ai/interactivestudio/
  * Description: Avatar Studio for your Interactive Avatar  
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Avanew
  * Requires at least: 6.0
  * Tested up to: 6.8
  * Requires PHP: 8.0.3
- * Author URI: https://divigner.com
+ * Author URI: https://avanew.ai/
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * License: GPL2
@@ -94,7 +94,6 @@ function enqueue_avatar_studio_script()
 
     if ($avatar_studio_enable) {
         wp_enqueue_style('avatar_studio-style', $dir . '/assets/css/style.css', array(), AvatarStudioVersion, 'all');
-        wp_enqueue_style('bootstrap-icon', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css', array(), AvatarStudioVersion, 'all');
     }
 
 
@@ -171,7 +170,7 @@ function enqueue_avatar_studio_script()
             return '';
         }
 
-        wp_enqueue_script('avatar_studio-jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), AvatarStudioVersion, true);
+        wp_enqueue_script('avatar_studio-jspdf', $dir . 'assets/js/jspdf/jspdf.umd.min.js', array('jquery'), '2.5.1', true);    
         wp_enqueue_script('avatar_studio-script', $dir . 'assets/js/avatar_studio-script.js', array('jquery'), AvatarStudioVersion, true);
         wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
 
@@ -189,9 +188,9 @@ function enqueue_avatar_studio_admin_script($hook)
     if ('avatar-studio_page_avatar_studio-avatars' === $hook || 'admin_page_avatar_studio-add-avatar' === $hook || 'admin_page_avatar_studio-edit-avatar' === $hook) {
         wp_enqueue_media();
 
-
-        wp_enqueue_style('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css');
-        wp_enqueue_script('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array('jquery'), null, true);
+        $dir = plugin_dir_url(__FILE__);
+        wp_enqueue_style('select2', $dir . 'assets/css/select2/select2.min.css');
+        wp_enqueue_script('select2', $dir . 'assets/js/select2/select2.min.js', array('jquery'), '4.0.13', true);
         wp_add_inline_script('select2', '  jQuery(document).ready(function($) { $(".select2").select2();   }); ');
 
         wp_enqueue_style('wp-color-picker');

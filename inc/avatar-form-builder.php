@@ -704,7 +704,7 @@ class Avatar_Form_Builder {
             }
 
             #noFieldsMessage p {
-                margin-top: -23px;
+                margin-top: 30px;
                 color: #6b7280;
             }
 

@@ -20,11 +20,6 @@ let renderedQuestionnaires = [];
 let answerSubmit = true;
 let isInputAudioMuted = true; // Default to muted
 
-// const API_CONFIG = {
-//     serverUrl: "https://api.heygen.com",
-//     RAG_API_URL: "",
-// };
-// DOM elements
 document.addEventListener("DOMContentLoaded", function () {
   const mediaElement = document.getElementById("avatarVideo");
   const startButton = document.getElementById("startSession");
@@ -253,7 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
   async function onSpeechEnd(text) {
     createParagraphElement("user");
     addTextToTranscript(text, "user", false);
-    if (API_CONFIG.RAG_API_URL === "") {
+    if (AVANEW_AS_API_CONFIG.RAG_API_URL === "") {
       sendText(text, "chat");
     } else {
       try {
@@ -392,7 +387,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const wsUrl = `wss://${
-      new URL(API_CONFIG.serverUrl).hostname
+      new URL(AVANEW_AS_API_CONFIG.serverUrl).hostname
     }/v1/ws/streaming.chat?${params}`;
 
     webSocket = new WebSocket(wsUrl);
@@ -440,27 +435,30 @@ document.addEventListener("DOMContentLoaded", function () {
       language = language ? language : "en";
 
       // Create new session
-      const response = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.new`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionToken}`,
-        },
-        body: JSON.stringify({
-          version: "v2",
-          video_encoding: "H264",
-          avatar_id: avatarId,
-          knowledge_base_id: knowledgeId,
-          quality: "high",
-          voice: {
-            rate: 1.5,
-            emotion: "excited",
+      const response = await fetch(
+        `${AVANEW_AS_API_CONFIG.serverUrl}/v1/streaming.new`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionToken}`,
           },
-          disable_idle_timeout: false,
-          stt_settings: { provider: "deepgram", confidence: 0.55 },
-          activity_idle_timeout: 180,
-        }),
-      });
+          body: JSON.stringify({
+            version: "v2",
+            video_encoding: "H264",
+            avatar_id: avatarId,
+            knowledge_base_id: knowledgeId,
+            quality: "high",
+            voice: {
+              rate: 1.5,
+              emotion: "excited",
+            },
+            disable_idle_timeout: false,
+            stt_settings: { provider: "deepgram", confidence: 0.55 },
+            activity_idle_timeout: 180,
+          }),
+        }
+      );
 
       const data = await response.json();
       sessionData = data.data;
@@ -608,7 +606,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Start streaming session
   async function startStreamingSession() {
     const startResponse = await fetch(
-      `${API_CONFIG.serverUrl}/v1/streaming.start`,
+      `${AVANEW_AS_API_CONFIG.serverUrl}/v1/streaming.start`,
       {
         method: "POST",
         headers: {
@@ -633,18 +631,21 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const response = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.task`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionToken}`,
-      },
-      body: JSON.stringify({
-        session_id: sessionData.session_id,
-        text: text,
-        task_type: taskType,
-      }),
-    });
+    const response = await fetch(
+      `${AVANEW_AS_API_CONFIG.serverUrl}/v1/streaming.task`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          session_id: sessionData.session_id,
+          text: text,
+          task_type: taskType,
+        }),
+      }
+    );
 
     updateStatus(`Sent text (${taskType}): ${text}`);
   }
@@ -655,7 +656,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     try {
       const res = await fetch(
-        `${API_CONFIG.serverUrl}/v1/streaming.interrupt`,
+        `${AVANEW_AS_API_CONFIG.serverUrl}/v1/streaming.interrupt`,
         {
           method: "POST",
           headers: {
@@ -687,16 +688,19 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const response = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.stop`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionToken}`,
-      },
-      body: JSON.stringify({
-        session_id: sessionData.session_id,
-      }),
-    });
+    const response = await fetch(
+      `${AVANEW_AS_API_CONFIG.serverUrl}/v1/streaming.stop`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          session_id: sessionData.session_id,
+        }),
+      }
+    );
 
     // Close WebSocket
     if (webSocket) {
@@ -1074,7 +1078,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const res = await fetch(API_CONFIG.RAG_API_URL, {
+      const res = await fetch(AVANEW_AS_API_CONFIG.RAG_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

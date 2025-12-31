@@ -36,79 +36,6 @@ function render_avatar_studio_user_logs_dashboard_widget()
     echo '</ul>';
 }
 
-// function arrayToCss($selector, $styles, $important = false)
-// {
-//     $user_agent = $_SERVER['HTTP_USER_AGENT'];
-//     $is_mobile = preg_match('/Mobile|Android|iPhone|iPad/', $user_agent);
-//     $cssProperties = [];
-
-//     foreach ($styles as $property => $value) {
-//         if (is_array($value) && in_array($property, ['border-radius', 'padding', 'margin'])) {
-//             $top = isset($value['top']) && $value['top'] >= 0 ? $value['top'] . 'px' : '0';
-//             $right = isset($value['right']) && $value['right'] >= 0 ? $value['right'] . 'px' : '0';
-//             $bottom = isset($value['bottom']) && $value['bottom'] >= 0 ? $value['bottom'] . 'px' : '0';
-//             $left = isset($value['left']) && $value['left'] >= 0 ? $value['left'] . 'px' : '0';
-
-//             $importantSuffix = $important ? ' !important' : '';
-//             if ($top || $right || $bottom || $left) {
-//                 $cssProperties[] = "$property: $top $right $bottom $left$importantSuffix;";
-//             }
-//         } else if (is_array($value) && in_array($property, ['border'])) {
-//             $borderWidth = isset($value['width']) ? $value['width'] . 'px' : '0';
-//             $borderStyle = isset($value['style']) ? $value['style'] : 'solid';
-//             $borderColor = isset($value['color']) ? $value['color'] : '#000';
-
-//             $importantSuffix = $important ? ' !important' : '';
-//             if (isset($value['width']) && $value['width'] >= 0) {
-//                 $cssProperties[] = "$property: $borderWidth $borderStyle $borderColor$importantSuffix;";
-//             }
-//         } else if (is_array($value) && in_array($property, ['mini', 'medium', 'large'])) {
-
-//             $width = $height = '';
-//             if (isset($value['width']) && $value['width'] != '') {
-//                 if (is_numeric($value['width'])) {
-//                     $width = $value['width'] . 'px';
-//                 } else {
-//                     $width = $value['width'];
-//                 }
-//             }
-//             if (isset($value['height']) && $value['height'] != '') {
-//                 if (is_numeric($value['height'])) {
-//                     $height = $value['height'] . 'px';
-//                 } else {
-//                     $height = $value['height'];
-//                 }
-//             }
-
-//             $importantSuffix = $important ? ' !important' : '';
-//             if ($width != '') {
-//                 $cssProperties[] = "width: $width $importantSuffix;";
-//             }
-//             if ($height != '') {
-//                 $cssProperties[] = "height: $height $importantSuffix;";
-//             }
-
-//         } else if (is_numeric($value) && in_array($property, ['border-radius', 'padding', 'margin', 'font-size', 'line-height', 'width', 'height'])) {
-//             $cssProperty = str_replace('_', '-', $property);
-//             $importantSuffix = $important ? ' !important' : '';
-//             if ($value >= 0) {
-//                 $cssProperties[] = "$cssProperty: $value" . 'px' . "$importantSuffix;";
-//             }
-//         } else {
-//             $cssProperty = str_replace('_', '-', $property);
-//             $importantSuffix = $important ? ' !important' : '';
-//             if ($value != '') {
-//                 $cssProperties[] = "$cssProperty: $value$importantSuffix;";
-//             }
-//         }
-//     }
-
-//     $cssString = $selector . " {\n    " . implode("\n    ", $cssProperties) . "\n}";
-
-//     return $cssString;
-// }
-
-
 function arrayToCss($selector, $styles, $important = false)
 {
     $baseCss = buildCssBlock($selector, $styles, $important);
@@ -302,7 +229,8 @@ function avatar_studio_shortcode($atts)
     $PLUGIN_OPTIONS['disclaimer_enable'] = $disclaimer_enable;
     $PLUGIN_OPTIONS['user_form_enable'] = $user_form_enable;
 
-    wp_enqueue_script('avatar_studio-jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), AvatarStudioVersion, true);
+    $plugin_dir = plugin_dir_url(__FILE__);
+    wp_enqueue_script('avatar_studio-jspdf', $plugin_dir . 'assets/js/jspdf/jspdf.umd.min.js', array('jquery'), '2.5.1', true);
 
     wp_enqueue_script('avatar_studio-script', plugins_url('assets/js/avatar_studio-script.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
     wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
@@ -316,7 +244,7 @@ function avatar_studio_shortcode($atts)
             echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion . '"></script>';
             echo ' <script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script> ';
 
-        } else {
+        } else {    
             echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion . '"></script>';
         }
     // }
@@ -339,18 +267,29 @@ function avatar_studio_shortcode($atts)
                     echo arrayToCss('#startSession', $style, true);
                     echo arrayToCss('button.disclaimer', $style, true);
                     echo arrayToCss('button.instruction', $style, true);
-
                 } else if ($key == 'chat-end-button') {
                     echo arrayToCss('#endSession', $style, true);
                 } else if ($key == 'mic-button') {
                     echo arrayToCss('#micToggler', $style, true);
                 } else if ($key == 'camera-button') {
                     echo arrayToCss('#cameraToggler', $style, true);
+                } else if ($key == 'switch-button') {
+                    echo arrayToCss('#switchInteractionMode', $style, true);
+                } else if ($key == 'transcript-button') {
+                    echo arrayToCss('.transcriptToggleButton', $style, true);
+                } else if ($key == 'camera-button') {
+                    echo arrayToCss('#cameraToggler', $style, true);
+                } else if ($key == 'fullscreen-button') {
+                    echo arrayToCss('.action-fullscreen', $style, true);
+                    echo arrayToCss('#fullscreen', $style, true);
+                } else if ($key == 'close-button') {
+                    echo arrayToCss('#chatBox-close', $style, true);
+                    if (isset($style['hover-background']) && $style['hover-background']) {
+                        echo '#chatBox-close:hover { background: ' . esc_attr($style['hover-background']) . ' !important; }' . "\n";
+                    }
                 }
             }
         }
-
-
         ?>
     </style>
     <div class="chatBox-shortCode">

@@ -1409,7 +1409,7 @@ class $e extends ue {
     }
     if (ft()) {
       qe(async () => {
-        const { default: o } = await import("./browser-BbK9lZvn.js").then(
+        const { default: o } = await import("./browser-3Vfwz0uM.js").then(
           (c) => c.b
         );
         return { default: o };
@@ -1431,7 +1431,7 @@ class $e extends ue {
       },
     })),
       qe(async () => {
-        const { default: o } = await import("./browser-BbK9lZvn.js").then(
+        const { default: o } = await import("./browser-3Vfwz0uM.js").then(
           (c) => c.b
         );
         return { default: o };
@@ -3073,9 +3073,9 @@ const He = async (i, e = "") => {
   },
   ne = { PRODUCTION: "production", DEVELOPMENT: "development" },
   G = ne.PRODUCTION,
-  mt = "",
-  wt = "",
-  bt = "";
+  mt = "rc2146c13e81",
+  wt = "p8e76077c890",
+  bt = "50292eae2a07421ca19e9b0bbc097eca";
 let M = { current: null },
   J = { current: null };
 const Q = document.getElementById("avatarVideo"),
@@ -3129,8 +3129,8 @@ const pr = () => {
       deepgramApiKey: n,
       customRagEnabled: s,
       mode: G,
-      tavusApiKey: mt,
-      replicaId: bt,
+      tavusApiKey: bt,
+      replicaId: mt,
       personaId: wt,
     }
   );
@@ -3138,9 +3138,9 @@ const pr = () => {
 let z = pr();
 class yr {
   constructor() {
-    (this.apiKey = mt),
+    (this.apiKey = bt),
       (this.personaId = wt),
-      (this.replicaId = bt),
+      (this.replicaId = mt),
       (this.deepgramConnectionActive = !1),
       (this.daily = null),
       (this.transcript = []),
@@ -3739,7 +3739,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const r = !!B.classList.contains("voice_mode");
     (i.isMicMuted = !r),
       console.log({ isMicMuted: i.isMicMuted }),
-      (i.isCameraMuted = !r),
       (ee.disabled = !r),
       z.customRagEnabled
         ? i.isMicMuted
@@ -3832,6 +3831,7 @@ function vr(i, e = "info") {
   (r.className = `notification ${e}`),
     (r.innerHTML = `
       <span>${i}</span>
+      <span class="close-btn">&times;</span>
   `),
     t.appendChild(r),
     setTimeout(() => r.classList.add("show"), 50),
@@ -3844,7 +3844,6 @@ function at(i) {
   i.classList.remove("show"), setTimeout(() => i.remove(), 400);
 }
 const mr = async (i, e = "") => {
-    console.log({ manager: i });
     try {
       let t = function (v) {
           if (v === y) return;
@@ -4024,8 +4023,8 @@ const mr = async (i, e = "") => {
                 query: i,
                 action: "askQuestion",
                 language: Ve(),
-                sessionID: e.conversationId,
                 nonce: Be,
+                sessionID: e.conversationId,
                 avatarID: n ? n.value : 0,
               }),
             })),

@@ -53,11 +53,23 @@ if ($previewThumbnail == '') {
                 echo arrayToCss('#endSession', $style, true);
             } else if ($key == 'mic-button') {
                 echo arrayToCss('#micToggler', $style, true);
+            } else if ($key == 'camera-button') {
+                echo arrayToCss('#cameraToggler', $style, true);
+            } else if ($key == 'switch-button') {
+                echo arrayToCss('#switchInteractionMode', $style, true);
+            } else if ($key == 'transcript-button') {
+                echo arrayToCss('.transcriptToggleButton', $style, true);
+            } else if ($key == 'fullscreen-button') {
+                echo arrayToCss('.action-fullscreen', $style, true);
+                echo arrayToCss('#fullscreen', $style, true);
+            } else if ($key == 'close-button') {
+                echo arrayToCss('#chatBox-close', $style, true);
+                if (isset($style['hover-background']) && $style['hover-background']) {
+                    echo '#chatBox-close:hover { background: ' . esc_attr($style['hover-background']) . ' !important; }' . "\n";
+                }
             }
         }
     }
-
-
     ?>
 
 

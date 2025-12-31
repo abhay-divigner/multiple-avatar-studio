@@ -43,7 +43,15 @@ function handle_avatar_studio_heygenToken()
     }
 
     // Get toast_messages from avatar
-    $toast_messages = isset($avatar->toast_messages) ? json_decode($avatar->toast_messages, true) : [];
+    $toast_messages = [];
+
+    if ( ! empty( $avatar->toast_messages ) ) {
+        $decoded = json_decode( $avatar->toast_messages, true );
+
+        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            $toast_messages = $decoded;
+        }
+    }
 
     // Get raw userInfo data from POST
     $user_info_raw = isset($_POST['userInfo']) ? wp_unslash($_POST['userInfo']) : '';
@@ -116,8 +124,16 @@ function handle_avatar_studio_heygenToken()
     
     curl_close($ch);
     
-    $data = json_decode($response, true);
-    
+    $data = [];
+
+    if ( ! empty( $response ) ) {
+        $decoded = json_decode( $response, true );
+
+        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            $data = $decoded;
+        }
+    }
+
     if ($http_code !== 200 || !isset($data['data']['token'])) {
         avatar_studio_log_error('HeyGen API returned error', [
             'http_code' => $http_code,
@@ -287,8 +303,24 @@ function handle_avatar_studio_tavusConversation()
     }
 
 
-    $opening_text = $avatar && $avatar->welcome_message ? json_decode($avatar->welcome_message, true) : [];
-    $toast_messages = isset($avatar->toast_messages) ? json_decode($avatar->toast_messages, true) : [];
+    $opening_text   = [];
+    $toast_messages = [];
+
+    if ( ! empty( $avatar ) && ! empty( $avatar->welcome_message ) ) {
+        $decoded = json_decode( $avatar->welcome_message, true );
+
+        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            $opening_text = $decoded;
+        }
+    }
+
+    if ( ! empty( $avatar ) && ! empty( $avatar->toast_messages ) ) {
+        $decoded = json_decode( $avatar->toast_messages, true );
+
+        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            $toast_messages = $decoded;
+        }
+    }
 
 
     $tavus_api_key = isset($avatar->api_key) ? $avatar->api_key : '';
@@ -297,7 +329,14 @@ function handle_avatar_studio_tavusConversation()
     $RAG_API_URL = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
     $deepgramKEY = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
     $livekit_enable = isset($avatar->livekit_enable) ? $avatar->livekit_enable : '';
-    $headers = isset($avatar->headers) ? json_decode($avatar->headers, true) : [];
+    $headers = [];
+    if ( ! empty( $avatar ) && ! empty( $avatar->headers ) ) {
+        $decoded = json_decode( $avatar->headers, true );
+
+        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            $headers = $decoded;
+        }
+    }
  
     if (empty($tavus_api_key) || empty($local_avatar_id) || empty($local_knowledge_id)) {
         wp_send_json_error(['message' => 'Avatar is not properly configured']);
@@ -456,7 +495,15 @@ function handle_avatar_studio_tavusConversation()
         }
 
         // Decode the response to add toast messages
-        $response_array = json_decode($response, true);
+        $response_array = [];
+
+        if ( ! empty( $response ) ) {
+            $decoded = json_decode( $response, true );
+
+            if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+                $response_array = $decoded;
+            }
+        }
 
         $response_array['toast_messages'] = $toast_messages;
 
@@ -505,18 +552,38 @@ function updateDeepgramToken($deepgramKEY, $RAG_API_URL) {
     curl_close($ch);
 
     // Handle non-200 status
-    if ($httpCode !== 200) {
-        error_log("Deepgram API error: HTTP $httpCode — $response");
+    if ( $httpCode !== 200 ) {
+        error_log( sprintf(
+            'Deepgram API error: HTTP %d — %s',
+            $httpCode,
+            $response
+        ) );
 
+        $resTest = [];
 
-        $resTest = json_decode($response, true);
+        if ( ! empty( $response ) ) {
+            $decoded = json_decode( $response, true );
+
+            if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+                $resTest = $decoded;
+            }
+        }
+
         return [
-            "error" => "Deepgram APIError: $resTest",
-            "status" => $httpCode
+            'error'  => 'Deepgram API Error',
+            'data'   => $resTest,
+            'status' => $httpCode,
         ];
     }
 
-    $data = json_decode($response, true);
+    $data = [];
+    if ( ! empty( $response ) ) {
+        $decoded = json_decode( $response, true );
+
+        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            $data = $decoded;
+        }
+    }
 
     if (empty($data['access_token'])) {
         error_log("No access_token in Deepgram response: " . $response);
@@ -598,26 +665,30 @@ function handle_ask_question() {
         }
         
         // Parse headers from JSON
-        $headers = ['Content-Type' => 'application/json'];
-        
-        if (isset($avatar->headers) && !empty($avatar->headers)) {
-            try {
-                $headers_array = json_decode($avatar->headers, true);
-                
-                if (!is_array($headers_array)) {
-                    throw new Exception('Invalid headers format');
-                }
-                
-                foreach ($headers_array as $header) {
-                    if (isset($header['key']) && isset($header['value']) && !empty($header['key'])) {
-                        $headers[$header['key']] = sanitize_text_field($header['value']);
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
+
+        if ( ! empty( $avatar ) && ! empty( $avatar->headers ) ) {
+            $headers_array = json_decode( $avatar->headers, true );
+
+            if ( json_last_error() === JSON_ERROR_NONE && is_array( $headers_array ) ) {
+                foreach ( $headers_array as $header ) {
+                    if (
+                        isset( $header['key'], $header['value'] ) &&
+                        ! empty( $header['key'] )
+                    ) {
+                        $key   = sanitize_key( $header['key'] );
+                        $value = sanitize_text_field( $header['value'] );
+
+                        $headers[ $key ] = $value;
                     }
                 }
-            } catch (Exception $e) {
-                throw new Exception('Failed to parse avatar headers: ' . $e->getMessage(), 500);
+            } else {
+                error_log( 'Failed to parse avatar headers JSON' );
             }
         }
-        
+                
         // Prepare request body
         $body = json_encode([
             'query' => $query,
@@ -653,21 +724,21 @@ function handle_ask_question() {
             );
         }
         
-        // Parse response
-        $response_body = wp_remote_retrieve_body($response);
-        
-        if (empty($response_body)) {
-            throw new Exception('Empty response from RAG API', 500);
-        }
-        
-        $response_data = json_decode($response_body, true);
-        
-        if ($response_data === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception(
-                'Failed to decode API response: ' . json_last_error_msg(),
-                500
-            );
-        }
+            // Parse response
+            $response_body = wp_remote_retrieve_body($response);
+            
+            if (empty($response_body)) {
+                throw new Exception('Empty response from RAG API', 500);
+            }
+            
+            $response_data = json_decode( wp_unslash( $response_body ), true );
+            
+            if ($response_data === null && json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception(
+                    'Failed to decode API response: ' . json_last_error_msg(),
+                    500
+                );
+            }
         
         // Send success response
         wp_send_json_success($response_data);
@@ -740,10 +811,31 @@ function get_avatar_studio_user_ip_agent_info()
     $response = wp_remote_get("http://ip-api.com/json/{$ip}?fields=country,regionName,city");
 
     if (!is_wp_error($response)) {
-        $data = json_decode(wp_remote_retrieve_body($response), true);
-        if (isset($data['country'], $data['regionName'], $data['city'])) {
-            $location = $data['city'] . ', ' . $data['regionName'] . ', ' . $data['country'];
+        // Retrieve and sanitize the response body
+        $response_body = wp_remote_retrieve_body($response);
+        $response_body = wp_strip_all_tags($response_body); // Remove HTML tags or scripts
+        $response_body = trim($response_body); // Remove extra whitespace
+
+        if (empty($response_body)) {
+            throw new Exception('Empty response from API', 500);
         }
+
+        // Decode JSON safely
+        $data = json_decode($response_body, true);
+
+        // Check for JSON errors
+        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Failed to decode API response: ' . json_last_error_msg(), 500);
+        }
+
+        // Sanitize each expected field before use
+        $country    = isset($data['country']) ? sanitize_text_field($data['country']) : '';
+        $regionName = isset($data['regionName']) ? sanitize_text_field($data['regionName']) : '';
+        $city       = isset($data['city']) ? sanitize_text_field($data['city']) : '';
+
+        // Build location string safely
+        $location_parts = array_filter([$city, $regionName, $country]); // Remove empty parts
+        $location = implode(', ', $location_parts);
     }
 
     return [
@@ -756,40 +848,45 @@ function get_avatar_studio_user_ip_agent_info()
 
 add_action('wp_ajax_send_pdf_email', 'handle_send_avatar_studio_pdf_email');
 add_action('wp_ajax_nopriv_send_pdf_email', 'handle_send_avatar_studio_pdf_email');
-function handle_send_avatar_studio_pdf_email()
-{
+function handle_send_avatar_studio_pdf_email() {
+    // Verify request origin
     if (!avatar_studio_is_same_origin_request()) {
-        wp_send_json_error('Unauthorized');
+        wp_send_json_error(['message' => 'Unauthorized']);
         wp_die();
     }
-    if (!isset($_POST['transcript_data'], $_POST['to_email'])) {
+
+    // Check required POST fields
+    if (empty($_POST['transcript_data']) || empty($_POST['to_email'])) {
         wp_send_json_error(['message' => 'Missing data']);
+        wp_die();
     }
 
-    $transcript_data = isset($_POST['transcript_data']) ? 
-    json_decode(stripslashes(sanitize_text_field($_POST['transcript_data'])), true) : 
-    array();
-
+    // Sanitize email
     $to_email = sanitize_email($_POST['to_email']);
-
-    if (!filter_var($to_email, FILTER_VALIDATE_EMAIL)) {
+    if (!is_email($to_email)) {
         wp_send_json_error(['message' => 'Invalid email address']);
+        wp_die();
     }
 
-    if (empty($transcript_data) || !is_array($transcript_data)) {
+    // Sanitize and decode transcript JSON
+    $raw_transcript = wp_strip_all_tags(stripslashes($_POST['transcript_data']));
+    $transcript_data = json_decode($raw_transcript, true);
+
+    if (!is_array($transcript_data) || empty($transcript_data)) {
         wp_send_json_error(['message' => 'Transcript data is invalid']);
+        wp_die();
     }
 
-    // Generate PDF using TCPDF or FPDF 
+    // Load TCPDF
     require_once plugin_dir_path(__FILE__) . 'lib/TCPDF/tcpdf.php';
     $pdf = new TCPDF();
     $pdf->AddPage();
     $pdf->SetFont('helvetica', '', 12);
 
     foreach ($transcript_data as $entry) {
-        $speaker = $entry['speaker'] ?? '';
-        $text = $entry['text'] ?? '';
-        $timestamp = $entry['timestamp'] ?? '';
+        $speaker   = isset($entry['speaker']) ? sanitize_text_field($entry['speaker']) : '';
+        $text      = isset($entry['text']) ? sanitize_textarea_field($entry['text']) : '';
+        $timestamp = isset($entry['timestamp']) ? sanitize_text_field($entry['timestamp']) : '';
 
         $pdf->SetFont('helvetica', 'B', 12);
         $pdf->Cell(0, 6, $speaker . ':', 0, 1);
@@ -799,38 +896,23 @@ function handle_send_avatar_studio_pdf_email()
         $pdf->Ln(2);
     }
 
+    // Save PDF
     $upload_dir = wp_upload_dir();
     $file_path = $upload_dir['path'] . '/transcript_' . time() . '.pdf';
     $pdf->Output($file_path, 'F');
 
-    // Send email
+    // Prepare email
     $subject = 'Your Transcript PDF';
     $body = 'Please find attached the transcript PDF.';
-    $headers = ['Content-Type: text/html; charset=UTF-8'];
+    $headers = [
+        'From: Heygen <' . get_option('admin_email') . '>',
+        'Reply-To: ' . get_option('admin_email'),
+        'Content-Type: text/html; charset=UTF-8'
+    ];
     $attachments = [$file_path];
 
-
-    // Use wp_mail to send the email
-    if (!function_exists('wp_mail')) {
-        require_once(ABSPATH . 'wp-includes/pluggable.php');
-    }
+    // Send email
     try {
-        $headers[] = 'From: Heygen < ' . get_option('admin_email') . '>';
-        $headers[] = 'Reply-To: ' . get_option('admin_email');
-        $headers[] = 'Content-Type: text/html; charset=UTF-8';
-        $headers[] = 'MIME-Version: 1.0';
-        $headers[] = 'Content-Disposition: attachment; filename="' . basename($file_path) . '"';
-        $headers[] = 'Content-Transfer-Encoding: base64';
-        $headers[] = 'X-Mailer: PHP/' . phpversion();
-        $headers[] = 'X-Content-Type-Options: nosniff';
-        $headers[] = 'X-Priority: 3'; // Normal priority
-        $headers[] = 'X-MSMail-Priority: Normal';
-        $headers[] = 'X-Mailer: PHP/' . phpversion();
-        $headers[] = 'X-Content-Type-Options: nosniff';
-        $headers[] = 'X-Priority: 3';
-        if (!function_exists('wp_mail')) {
-            require_once(ABSPATH . 'wp-includes/pluggable.php');
-        }
         $sent = wp_mail($to_email, $subject, $body, $headers, $attachments);
 
         // Delete the file after sending
@@ -842,8 +924,9 @@ function handle_send_avatar_studio_pdf_email()
             wp_send_json_error(['message' => 'Failed to send email.']);
         }
     } catch (Exception $e) {
-        wp_send_json_error(['message' => 'Failed to set email headers: ' . $e->getMessage()]);
+        wp_send_json_error(['message' => 'Error sending email: ' . $e->getMessage()]);
     }
+
     wp_die();
 }
 
@@ -855,42 +938,48 @@ function handle_send_avatar_studio_pdf_email()
 add_action('wp_ajax_nopriv_send_tavus_text_message', 'handle_send_tavus_text_message');
 add_action('wp_ajax_send_tavus_text_message', 'handle_send_tavus_text_message');
 
-function handle_send_tavus_text_message()
-{
+function handle_send_tavus_text_message() {
+    // Verify request origin
     if (!avatar_studio_is_same_origin_request()) {
-        wp_send_json_error('Unauthorized');
+        wp_send_json_error(['message' => 'Unauthorized']);
         wp_die();
     }
 
-    if (!isset($_POST['session_id']) || empty(trim($_POST['session_id']))) {
+    // Validate required POST fields
+    if (empty($_POST['session_id']) || empty(trim($_POST['session_id']))) {
         wp_send_json_error(['message' => 'Session ID is required']);
         wp_die();
     }
-    if (!isset($_POST['message']) || empty(trim($_POST['message']))) {
+
+    if (empty($_POST['message']) || empty(trim($_POST['message']))) {
         wp_send_json_error(['message' => 'Message is required']);
         wp_die();
     }
 
+    // Sanitize inputs
     $session_id = sanitize_text_field($_POST['session_id']);
     $message = sanitize_textarea_field($_POST['message']);
-    $tavus_api_key = esc_attr(get_option('tavus_api_key'));
 
+    // Get and validate Tavus API key
+    $tavus_api_key = esc_attr(get_option('tavus_api_key'));
     if (empty($tavus_api_key)) {
         wp_send_json_error(['message' => 'Tavus API key not configured']);
         wp_die();
     }
 
+    // Prepare request body
     $body = [
-        "message_type" => "conversation",
-        "event_type" => "conversation.respond",
-        "conversation_id" => $session_id,
-        "properties" => [
-            "text" => $message
+        'message_type' => 'conversation',
+        'event_type' => 'conversation.respond',
+        'conversation_id' => $session_id,
+        'properties' => [
+            'text' => $message
         ]
     ];
 
+    // Initialize cURL request
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "https://api.tavus.io/v2/interactions/events");
+    curl_setopt($ch, CURLOPT_URL, 'https://api.tavus.io/v2/interactions/events');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "x-api-key: $tavus_api_key",
@@ -899,32 +988,47 @@ function handle_send_tavus_text_message()
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, wp_json_encode($body));
 
+    // Execute cURL request
     $response = curl_exec($ch);
     if ($response === false) {
-        wp_send_json_error(['message' => curl_error($ch)]);
+        $error = curl_error($ch);
+        curl_close($ch);
+        wp_send_json_error(['message' => "cURL error: $error"]);
         wp_die();
     }
     curl_close($ch);
 
+    // Decode JSON response safely
     $data = json_decode($response, true);
-    if (isset($data['error'])) {
-        wp_send_json_error(['message' => $data['error']]);
-    } else {
-        wp_send_json_success(['message' => 'Message sent successfully', 'response' => $data]);
+    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+        wp_send_json_error(['message' => 'Failed to decode API response: ' . json_last_error_msg()]);
+        wp_die();
     }
+
+    // Handle API errors
+    if (!empty($data['error'])) {
+        wp_send_json_error(['message' => sanitize_text_field($data['error'])]);
+    } else {
+        wp_send_json_success([
+            'message' => 'Message sent successfully',
+            'response' => $data
+        ]);
+    }
+
     wp_die();
 }
+
 /**
  * Tavus End
  */
 
-add_action('wp_ajax_nopriv_get_avatar_studio_questionnaires', [$getavaterquestionnaireManager, 'getAvatarQuestionnaires']);
-add_action('wp_ajax_get_avatar_studio_questionnaires', [$getavaterquestionnaireManager, 'getAvatarQuestionnaires']);
-add_action('wp_ajax_nopriv_get_avatar_studio_questionnaire', [$getavaterquestionnaireManager, 'getAvatarQuestionnaire']);
-add_action('wp_ajax_get_avatar_studio_questionnaire', [$getavaterquestionnaireManager, 'getAvatarQuestionnaire']);
+// add_action('wp_ajax_nopriv_get_avatar_studio_questionnaires', [$getavaterquestionnaireManager, 'getAvatarQuestionnaires']);
+// add_action('wp_ajax_get_avatar_studio_questionnaires', [$getavaterquestionnaireManager, 'getAvatarQuestionnaires']);
+// add_action('wp_ajax_nopriv_get_avatar_studio_questionnaire', [$getavaterquestionnaireManager, 'getAvatarQuestionnaire']);
+// add_action('wp_ajax_get_avatar_studio_questionnaire', [$getavaterquestionnaireManager, 'getAvatarQuestionnaire']);
 
-add_action('wp_ajax_nopriv_post_user_answer', [$getavaterquestionnaireManager, 'postUserAnswer']);
-add_action('wp_ajax_post_user_answer', [$getavaterquestionnaireManager, 'postUserAnswer']);
+// add_action('wp_ajax_nopriv_post_user_answer', [$getavaterquestionnaireManager, 'postUserAnswer']);
+// add_action('wp_ajax_post_user_answer', [$getavaterquestionnaireManager, 'postUserAnswer']);
 
 
 
@@ -1047,125 +1151,127 @@ add_action('wp_ajax_nopriv_avatar_studio_export_submissions_csv', 'handle_avatar
 
 function handle_avatar_studio_export_submissions_csv() {
     // Verify nonce
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'export_submissions_csv_action')) {
+    if (empty($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'export_submissions_csv_action')) {
         wp_die('Security check failed');
     }
-    
+
     global $wpdb;
-    
-    // Get form_id from POST
+
+    // Get form_id from POST and sanitize
     $form_id = isset($_POST['form_id']) ? intval($_POST['form_id']) : 0;
-    
     if (!$form_id) {
         wp_die('Form ID is required.');
     }
-    
+
     // Get form details
     $form_table = $wpdb->prefix . 'avatar_forms';
     $submissions_table = $wpdb->prefix . 'avatar_form_submissions';
-    
-    $form = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM {$form_table} WHERE id = %d",
-        $form_id
-    ));
-    
+
+    $form = $wpdb->get_row(
+        $wpdb->prepare("SELECT * FROM {$form_table} WHERE id = %d", $form_id)
+    );
+
     if (!$form) {
         wp_die('Form not found.');
     }
-    
+
+    // Decode form JSON safely
     $form_data = json_decode($form->form_data, true);
+    if (!is_array($form_data)) {
+        wp_die('Invalid form data.');
+    }
+
     $fields = $form_data['fields'] ?? [];
-    
-    // Build query based on export type
-    if (isset($_POST['export_all']) && $_POST['export_all'] === '1') {
-        // Export all submissions for this form
-        $export_query = $wpdb->prepare(
-            "SELECT * FROM {$submissions_table} WHERE form_id = %d ORDER BY submitted_at DESC",
-            $form_id
+
+    // Build export query
+    $export_results = [];
+    $filename_suffix = 'form-' . $form_id;
+
+    if (!empty($_POST['export_all']) && $_POST['export_all'] === '1') {
+        $export_results = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM {$submissions_table} WHERE form_id = %d ORDER BY submitted_at DESC",
+                $form_id
+            )
         );
-        $export_results = $wpdb->get_results($export_query);
         $filename_suffix = 'all-submissions-form-' . $form_id;
-    } else {
-        // Export selected submissions
-        if (!empty($_POST['selected_submissions'])) {
-            $selected_submissions = array_map('intval', $_POST['selected_submissions']);
+    } elseif (!empty($_POST['selected_submissions']) && is_array($_POST['selected_submissions'])) {
+        $selected_submissions = array_map('intval', $_POST['selected_submissions']);
+        if (!empty($selected_submissions)) {
             $placeholders = implode(',', array_fill(0, count($selected_submissions), '%d'));
-            
-            $export_query = $wpdb->prepare(
-                "SELECT * FROM {$submissions_table} WHERE form_id = %d AND id IN ($placeholders) ORDER BY submitted_at DESC",
-                array_merge([$form_id], $selected_submissions)
+            $query_args = array_merge([$form_id], $selected_submissions);
+            $export_results = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT * FROM {$submissions_table} WHERE form_id = %d AND id IN ($placeholders) ORDER BY submitted_at DESC",
+                    $query_args
+                )
             );
-            $export_results = $wpdb->get_results($export_query);
             $filename_suffix = 'selected-submissions-form-' . $form_id;
         } else {
             wp_die('No submissions selected for export.');
         }
+    } else {
+        wp_die('Invalid export request.');
     }
-    
-    // Clear any previous output
+
+    // Clear previous output
     if (ob_get_level()) {
         ob_end_clean();
     }
-    
-    // Set headers for CSV download
+
+    // Set CSV headers
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=form-submissions-' . $filename_suffix . '-' . date('Y-m-d-H-i-s') . '.csv');
     header('Pragma: no-cache');
     header('Expires: 0');
-    
-    // Create output stream
+
     $output = fopen('php://output', 'w');
-    
+
     // Add BOM for UTF-8
     fputs($output, "\xEF\xBB\xBF");
-    
-    // Prepare CSV headers
-    $headers = [
-        'Submission ID',
-        'Session ID', 
-        'Avatar Studio ID'
-    ];
-    
-    // Add form fields as headers
+
+    // CSV headers
+    $csv_headers = ['Submission ID', 'Session ID', 'Avatar Studio ID'];
     foreach ($fields as $field) {
-        $headers[] = $field['label'];
+        $csv_headers[] = sanitize_text_field($field['label']);
     }
-    
-    $headers[] = 'Submitted At';
-    
-    // Write headers
-    fputcsv($output, $headers);
-    
-    // Add data rows
+    $csv_headers[] = 'Submitted At';
+
+    fputcsv($output, $csv_headers);
+
+    // Write rows
     foreach ($export_results as $row) {
         $data = json_decode($row->submission_data, true);
-        
+        if (!is_array($data)) {
+            $data = [];
+        }
+
         $row_data = [
-            'FS' . $row->id,
-            $row->session_id,
-            $row->avatar_studio_id ? 'AS' . $row->avatar_studio_id : 'N/A'
+            'FS' . intval($row->id),
+            sanitize_text_field($row->session_id),
+            $row->avatar_studio_id ? 'AS' . intval($row->avatar_studio_id) : 'N/A'
         ];
-        
-        // Add form field values
+
         foreach ($fields as $field) {
-            $field_value = isset($data[$field['label']]) ? $data[$field['label']] : '';
+            $field_value = $data[$field['label']] ?? '';
             if (is_array($field_value)) {
-                $field_value = implode(', ', $field_value);
+                $field_value = implode(', ', array_map('sanitize_text_field', $field_value));
+            } else {
+                $field_value = sanitize_text_field($field_value);
             }
             $row_data[] = $field_value;
         }
-        
-        // Format date
+
         $submitted_date = DateTime::createFromFormat('Y-m-d H:i:s', $row->submitted_at);
-        $formatted_date = $submitted_date ? $submitted_date->format('m-d-Y H:i:s') : $row->submitted_at;
-        $row_data[] = $formatted_date;
-        
+        $row_data[] = $submitted_date ? $submitted_date->format('m-d-Y H:i:s') : sanitize_text_field($row->submitted_at);
+
         fputcsv($output, $row_data);
     }
-    
+
     fclose($output);
-    wp_die(); // Important for AJAX
+    wp_die();
 }
+
 
 // In your save_avatar or update_avatar function, add:
 function save_avatar_callback() {
