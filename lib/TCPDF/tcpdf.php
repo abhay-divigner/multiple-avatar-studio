@@ -1,4 +1,9 @@
 <?php
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 //============================================================+
 // File name   : tcpdf.php
 // Version     : 6.10.0
@@ -1892,7 +1897,7 @@ class TCPDF {
 	 */
 	public function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false) {
 		// set file ID for trailer
-		$serformat = (is_array($format) ? json_encode($format) : $format);
+		$serformat = (is_array($format) ? wp_json_encode($format) : $format);
 		$this->file_id = md5(TCPDF_STATIC::getRandomSeed('TCPDF'.$orientation.$unit.$serformat.$encoding));
 		$this->hash_key = hash_hmac('sha256', TCPDF_STATIC::getRandomSeed($this->file_id), TCPDF_STATIC::getRandomSeed('TCPDF'), false);
 		$this->font_obj_ids = array();
@@ -13713,18 +13718,19 @@ class TCPDF {
 	 */
 	public function setTimeStamp($tsa_host='', $tsa_username='', $tsa_password='', $tsa_cert='') {
 		$this->tsa_data = array();
-		if (!function_exists('curl_init')) {
-			$this->Error('Please enable cURL PHP extension!');
-		}
+		
 		if (strlen($tsa_host) == 0) {
 			$this->Error('Please specify the host of Time Stamping Authority (TSA)!');
 		}
+		
 		$this->tsa_data['tsa_host'] = $tsa_host;
+		
 		if (is_file($tsa_username)) {
 			$this->tsa_data['tsa_auth'] = $tsa_username;
 		} else {
 			$this->tsa_data['tsa_username'] = $tsa_username;
 		}
+		
 		$this->tsa_data['tsa_password'] = $tsa_password;
 		$this->tsa_data['tsa_cert'] = $tsa_cert;
 		$this->tsa_timestamp = true;
@@ -16547,7 +16553,7 @@ class TCPDF {
 			}
 		}
 		// create a special tag to contain the CSS array (used for table content)
-		$csstagarray = '<cssarray>'.htmlentities(json_encode($css)).'</cssarray>';
+		$csstagarray = '<cssarray>'.htmlentities(wp_json_encode($css)).'</cssarray>';
 		// remove head and style blocks
 		$html = preg_replace('/<head([^\>]*?)>(.*?)<\/head>/is', '', $html);
 		$html = preg_replace('/<style([^\>]*?)>([^\<]*?)<\/style>/is', '', $html);
@@ -17299,7 +17305,7 @@ class TCPDF {
 	 */
 	public function serializeTCPDFtag($method, $params=array()) {
 		$data = array('m' => $method, 'p' => $params);
-		$encoded = urlencode(json_encode($data));
+		$encoded = urlencode(wp_json_encode($data));
 		$hash = $this->hashTCPDFtag($encoded);
 		return strlen($hash).'+'.$hash.'+'.$encoded;
 	}

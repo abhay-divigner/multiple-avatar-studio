@@ -1,4 +1,9 @@
 <?php
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 if (!function_exists('wp_mail')) {
     require_once(ABSPATH . 'wp-includes/pluggable.php');
 }
@@ -6,7 +11,6 @@ if (!function_exists('wp_mail')) {
 
 add_action('wp_ajax_nopriv_avatar_studio_heygenToken', 'handle_avatar_studio_heygenToken');
 add_action('wp_ajax_avatar_studio_heygenToken', 'handle_avatar_studio_heygenToken');
-
 
 function handle_avatar_studio_heygenToken()
 {
@@ -97,37 +101,33 @@ function handle_avatar_studio_heygenToken()
     // Get current time
     $current_time = current_time('mysql');
 
-    $ch = curl_init();
-
-    curl_setopt($ch, CURLOPT_URL, "https://api.heygen.com/v1/streaming.create_token");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "x-api-key: $heygen_api_key"
+    // Replace CURL with WordPress HTTP API
+    $response = wp_remote_post('https://api.heygen.com/v1/streaming.create_token', [
+        'headers' => [
+            'x-api-key' => $heygen_api_key
+        ],
+        'timeout' => 30,
     ]);
-    curl_setopt($ch, CURLOPT_POST, true);
 
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-    if ($response === false) {
-        $error = curl_error($ch);
-        curl_close($ch);
+    if (is_wp_error($response)) {
+        $error_message = $response->get_error_message();
         
         avatar_studio_log_error('HeyGen token creation failed', [
-            'error' => $error,
+            'error' => $error_message,
             'function' => __FUNCTION__
         ]);
         
-        wp_send_json_error($error);
+        wp_send_json_error($error_message);
         wp_die();
     }
     
-    curl_close($ch);
+    $http_code = wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
     
     $data = [];
 
-    if ( ! empty( $response ) ) {
-        $decoded = json_decode( $response, true );
+    if ( ! empty( $body ) ) {
+        $decoded = json_decode( $body, true );
 
         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
             $data = $decoded;
@@ -280,6 +280,7 @@ function handle_avatar_studio_heygenToken()
 
 
 add_action('wp_ajax_nopriv_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
+
 add_action('wp_ajax_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
 
 function handle_avatar_studio_tavusConversation()
@@ -405,7 +406,7 @@ function handle_avatar_studio_tavusConversation()
     if ($opening_text && $language_short && isset($opening_text[$language_short])) {
         $data['custom_greeting'] = $opening_text[$language_short];
     }
-    $payload = json_encode($data);
+    $payload = wp_json_encode($data);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
 
     $response = curl_exec($ch);
@@ -424,7 +425,7 @@ function handle_avatar_studio_tavusConversation()
             $decoded = json_decode($response, true);
             $decoded['deepgram_token'] = $res['token'];
 
-            $response = json_encode($decoded);
+            $response = wp_json_encode($decoded);
         }
     }
 
@@ -512,7 +513,7 @@ function handle_avatar_studio_tavusConversation()
         }
 
         // Encode back to JSON
-        $response = json_encode($response_array);
+        $response = wp_json_encode($response_array);
 
         echo $response;
     }
@@ -521,12 +522,505 @@ function handle_avatar_studio_tavusConversation()
     wp_die();
 }
 
+// add_action('wp_ajax_nopriv_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
+// add_action('wp_ajax_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
+
+// function handle_avatar_studio_tavusConversation()
+// {
+//     if (!avatar_studio_is_same_origin_request()) {
+//         wp_send_json_error('Unauthorized');
+//         wp_die();
+//     }
+//     $pageId = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
+//     $avatar_studio_id = isset($_POST['avatar_studio_id']) ? intval($_POST['avatar_studio_id']) : 0;
+//     global $wpdb;
+//     if ($avatar_studio_id) {
+//         $avatar = $wpdb->get_row($wpdb->prepare(" SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d ", $avatar_studio_id));
+//     } else {
+//         $avatar = $wpdb->get_row($wpdb->prepare(" SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE JSON_CONTAINS(pages, '\"%d\"')   ", $pageId));
+//     }
+
+//     if (!$avatar) {
+//         wp_send_json_error(['message' => 'No avatar configured for this page']);
+//         wp_die();
+//     }
+
+
+//     $opening_text   = [];
+//     $toast_messages = [];
+
+//     if ( ! empty( $avatar ) && ! empty( $avatar->welcome_message ) ) {
+//         $decoded = json_decode( $avatar->welcome_message, true );
+
+//         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+//             $opening_text = $decoded;
+//         }
+//     }
+
+//     if ( ! empty( $avatar ) && ! empty( $avatar->toast_messages ) ) {
+//         $decoded = json_decode( $avatar->toast_messages, true );
+
+//         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+//             $toast_messages = $decoded;
+//         }
+//     }
+
+
+//     $tavus_api_key = isset($avatar->api_key) ? $avatar->api_key : '';
+//     $local_avatar_id = isset($avatar->avatar_id) ? $avatar->avatar_id : '';
+//     $local_knowledge_id = isset($avatar->knowledge_id) ? $avatar->knowledge_id : '';
+//     $RAG_API_URL = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
+//     $deepgramKEY = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
+//     $livekit_enable = isset($avatar->livekit_enable) ? $avatar->livekit_enable : '';
+//     $headers = [];
+//     if ( ! empty( $avatar ) && ! empty( $avatar->headers ) ) {
+//         $decoded = json_decode( $avatar->headers, true );
+
+//         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+//             $headers = $decoded;
+//         }
+//     }
+ 
+//     if (empty($tavus_api_key) || empty($local_avatar_id) || empty($local_knowledge_id)) {
+//         wp_send_json_error(['message' => 'Avatar is not properly configured']);
+//         wp_die();
+//     }
+
+//     // Get language from AJAX request (fallback: 'en')
+//     $language = isset($_POST['language']) ? sanitize_text_field($_POST['language']) : 'english';
+//     $language_short = getLanguageShortName($language);
+
+//     // Get raw userInfo data from POST
+//     $user_info_raw = isset($_POST['userInfo']) ? wp_unslash($_POST['userInfo']) : '';
+
+//     // Initialize an empty array
+//     $user_info = [];
+
+//     // Check if it's a non-empty string and looks like JSON
+//     if (!empty($user_info_raw)) {
+//         if (is_string($user_info_raw)) {
+//             $decoded = json_decode($user_info_raw, true);
+//             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+//                 $user_info = $decoded;
+//             }
+//         } elseif (is_array($user_info_raw)) {
+//             $user_info = $user_info_raw;
+//         }
+//     }
+
+//     // Extract and sanitize values
+//     $country_code = isset($user_info['countryCode']) && $user_info['countryCode'] !== null
+//         ? sanitize_text_field($user_info['countryCode'])
+//         : '';
+
+//     $email = isset($user_info['email']) && $user_info['email'] !== null
+//         ? sanitize_email($user_info['email'])
+//         : '';
+
+//     $mobile = isset($user_info['mobile']) && $user_info['mobile'] !== null
+//         ? sanitize_text_field($user_info['mobile'])
+//         : '';
+
+//     $full_name = isset($user_info['fullName']) && $user_info['fullName'] !== null
+//         ? sanitize_text_field($user_info['fullName'])
+//         : '';
+//     // Get current time
+//     $current_time = current_time('mysql');
+
+//     // Prepare request data
+//     $data = [
+//         "replica_id" => $local_avatar_id,
+//         "persona_id" => $local_knowledge_id,
+//         "conversation_name" => "Interactive Avatar Session",
+//         "properties" => [
+//             "language" => $language,
+//         ],
+//     ];
+    
+//     if ($opening_text && $language_short && isset($opening_text[$language_short])) {
+//         $data['custom_greeting'] = $opening_text[$language_short];
+//     }
+
+//     // Make HTTP request using WordPress HTTP API
+//     $response = wp_remote_post('https://tavusapi.com/v2/conversations', [
+//         'headers' => [
+//             "x-api-key" => $tavus_api_key,
+//             "Content-Type" => "application/json"
+//         ],
+//         'body' => wp_json_encode($data),
+//         'timeout' => 30,
+//         'sslverify' => true
+//     ]);
+
+//     // Handle HTTP request errors
+//     if (is_wp_error($response)) {
+//         echo wp_json_encode([
+//             "error" => $response->get_error_message()
+//         ]);
+//         wp_die();
+//     }
+
+//     $response_body = wp_remote_retrieve_body($response);
+//     $response_code = wp_remote_retrieve_response_code($response);
+
+//     // Check for HTTP errors but don't send JSON error - echo the response exactly as Tavus returns it
+//     if ($response_code !== 200) {
+//         echo $response_body; // Echo the error response directly
+//         wp_die();
+//     }
+
+//     // Store the raw response for later use
+//     $raw_response = $response_body;
+
+//     // Process Deepgram token if needed
+//     if ($RAG_API_URL !== '' && $deepgramKEY !== '' && $livekit_enable == 1) {
+//         $res = updateDeepgramToken($deepgramKEY, $RAG_API_URL);
+//         if ($res['status'] != 200) {
+//             echo wp_json_encode([
+//                 "error" => $res['error'],
+//                 "status" => $res['status']
+//             ]);
+//             wp_die(); 
+//         } else {
+//             // Add token into existing response
+//             $decoded = json_decode($raw_response, true);
+//             $decoded['deepgram_token'] = $res['token'];
+
+//             $raw_response = wp_json_encode($decoded);
+//         }
+//     }
+
+//     // Decode response to extract conversation_id
+//     $response_data = json_decode($raw_response, true);
+//     $conversation_id = isset($response_data['conversation_id']) ? sanitize_text_field($response_data['conversation_id']) : '';
+
+//     // Check if we have user info and store to WordPress database
+//     if (!empty($country_code) || !empty($email) || !empty($mobile) || !empty($full_name)) {
+//         global $wpdb;
+
+//         $user_info_data = [
+//             'country_code'   => $country_code,
+//             'email'          => $email,
+//             'mobile'         => $mobile,
+//             'full_name'      => $full_name,
+//             'conversation_id' => $conversation_id,
+//             'created_at'     => $current_time,
+//         ];
+
+//         $wpdb->insert(
+//             $wpdb->prefix . 'avatar_studio_user_info',
+//             $user_info_data,
+//             ['%s', '%s', '%s', '%s', '%s', '%s']
+//         );
+
+//         if ($wpdb->last_error) {
+//             error_log('Avatar Studio User Info Insert Error: ' . $wpdb->last_error);
+//         }
+//     }
+
+//     // Store session information
+//     if (!empty($conversation_id)) {
+//         global $wpdb;
+
+//         $table_name = $wpdb->prefix . 'avatar_studio_sessions';
+//         $current_time = current_time('mysql');
+
+//         // Prepare data only for columns that exist in schema
+//         $session_data = [
+//             'session_id'  => !empty($conversation_id) ? sanitize_text_field($conversation_id) : '',
+//             'avatar_id'   => !empty($avatar->id) ? sanitize_text_field($avatar->id) : '',
+//             'user_id'     => get_current_user_id() ?: 0,
+//             'status'      => 'active',
+//             'created_at'  => $current_time,
+//         ];
+
+//         // Remove any empty values to prevent invalid insertions
+//         $session_data = array_filter($session_data, function($value) {
+//             return $value !== null && $value !== '';
+//         });
+
+//         $wpdb->insert(
+//             $table_name,
+//             $session_data,
+//             ['%s', '%s', '%d', '%s', '%s']
+//         );
+
+//         if ($wpdb->last_error) {
+//             error_log('Avatar Studio Session Insert Error: ' . $wpdb->last_error);
+//         }
+//     }
+
+//     // Decode the response to add toast messages
+//     $response_array = [];
+
+//     if ( ! empty( $raw_response ) ) {
+//         $decoded = json_decode( $raw_response, true );
+
+//         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+//             $response_array = $decoded;
+//         }
+//     }
+
+//     $response_array['toast_messages'] = $toast_messages;
+
+//     if (!empty($toast_messages)) {
+//         error_log('Tavus - Adding toast messages to response: ' . count($toast_messages) . ' messages');
+//     }
+
+//     // Encode back to JSON and echo directly (matching the original curl version)
+//     $response = wp_json_encode($response_array);
+
+//     echo $response;
+//     wp_die();
+// }
+
+// add_action('wp_ajax_nopriv_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
+// add_action('wp_ajax_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
+
+// function handle_avatar_studio_tavusConversation()
+// {
+//     if (!avatar_studio_is_same_origin_request()) {
+//         wp_send_json_error('Unauthorized');
+//         wp_die();
+//     }
+    
+//     $pageId = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
+//     $avatar_studio_id = isset($_POST['avatar_studio_id']) ? intval($_POST['avatar_studio_id']) : 0;
+//     global $wpdb;
+    
+//     if ($avatar_studio_id) {
+//         $avatar = $wpdb->get_row($wpdb->prepare(" SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d ", $avatar_studio_id));
+//     } else {
+//         $avatar = $wpdb->get_row($wpdb->prepare(" SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE JSON_CONTAINS(pages, '\"%d\"')   ", $pageId));
+//     }
+
+//     if (!$avatar) {
+//         wp_send_json_error(['message' => 'No avatar configured for this page']);
+//         wp_die();
+//     }
+
+//     $opening_text   = [];
+//     $toast_messages = [];
+
+//     if ( ! empty( $avatar ) && ! empty( $avatar->welcome_message ) ) {
+//         $decoded = json_decode( $avatar->welcome_message, true );
+
+//         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+//             $opening_text = $decoded;
+//         }
+//     }
+
+//     if ( ! empty( $avatar ) && ! empty( $avatar->toast_messages ) ) {
+//         $decoded = json_decode( $avatar->toast_messages, true );
+
+//         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+//             $toast_messages = $decoded;
+//         }
+//     }
+
+//     $tavus_api_key = isset($avatar->api_key) ? $avatar->api_key : '';
+//     $local_avatar_id = isset($avatar->avatar_id) ? $avatar->avatar_id : '';
+//     $local_knowledge_id = isset($avatar->knowledge_id) ? $avatar->knowledge_id : '';
+//     $RAG_API_URL = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
+//     $deepgramKEY = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
+//     $livekit_enable = isset($avatar->livekit_enable) ? $avatar->livekit_enable : '';
+//     $headers = [];
+    
+//     if ( ! empty( $avatar ) && ! empty( $avatar->headers ) ) {
+//         $decoded = json_decode( $avatar->headers, true );
+
+//         if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+//             $headers = $decoded;
+//         }
+//     }
+ 
+//     if (empty($tavus_api_key) || empty($local_avatar_id) || empty($local_knowledge_id)) {
+//         wp_send_json_error(['message' => 'Avatar is not properly configured']);
+//         wp_die();
+//     }
+
+//     // Get language from AJAX request (fallback: 'en')
+//     $language = isset($_POST['language']) ? sanitize_text_field($_POST['language']) : 'english';
+//     $language_short = getLanguageShortName($language);
+
+//     // Get raw userInfo data from POST
+//     $user_info_raw = isset($_POST['userInfo']) ? wp_unslash($_POST['userInfo']) : '';
+
+//     // Initialize an empty array
+//     $user_info = [];
+
+//     // Check if it's a non-empty string and looks like JSON
+//     if (!empty($user_info_raw)) {
+//         if (is_string($user_info_raw)) {
+//             $decoded = json_decode($user_info_raw, true);
+//             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+//                 $user_info = $decoded;
+//             }
+//         } elseif (is_array($user_info_raw)) {
+//             $user_info = $user_info_raw;
+//         }
+//     }
+
+//     // Extract and sanitize values
+//     $country_code = isset($user_info['countryCode']) && $user_info['countryCode'] !== null
+//         ? sanitize_text_field($user_info['countryCode'])
+//         : '';
+
+//     $email = isset($user_info['email']) && $user_info['email'] !== null
+//         ? sanitize_email($user_info['email'])
+//         : '';
+
+//     $mobile = isset($user_info['mobile']) && $user_info['mobile'] !== null
+//         ? sanitize_text_field($user_info['mobile'])
+//         : '';
+
+//     $full_name = isset($user_info['fullName']) && $user_info['fullName'] !== null
+//         ? sanitize_text_field($user_info['fullName'])
+//         : '';
+    
+//     // Get current time
+//     $current_time = current_time('mysql');
+
+//     // Prepare the request data
+//     $data = [
+//         "replica_id" => $local_avatar_id,
+//         "persona_id" => $local_knowledge_id,
+//         "conversation_name" => "Interactive Avatar Session",
+//         "properties" => [
+//             "language" => $language,
+//         ],
+//     ];
+    
+//     if ($opening_text && $language_short && isset($opening_text[$language_short])) {
+//         $data['custom_greeting'] = $opening_text[$language_short];
+//     }
+
+//     // Prepare headers
+//     $request_headers = [
+//         "x-api-key" => $tavus_api_key,
+//         "Content-Type" => "application/json"
+//     ];
+
+//     // Add custom headers from avatar configuration
+//     if (!empty($headers) && is_array($headers)) {
+//         foreach ($headers as $key => $value) {
+//             $request_headers[$key] = $value;
+//         }
+//     }
+
+//     // Replace CURL with WordPress HTTP API
+//     $response = wp_remote_post('https://tavusapi.com/v2/conversations', [
+//         'headers' => $request_headers,
+//         'body' => wp_json_encode($data),
+//         'timeout' => 30,
+//     ]);
+
+//     if (is_wp_error($response)) {
+//         wp_send_json_error([
+//             "error" => $response->get_error_message()
+//         ]);
+//         wp_die();
+//     }
+
+//     $http_code = wp_remote_retrieve_response_code($response);
+//     $response_body = wp_remote_retrieve_body($response);
+
+//     // Initialize response array
+//     $response_data = [];
+
+//     if (!empty($response_body)) {
+//         $decoded = json_decode($response_body, true);
+//         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+//             $response_data = $decoded;
+//         }
+//     }
+
+//     $conversation_id = isset($response_data['conversation_id']) ? sanitize_text_field($response_data['conversation_id']) : '';
+
+//     // Handle Deepgram token if needed
+//     if ($RAG_API_URL !== '' && $deepgramKEY !== '' && $livekit_enable == 1) {
+//         $res = updateDeepgramToken($deepgramKEY, $RAG_API_URL);
+//         if ($res['status'] != 200) {
+//             wp_send_json_error([
+//                 "error" => $res['error'],
+//                 "status" => $res['status']
+//             ]);
+//             wp_die();
+//         } else {
+//             // Add token to response data
+//             $response_data['deepgram_token'] = $res['token'];
+//         }
+//     }
+
+//     // Check if we have user info and store to WordPress database
+//     if (!empty($country_code) || !empty($email) || !empty($mobile) || !empty($full_name)) {
+//         $user_info_data = [
+//             'country_code'   => $country_code,
+//             'email'          => $email,
+//             'mobile'         => $mobile,
+//             'full_name'      => $full_name,
+//             'conversation_id' => $conversation_id,
+//             'created_at'     => $current_time,
+//         ];
+
+//         $wpdb->insert(
+//             $wpdb->prefix . 'avatar_studio_user_info',
+//             $user_info_data,
+//             ['%s', '%s', '%s', '%s', '%s', '%s']
+//         );
+
+//         if ($wpdb->last_error) {
+//             error_log('Avatar Studio User Info Insert Error: ' . $wpdb->last_error);
+//         }
+//     }
+
+//     // Store session information
+//     if (!empty($conversation_id)) {
+//         $table_name = $wpdb->prefix . 'avatar_studio_sessions';
+
+//         // Prepare data only for columns that exist in schema
+//         $session_data = [
+//             'session_id'  => !empty($conversation_id) ? sanitize_text_field($conversation_id) : '',
+//             'avatar_id'   => !empty($avatar->id) ? sanitize_text_field($avatar->id) : '',
+//             'user_id'     => get_current_user_id() ?: 0,
+//             'status'      => 'active',
+//             'created_at'  => $current_time,
+//         ];
+
+//         // Remove any empty values to prevent invalid insertions
+//         $session_data = array_filter($session_data, function($value) {
+//             return $value !== null && $value !== '';
+//         });
+
+//         $wpdb->insert(
+//             $table_name,
+//             $session_data,
+//             ['%s', '%s', '%d', '%s', '%s']
+//         );
+
+//         if ($wpdb->last_error) {
+//             error_log('Avatar Studio Session Insert Error: ' . $wpdb->last_error);
+//         }
+//     }
+
+//     // Add toast messages to response
+//     $response_data['toast_messages'] = $toast_messages;
+
+//     if (!empty($toast_messages)) {
+//         error_log('Tavus - Adding toast messages to response: ' . count($toast_messages) . ' messages');
+//     }
+
+//     // Send the final response
+//     wp_send_json_success($response_data);
+//     wp_die();
+// }
+
 
 
 function updateDeepgramToken($deepgramKEY, $RAG_API_URL) {
     global $deepgramToken;
 
-    // Validate input before making cURL call
+    // Validate input before making API call
     if (empty($RAG_API_URL) || empty($deepgramKEY)) {
         return [
             "error" => "Missing API URL or API Key",
@@ -534,37 +1028,42 @@ function updateDeepgramToken($deepgramKEY, $RAG_API_URL) {
         ];
     }
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "https://api.deepgram.com/v1/auth/grant");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Token " . $deepgramKEY,
-        "Content-Type: application/json"
+    // Replace CURL with WordPress HTTP API
+    $response = wp_remote_post('https://api.deepgram.com/v1/auth/grant', [
+        'headers' => [
+            "Authorization" => "Token " . $deepgramKEY,
+            "Content-Type" => "application/json"
+        ],
+        'timeout' => 30,
     ]);
 
-    // If you need to send a body (check Deepgram docs):
-    // $data = json_encode(['scopes' => ['usage:write']]);
-    // curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    // Check for WordPress HTTP error
+    if (is_wp_error($response)) {
+        error_log('Deepgram API WordPress error: ' . $response->get_error_message());
+        
+        return [
+            'error'  => 'WordPress HTTP Error: ' . $response->get_error_message(),
+            'status' => 500,
+        ];
+    }
 
-    $response = curl_exec($ch);  // Actually execute the request
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    $httpCode = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
 
     // Handle non-200 status
-    if ( $httpCode !== 200 ) {
-        error_log( sprintf(
+    if ($httpCode !== 200) {
+        error_log(sprintf(
             'Deepgram API error: HTTP %d — %s',
             $httpCode,
-            $response
-        ) );
+            $response_body
+        ));
 
         $resTest = [];
 
-        if ( ! empty( $response ) ) {
-            $decoded = json_decode( $response, true );
+        if (!empty($response_body)) {
+            $decoded = json_decode($response_body, true);
 
-            if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 $resTest = $decoded;
             }
         }
@@ -577,16 +1076,16 @@ function updateDeepgramToken($deepgramKEY, $RAG_API_URL) {
     }
 
     $data = [];
-    if ( ! empty( $response ) ) {
-        $decoded = json_decode( $response, true );
+    if (!empty($response_body)) {
+        $decoded = json_decode($response_body, true);
 
-        if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
             $data = $decoded;
         }
     }
 
     if (empty($data['access_token'])) {
-        error_log("No access_token in Deepgram response: " . $response);
+        error_log("No access_token in Deepgram response: " . $response_body);
 
         return [
             "error" => "No access_token in response",
@@ -690,7 +1189,7 @@ function handle_ask_question() {
         }
                 
         // Prepare request body
-        $body = json_encode([
+        $body = wp_json_encode([
             'query' => $query,
             'lng' => $language,
             'sessionId' => $sessionID
@@ -977,43 +1476,54 @@ function handle_send_tavus_text_message() {
         ]
     ];
 
-    // Initialize cURL request
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://api.tavus.io/v2/interactions/events');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "x-api-key: $tavus_api_key",
-        "Content-Type: application/json"
+    // Replace cURL with WordPress HTTP API
+    $response = wp_remote_post('https://api.tavus.io/v2/interactions/events', [
+        'headers' => [
+            'x-api-key' => $tavus_api_key,
+            'Content-Type' => 'application/json'
+        ],
+        'body' => wp_json_encode($body),
+        'timeout' => 30,
+        'redirection' => 5,
+        'sslverify' => false, // Consider true for production
     ]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, wp_json_encode($body));
 
-    // Execute cURL request
-    $response = curl_exec($ch);
-    if ($response === false) {
-        $error = curl_error($ch);
-        curl_close($ch);
-        wp_send_json_error(['message' => "cURL error: $error"]);
+    // Handle WordPress HTTP errors
+    if (is_wp_error($response)) {
+        wp_send_json_error(['message' => 'HTTP request failed: ' . $response->get_error_message()]);
         wp_die();
     }
-    curl_close($ch);
+
+    // Get response data
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
 
     // Decode JSON response safely
-    $data = json_decode($response, true);
+    $data = json_decode($response_body, true);
     if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
         wp_send_json_error(['message' => 'Failed to decode API response: ' . json_last_error_msg()]);
         wp_die();
     }
 
-    // Handle API errors
+    // Check for HTTP errors
+    if ($response_code < 200 || $response_code >= 300) {
+        $error_message = isset($data['error']) ? sanitize_text_field($data['error']) : "API returned HTTP {$response_code}";
+        wp_send_json_error(['message' => $error_message]);
+        wp_die();
+    }
+
+    // Handle API errors in response body
     if (!empty($data['error'])) {
         wp_send_json_error(['message' => sanitize_text_field($data['error'])]);
-    } else {
-        wp_send_json_success([
-            'message' => 'Message sent successfully',
-            'response' => $data
-        ]);
+        wp_die();
     }
+
+    // Success response
+    wp_send_json_success([
+        'message' => 'Message sent successfully',
+        'response' => $data,
+        'http_code' => $response_code
+    ]);
 
     wp_die();
 }
@@ -1066,20 +1576,24 @@ function handle_avatar_studio_export_csv() {
     
     // Build query based on export type
     if (isset($_POST['export_all']) && $_POST['export_all'] === '1') {
-        // Export all users
-        $export_query = "SELECT * FROM {$table_name} ORDER BY created_at DESC";
+        // Export all users - Use wpdb->prepare with safe SQL
+        $export_query = $wpdb->prepare("SELECT * FROM %i ORDER BY created_at DESC", $table_name);
         $export_results = $wpdb->get_results($export_query);
         $filename_suffix = 'all-users';
     } else {
         // Export selected users
         if (!empty($_POST['selected_users'])) {
             $selected_users = array_map('intval', $_POST['selected_users']);
+            
+            // Create placeholders for the IN clause
             $placeholders = implode(',', array_fill(0, count($selected_users), '%d'));
             
+            // Prepare the query properly
             $export_query = $wpdb->prepare(
-                "SELECT * FROM {$table_name} WHERE id IN ($placeholders) ORDER BY created_at DESC",
-                $selected_users
+                "SELECT * FROM %i WHERE id IN ($placeholders) ORDER BY created_at DESC",
+                array_merge([$table_name], $selected_users)
             );
+            
             $export_results = $wpdb->get_results($export_query);
             $filename_suffix = 'selected-users';
         } else {
@@ -1110,7 +1624,6 @@ function handle_avatar_studio_export_csv() {
         'Full Name', 
         'Email Address',
         'Phone Number',
-        // 'Country Code',
         'Conversation ID',
         'Created At'
     ]);
@@ -1135,7 +1648,6 @@ function handle_avatar_studio_export_csv() {
             $row->full_name,
             $row->email,
             $formatted_phone,
-            // $row->country_code,
             $row->conversation_id,
             $formatted_date
         ]);
@@ -1168,7 +1680,7 @@ function handle_avatar_studio_export_submissions_csv() {
     $submissions_table = $wpdb->prefix . 'avatar_form_submissions';
 
     $form = $wpdb->get_row(
-        $wpdb->prepare("SELECT * FROM {$form_table} WHERE id = %d", $form_id)
+        $wpdb->prepare("SELECT * FROM %i WHERE id = %d", $form_table, $form_id)
     );
 
     if (!$form) {
@@ -1190,8 +1702,8 @@ function handle_avatar_studio_export_submissions_csv() {
     if (!empty($_POST['export_all']) && $_POST['export_all'] === '1') {
         $export_results = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$submissions_table} WHERE form_id = %d ORDER BY submitted_at DESC",
-                $form_id
+                "SELECT * FROM %i WHERE form_id = %d ORDER BY submitted_at DESC",
+                $submissions_table, $form_id
             )
         );
         $filename_suffix = 'all-submissions-form-' . $form_id;
@@ -1199,10 +1711,11 @@ function handle_avatar_studio_export_submissions_csv() {
         $selected_submissions = array_map('intval', $_POST['selected_submissions']);
         if (!empty($selected_submissions)) {
             $placeholders = implode(',', array_fill(0, count($selected_submissions), '%d'));
-            $query_args = array_merge([$form_id], $selected_submissions);
+            $query_args = array_merge([$submissions_table, $form_id], $selected_submissions);
+            
             $export_results = $wpdb->get_results(
                 $wpdb->prepare(
-                    "SELECT * FROM {$submissions_table} WHERE form_id = %d AND id IN ($placeholders) ORDER BY submitted_at DESC",
+                    "SELECT * FROM %i WHERE form_id = %d AND id IN ($placeholders) ORDER BY submitted_at DESC",
                     $query_args
                 )
             );
@@ -1305,9 +1818,9 @@ function save_avatar_callback() {
         'RAG_API_URL' => esc_url_raw($_POST['RAG_API_URL']),
         'deepgramKEY' => sanitize_text_field($_POST['deepgramKEY']),
         'voice_emotion' => sanitize_text_field($_POST['voice_emotion']),
-        'pages' => json_encode(array_map('intval', $_POST['pages'])),
-        'styles' => json_encode($_POST['styles']),
-        'welcome_message' => json_encode($_POST['welcome_message']),
+        'pages' => wp_json_encode(array_map('intval', $_POST['pages'])),
+        'styles' => wp_json_encode($_POST['styles']),
+        'welcome_message' => wp_json_encode($_POST['welcome_message']),
         'start_button_label' => sanitize_text_field($_POST['start_button_label'])
     ];
     

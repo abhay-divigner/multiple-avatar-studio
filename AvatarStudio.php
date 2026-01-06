@@ -1,18 +1,18 @@
 <?php
 
 /**
- * Plugin Name: Interactive Avatar Studio
+ * Plugin Name: Interactive Avatar Studio by Avanew
  * Plugin URI: https://avanew.ai/interactivestudio/
- * Description: Avatar Studio for your Interactive Avatar  
- * Version: 1.0.5
+ * Description: Interactive Avatar Studio allows users to create, manage, and interact with AI-powered avatars directly within WordPress.  
+ * Version: 1.0.0
  * Author: Avanew
- * Requires at least: 6.0
- * Tested up to: 6.8
- * Requires PHP: 8.0.3
  * Author URI: https://avanew.ai/
- * License: GPL-2.0-or-later
+ * Text Domain: interactive-avatar-studio
+ * Domain Path: /languages
+ * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * License: GPL2
+ * Company / Brand: Avanew
+ * Official Website: https://avanew.ai/
  */
 
 if (!defined('ABSPATH')) {
@@ -197,9 +197,9 @@ function enqueue_avatar_studio_admin_script($hook)
         wp_enqueue_script('wp-color-picker-alpha', plugins_url('assets/js/wp-color-picker-alpha.min.js', __FILE__), array('jquery', 'wp-color-picker'), AvatarStudioVersion, true);
         wp_enqueue_script('lc_color_picker', plugins_url('assets/js/lc_color_picker.min.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
 
-        wp_enqueue_script('div_as_admin_script', plugins_url('assets/js/admin-script.js', __FILE__), array('wp-color-picker'), AvatarStudioVersion, true);
+        wp_enqueue_script('avanew_as_admin_script', plugins_url('assets/js/admin-script.js', __FILE__), array('wp-color-picker'), AvatarStudioVersion, true);
         wp_enqueue_style('preview-style', plugins_url('assets/css/style.css', __FILE__));
-        wp_enqueue_style('div_as_admin_style', plugins_url('assets/css/admin-style.css', __FILE__));
+        wp_enqueue_style('avanew_as_admin_style', plugins_url('assets/css/admin-style.css', __FILE__));
 
         $id = intval($_GET['id'] ?? 0);
         global $wpdb;
@@ -242,18 +242,18 @@ add_action('wp_footer', function () {
         // if (!$livekit_enable) {
 
             if ($avatar_vendor == 'tavus') {
-                echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion . '"></script>';
+                echo ' <script type="module" crossorigin src="' . esc_url(plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion) . '"></script>';
                 echo ' <script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script> ';
 
             } else {
-                echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion . '"></script>';
+                echo ' <script type="module" crossorigin src="' . esc_url(plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion) . '"></script>';
             }
 
 
         // }
-        echo ' <input type="hidden" id="ajaxURL" value="' . admin_url('admin-ajax.php') . '" />';
-        echo ' <input type="hidden" id="avatar_studio_nonce" value="' . wp_create_nonce('avatar_studio_nonce_action') . '" />';
-        echo ' <input type="hidden" id="heygen_assets" value="' . plugin_dir_url(__FILE__) . 'assets " />';
+        echo ' <input type="hidden" id="ajaxURL" value="' . esc_url(admin_url('admin-ajax.php')) . '" />';
+        echo ' <input type="hidden" id="avatar_studio_nonce" value="' . esc_url(wp_create_nonce('avatar_studio_nonce_action')) . '" />';
+        echo ' <input type="hidden" id="heygen_assets" value="' . esc_url(plugin_dir_url(__FILE__) . 'assets') . '" />';
 
         echo avatar_studio_chatBox();
     }
@@ -546,7 +546,7 @@ add_filter('cron_schedules', function($schedules) {
     if (!isset($schedules['every_2_minutes'])) {
         $schedules['every_2_minutes'] = [
             'interval' => 2 * 60,
-            'display'  => __('Every 2 Minutes')
+            'display'  => __('Every 2 Minutes', 'InteractiveAvatarStudio')
         ];
     }
     return $schedules;
@@ -556,23 +556,23 @@ add_filter('cron_schedules', function($schedules) {
 add_filter('cron_schedules', function($schedules) {
     $schedules['every_5_minutes'] = [
         'interval' => 5 * 60,
-        'display'  => __('Every 5 Minutes')
+        'display'  => __('Every 5 Minutes', 'InteractiveAvatarStudio')
     ];
     $schedules['every_15_minutes'] = [
         'interval' => 15 * 60,
-        'display'  => __('Every 15 Minutes')
+        'display'  => __('Every 15 Minutes', 'InteractiveAvatarStudio')
     ];
     $schedules['hourly'] = [
         'interval' => 60 * 60,
-        'display'  => __('Every Hour')
+        'display'  => __('Every Hour', 'InteractiveAvatarStudio')
     ];
     $schedules['twicedaily'] = [
         'interval' => 12 * 60 * 60,
-        'display'  => __('Twice Daily')
+        'display'  => __('Twice Daily', 'InteractiveAvatarStudio')
     ];
     $schedules['daily'] = [
         'interval' => 24 * 60 * 60,
-        'display'  => __('Daily')
+        'display'  => __('Daily', 'InteractiveAvatarStudio')
     ];
     return $schedules;
 });

@@ -1,8 +1,35 @@
 <?php
 
-
 if (!defined('ABSPATH'))
     exit;
+
+wp_enqueue_style(
+    'avatar-form-styles',
+    plugin_dir_url(__FILE__) . '../assets/css/avatar-form.css',
+    array(),
+    '1.0.0'
+);
+
+// Enqueue scripts
+wp_enqueue_script(
+    'avatar-form-admin',
+    plugin_dir_url(__FILE__) . '../assets/js/avatar-form-admin.js',
+    array('jquery', 'wp-color-picker'),
+    '1.0.0',
+    true // Load in footer
+);
+
+$previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
+
+// Localize script to pass PHP variables to JavaScript
+wp_localize_script('avatar-form-admin', 'avatarFormAdmin', array(
+    'plugin_dir_url' => plugin_dir_url(__FILE__) . '../',
+    'previewImage' => $previewImage
+));
+
+// Enqueue WordPress media uploader
+wp_enqueue_media();
+
 
 if ($avatar && !isset($avatar->selected_form_id)) {
     $avatar->selected_form_id = isset($avatar->selected_form_id) ? $avatar->selected_form_id : 0;
@@ -26,728 +53,11 @@ $all_pages = get_pages();
 $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 ?>
 
-<link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>../assets/css/fontawesome/css/all.min.css">
-
-<style>
-    /* Form selection dropdown styling */
-#selected_form_id {
-    width: 100%;
-    max-width: 400px;
-    padding: 10px 14px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    background: white;
-}
-
-#selected_form_id:focus {
-    outline: none;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
-}
-
-/* Form selection description links */
-.form-table .description a {
-    color: #38b1c5;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s ease;
-}
-
-.form-table .description a:hover {
-    color: #da922c;
-    text-decoration: underline;
-}
-
-/* Smooth transition for form selection row */
-#form_selection_row {
-    transition: all 0.3s ease;
-}
-    /* Full Width Form Section with Grid Layout */
-.avatar-form-grid-section {
-    width: 100%;
-    background: white;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-    overflow: hidden;
-}
-
-.avatar-form-grid-header {
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-    padding: 20px;
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-}
-
-.avatar-form-grid-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-}
-
-.avatar-form-grid-header h2 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.avatar-form-grid-body {
-    padding: 36px 36px 0 36px;
-}
-
-/* Grid Layout for Form Fields */
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-    margin-bottom: 30px;
-}
-
-.form-grid.single-column {
-    grid-template-columns: 1fr;
-}
-
-.form-grid.three-columns {
-    grid-template-columns: repeat(3, 1fr);
-    /* margin-top: -16px; */
-
-}
-
-.input-grid {
-    /* margin-bottom: 24px; */
-}
-
-.form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.form-field label {
-    font-weight: 600;
-    color: #334155;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-#edit-page-logo {
-    margin-bottom: 0 !important;
-}
-
-.form-field input[type="text"],
-.form-field input[type="number"],
-.form-field input[type="password"],
-.form-field select {
-    width: 100%;
-    padding: 10px 14px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    background: white;
-}
-
-.form-field input:focus,
-.form-field select:focus {
-    outline: none;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
-}
-
-.form-field .field-description {
-    margin: 0;
-    color: #6b7280;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-/* Tick-boxes */
-
-input[type=checkbox]:checked::before {
-    margin: -0.1275rem 0px 0 -0.15rem;
-}
-
-/* Vendor Display Styling */
-/* .vendor-display {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%),
-        linear-gradient(135deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 8px;
-} */
-
-.vendor-display strong {
-    font-size: 15px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-transform: capitalize;
-}
-
-.vendor-display img {
-    max-width: 100px;
-    height: auto;
-}
-
-/* Radio Button Group */
-.radio-group {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.radio-option input[type="radio"] {
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border: 2px solid #d1d5db;
-    border-radius: 50%;
-    margin: 0;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.radio-option input[type="radio"]:checked {
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-}
-
-.radio-option input[type="radio"]:checked::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-}
-
-.radio-option input[type="radio"]:hover {
-    border-color: #38b1c5;
-}
-
-.radio-option label {
-    margin: 0;
-    cursor: pointer;
-    font-size: 14px;
-    color: #334155;
-}
-
-/* Image Uploader in Grid */
-.form-field .image-uploader-wrap {
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-}
-
-.form-field .image-uploader-wrap .image-preview {
-    max-width: 88px;
-    border-radius: 4px;
-}
-
-.form-field .image-uploader-wrap .upload-controls {
-    display: flex;
-    gap: 8px;
-    max-width: 596px;
-    width: 100%;
-}
-
-.form-field .image-uploader-wrap input[type="text"] {
-    flex: 1;
-}
-
-.form-field .image-uploader-wrap .button {
-    padding: 10px 16px !important;
-    border-radius: 6px !important;
-    border: 2px solid #e5e7eb !important;
-    background: white !important;
-    transition: all 0.2s ease !important;
-    height: auto !important;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.form-field .image-uploader-wrap .button:hover {
-    border-color: #dc2626 !important;
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%) !important;
-}
-
-.form-field .image-uploader-wrap .upload-image-btn {
-    border-color: #38b1c5 !important;
-}
-
-.form-field .image-uploader-wrap .upload-image-btn:hover {
-    border-color: #38b1c5 !important;
-}
-
-.form-field .image-uploader-wrap .remove-image-btn {
-    border-color: #dc2626 !important;
-}
-
-.form-field .image-uploader-wrap .remove-image-btn:hover {
-    /* background: #dc2626 !important; */
-    color: #dc2626 !important;
-}
-
-/* Select2 in Grid */
-.form-field .select2-container {
-    width: 100% !important;
-}
-
-.form-field .select2-container--default .select2-selection--multiple {
-    border: 2px solid #e5e7eb !important;
-    border-radius: 8px !important;
-    min-height: 42px !important;
-    padding: 4px !important;
-}
-
-.form-field .select2-container--default.select2-container--focus .select2-selection--multiple {
-    border: 2px solid transparent !important;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
-    background-origin: border-box !important;
-    background-clip: padding-box, border-box !important;
-    box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1) !important;
-}
-
-/* Tooltip in Grid */
-.form-field .tooltip-icon {
-    width: 18px;
-    height: 18px;
-    background: transparent;
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(white, white),
-        linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: help;
-    font-size: 12px;
-    font-weight: 700;
-    color: #38b1c5;
-}
-
-.form-field .tooltip-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-}
-
-.form-field .tooltip-content {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-5px);
-    background: #1f2937;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-    pointer-events: none;
-    z-index: 1000;
-    margin-bottom: 8px;
-}
-
-.form-field .tooltip-content::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: #1f2937;
-}
-
-.form-field .tooltip-icon:hover + .tooltip-content {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
-}
-
-/* Number Input Styling */
-.form-field input[type="number"] {
-    max-width: 150px;
-}
-
-/* Divider */
-.form-divider {
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent 0%, #38b1c5 25%, #da922c 75%, transparent 100%);
-    margin: 20px 0;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .form-grid.three-columns {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 782px) {
-    .avatar-form-grid-body {
-        padding: 20px;
-    }
-    
-    .form-grid,
-    .form-grid.three-columns {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .radio-group {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .form-field input[type="number"] {
-        max-width: 100%;
-    }
-    
-    .form-field .image-uploader-wrap .upload-controls {
-        flex-direction: column;
-    }
-    
-    .form-field .image-uploader-wrap input[type="text"] {
-        width: 100%;
-    }
-}
-
-/* Hide/Show based on conditions */
-.voice-emotion-row {
-    display: block;
-}
-
-.voice-emotion-row.hidden {
-    display: none;
-}
-.avatar-form-grid-section .hidden {
-    display: none !important;
-}
-
-.page-header {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    padding: 30px;
-    border-radius: 16px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 40px rgba(56, 177, 197, 0.2);
-}
-
-.page-header h1 {
-    color: white;
-    font-size: 28px;
-    font-weight: 600;
-    margin: 0;
-}
-
-.boxed {
-    background: white;
-    border-radius: 12px;
-    padding: 20px 30px;
-}
-
-.boxed h2 {
-    font-size: 24px;
-    line-height: 30px;
-    font-weight: 700;
-    padding-bottom: 12px;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
-}
-
-.form-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 12px;
-}
-
-.form-table tr {
-    transition: background-color 0.2s;
-}
-
-.form-table th {
-    text-align: left;
-    /* padding: 12px 20px 0 0; */
-    font-weight: 600;
-    color: #495057;
-    font-size: 14px;
-    vertical-align: top;
-    width: 18%;
-}
-
-.form-table th small {
-    display: block;
-    color: #6c757d;
-    font-weight: 400;
-    font-size: 12px;
-    margin-top: 4px;
-    line-height: 1.4;
-}
-
-.form-table td {
-    padding: 8px 0;
-    vertical-align: middle;
-}
-
-input[type="text"],
-input[type="url"] {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.3s;
-    background: #f8f9fa;
-}
-
-input[type="text"]:focus,
-input[type="url"]:focus {
-    outline: none;
-    border-color: #38b1c5;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
-}
-
-input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: #38b1c5;
-}
-
-.editor-wrapper {
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    padding: 16px;
-    background: #f8f9fa;
-    min-height: 200px;
-    transition: border-color 0.3s;
-}
-
-.editor-wrapper:focus-within {
-    border-color: #38b1c5;
-    background: white;
-}
-
-.avatar_studio-tabs {
-    margin-top: 34px;
-}
-
-.avatar_studio-tab-buttons {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #e9ecef;
-    padding-bottom: 0;
-}
-
-.tab-btn {
-    background: transparent;
-    border: none;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #6c757d;
-    cursor: pointer;
-    transition: all 0.3s;
-    border-bottom: 3px solid transparent;
-    position: relative;
-    bottom: -2px;
-}
-
-.tab-btn:hover {
-    color: #38b1c5;
-    background: rgba(56, 177, 197, 0.05);
-}
-
-.tab-btn.active {
-    color: #38b1c5;
-    border-bottom-color: #38b1c5;
-    font-weight: 600;
-}
-
-.avatar_studio-tab-content {
-    display: none;
-    padding: 24px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    animation: fadeIn 0.3s;
-}
-
-.avatar_studio-tab-content.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.avatar_studio-tab-content label {
-    display: block;
-    margin-bottom: 8px;
-    color: #495057;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.full-width {
-    width: 100%;
-}
-
-.section-badge {
-    display: inline-block;
-    /* background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); */
-    color: white;
-    /* padding: 4px 12px; */
-    /* border-radius: 12px; */
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    /* letter-spacing: 0.5px; */
-    /* margin-left: 12px; */
-}
-
-.toggle-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.toggle-label {
-    font-size: 14px;
-    color: #6c757d;
-}
-
-/* Main Container - Equal Width Columns */
-.col.col-5.sm-col-10[style*="display: flex"] {
-    display: flex !important;
-    gap: 20px;
-}
-
-.col.col-5.sm-col-10[style*="display: flex"] > .boxed,
-.col.col-5.sm-col-10[style*="display: flex"] > .preview-area {
-    flex: 1;
-    min-width: 0;
-}
-
-/* design-preview */
-
-#design-preview {
-    width: 100%;
-    background: white;
-    border: 2px solid transparent;
-    background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-    padding-top: 12px;
-}
-
-@media (max-width: 768px) {
-    .form-table th,
-    .form-table td {
-        display: block;
-        width: 100%;
-        padding: 8px 0;
-    }
-
-    .form-table th {
-        margin-bottom: 8px;
-    }
-
-    .tab-btn {
-        padding: 10px 16px;
-        font-size: 13px;
-    }
-
-    .boxed {
-        padding: 20px;
-    }
-}
-
-</style>
+<link rel="stylesheet" href="<?php echo esc_url(plugin_dir_url(__FILE__)); ?>../assets/css/fontawesome/css/all.min.css">
 
 
 <div class="avatar-form">
-    <form id="avatarForm" method="post" action="<?php echo admin_url('admin-post.php') ?>">
+    <form id="avatarForm" method="post" action="<?php echo esc_url(admin_url('admin-post.php')) ?>">
     <?php 
     // Get the ID from URL or from avatar object
     $id = isset($_GET['id']) ? intval($_GET['id']) : ($avatar ? $avatar->id : 0);
@@ -757,7 +67,7 @@ input[type="checkbox"] {
 
     <input type="hidden" name="action" value="<?php echo $is_edit ? 'update_avatar' : 'save_avatar' ?>">
     <?php if ($is_edit) { ?>
-        <input type="hidden" name="id" value="<?php echo $id; ?>">
+        <input type="hidden" name="id" value="<?php echo esc_attr($id); ?>">
     <?php } ?>
         <div class="col sm-col-wrap">
 
@@ -776,11 +86,11 @@ input[type="checkbox"] {
                         <div class="form-field">
                             <!-- <label for="vendor">Vendor</label> -->
                             <div class="vendor-display">
-                                <!-- <strong><?php echo $avatar && $avatar->vendor ? ucfirst(esc_html($avatar->vendor)) : 'Not Selected'; ?></strong> -->
+
                                 <?php if ($avatar && $avatar->vendor === 'tavus'): ?>
-                                    <img src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/tavus_full_logo.png" alt="Tavus Logo">
+                                    <img src="<?php echo esc_url(get_site_url()); ?>/wp-content/plugins/InteractiveAvatarStudio/assets/images/tavus_full_logo.png" alt="Tavus Logo">
                                 <?php elseif ($avatar && $avatar->vendor === 'heygen'): ?>
-                                    <img src="<?php echo get_site_url(); ?>/wp-content/plugins/AvatarStudio/assets/images/heygen_full_logo.png" alt="Heygen Logo">
+                                    <img src="<?php echo esc_url(get_site_url()); ?>/wp-content/plugins/InteractiveAvatarStudio/assets/images/heygen_full_logo.png" alt="Heygen Logo">
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -813,7 +123,7 @@ input[type="checkbox"] {
                         <div class="form-field">
                         <label for="api_key">API Key *<p class="field-description">
                             <?php if (empty($avatar->api_key) && !empty($default_api_key)): ?>
-                                <span style="color: #38b1c5;">✓ Using global <?php echo ucfirst($avatar_vendor); ?> API key</span>
+                                <span style="color: #38b1c5;">✓ Using global <?php echo esc_html(ucfirst($avatar_vendor)); ?> API key</span>
                             <?php elseif (empty($avatar->api_key) && empty($default_api_key)): ?>
                                 <span style="color: #da922c;">⚠ No global API key set. Please configure in Settings.</span>
                             <?php else: ?>
@@ -1010,7 +320,7 @@ input[type="checkbox"] {
                                     <?php
                                     foreach ($all_pages as $val) {
                                         $selected = is_array($pages) && in_array($val->ID, $pages) ? 'selected="selected"' : '';
-                                        echo '<option value="' . $val->ID . '" ' . $selected . '>' . esc_html($val->post_title) . '</option>';
+                                        echo '<option value="' . esc_attr($val->ID) . '" ' . esc_attr($selected) . '>' . esc_html($val->post_title) . '</option>';
                                     }
                                     ?>
                                 </select>
@@ -1019,16 +329,6 @@ input[type="checkbox"] {
                         </div>
                         
                     </div>
-                    <script>
-                    jQuery(document).ready(function($) {
-                        // Initialize Select2 with placeholder
-                        $('#chat_window_pages').select2({
-                            placeholder: "Select pages for chat widget...",
-                            allowClear: true,
-                            width: '100%'
-                        });
-                    });
-                    </script>
                 </div>
                 <div class="form-divider"></div>
                 <div class="container">
@@ -1100,12 +400,12 @@ input[type="checkbox"] {
                                             
                                             foreach ($headers as $index => $header):
                                             ?>
-                                            <div class="header-row" data-index="<?php echo $index; ?>">
+                                            <div class="header-row" data-index="<?php echo esc_attr($index); ?>">
                                                 <div class="header-inputs">
                                                     <div class="header-input-group">
                                                         <span class="header-label">Key</span>
                                                         <input type="text" 
-                                                            name="headers[<?php echo $index; ?>][key]" 
+                                                            name="headers[<?php echo esc_attr($index); ?>][key]" 
                                                             placeholder="e.g., Authorization, X-API-Key, Content-Type"
                                                             value="<?php echo esc_attr($header['key'] ?? ''); ?>"
                                                             class="header-key">
@@ -1113,7 +413,7 @@ input[type="checkbox"] {
                                                     <div class="header-input-group">
                                                         <span class="header-label">Value</span>
                                                         <input type="text" 
-                                                            name="headers[<?php echo $index; ?>][value]" 
+                                                            name="headers[<?php echo esc_attr($index); ?>][value]" 
                                                             placeholder="e.g., Bearer token_here, application/json"
                                                             value="<?php echo esc_attr($header['value'] ?? ''); ?>"
                                                             class="header-value">
@@ -1137,339 +437,6 @@ input[type="checkbox"] {
                             </tr>
                         </table>
                     </div>
-
-                    <style>
-                    .headers-wrapper {
-                        background: #f8f9fa;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        padding: 20px;
-                        margin-top: 15px;
-                    }
-
-                    .headers-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: flex-start;
-                        margin-bottom: 20px;
-                        padding-bottom: 15px;
-                        border-bottom: 2px solid #e0e0e0;
-                    }
-
-                    .headers-info {
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    }
-
-                    .tooltip-icon {
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 18px;
-                        height: 18px;
-                        background: #2271b1;
-                        color: white;
-                        border-radius: 50%;
-                        font-size: 12px;
-                        cursor: help;
-                        font-weight: bold;
-                    }
-
-                    .headers-container {
-                        margin-bottom: 20px;
-                    }
-
-                    .header-row {
-                        display: flex;
-                        align-items: flex-start;
-                        gap: 15px;
-                        margin-bottom: 15px;
-                        padding: 15px;
-                        background: white;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 6px;
-                        transition: all 0.2s ease;
-                    }
-
-                    .header-row:hover {
-                        border-color: #2271b1;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    }
-
-                    .header-inputs {
-                        flex: 1;
-                        display: flex;
-                        gap: 15px;
-                    }
-
-                    .header-input-group {
-                        flex: 1;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 6px;
-                    }
-
-                    .header-label {
-                        font-size: 12px;
-                        font-weight: 600;
-                        color: #666;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
-                    }
-
-                    .header-key,
-                    .header-value {
-                        width: 100%;
-                        padding: 10px 12px;
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        transition: border-color 0.2s ease;
-                    }
-
-                    .header-key:focus,
-                    .header-value:focus {
-                        border-color: #2271b1;
-                        outline: none;
-                        box-shadow: 0 0 0 1px rgba(34, 113, 177, 0.2);
-                    }
-
-                    .remove-header {
-                        padding: 10px 12px;
-                        background: #dc3545;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                        align-self: center;
-                    }
-
-                    .remove-header:hover {
-                        background: #c82333;
-                        transform: translateY(-1px);
-                    }
-
-                    .remove-header .dashicons {
-                        font-size: 16px;
-                        width: 16px;
-                        height: 16px;
-                        vertical-align: middle;
-                    }
-
-                    .headers-footer {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        padding-top: 15px;
-                        border-top: 1px solid #e0e0e0;
-                    }
-
-                    #add-header {
-                        padding: 10px 20px;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    }
-
-                    #add-header .dashicons {
-                        font-size: 16px;
-                        width: 16px;
-                        height: 16px;
-                    }
-
-                    .headers-count {
-                        font-size: 13px;
-                        color: #666;
-                        font-weight: 500;
-                    }
-
-                    /* Responsive design */
-                    @media (max-width: 768px) {
-                        .header-inputs {
-                            flex-direction: column;
-                            gap: 10px;
-                        }
-                        
-                        .header-row {
-                            flex-direction: column;
-                            gap: 10px;
-                        }
-                        
-                        .remove-header {
-                            align-self: flex-end;
-                        }
-                        
-                        .headers-footer {
-                            flex-direction: column;
-                            gap: 15px;
-                            align-items: flex-start;
-                        }
-                    }
-
-                    /* Smooth transition for showing/hiding sections */
-                    #api-settings-row,
-                    #headers-section {
-                        transition: opacity 0.3s ease, max-height 0.3s ease;
-                    }
-                    </style>
-
-                    <script>
-                    jQuery(document).ready(function($) {
-                        let headerIndex = <?php echo count($headers); ?>;
-                        
-                        // Toggle API settings sections based on LiveKit checkbox
-                        function toggleApiSections() {
-                            if ($('#livekit_enable').is(':checked')) {
-                                $('#api-settings-row').show();
-                                $('#headers-section').show();
-                            } else {
-                                $('#api-settings-row').hide();
-                                $('#headers-section').hide();
-                            }
-                        }
-                        
-                        // Initial toggle
-                        toggleApiSections();
-                        
-                        // Toggle on change
-                        $('#livekit_enable').on('change', toggleApiSections);
-                        
-                        // Update headers count
-                        function updateHeadersCount() {
-                            const count = $('.header-row').length;
-                            $('#headers-count').text(count + ' header(s) configured');
-                        }
-                        
-                        // Add new header row
-                        $('#add-header').on('click', function() {
-                            const rowHtml = `
-                                <div class="header-row" data-index="${headerIndex}">
-                                    <div class="header-inputs">
-                                        <div class="header-input-group">
-                                            <span class="header-label">Key</span>
-                                            <input type="text" 
-                                                name="headers[${headerIndex}][key]" 
-                                                placeholder="e.g., Authorization, X-API-Key, Content-Type"
-                                                value=""
-                                                class="header-key">
-                                        </div>
-                                        <div class="header-input-group">
-                                            <span class="header-label">Value</span>
-                                            <input type="text" 
-                                                name="headers[${headerIndex}][value]" 
-                                                placeholder="e.g., Bearer token_here, application/json"
-                                                value=""
-                                                class="header-value">
-                                        </div>
-                                    </div>
-                                    <button type="button" class="button button-secondary remove-header" title="Remove this header">
-                                        <span class="dashicons dashicons-trash"></span>
-                                    </button>
-                                </div>
-                            `;
-                            $('#headers-container').append(rowHtml);
-                            headerIndex++;
-                            updateHeadersCount();
-                            
-                            // Focus on the new key input
-                            $('#headers-container .header-row:last-child .header-key').focus();
-                        });
-                        
-                        // Remove header row
-                        $(document).on('click', '.remove-header', function() {
-                            const $row = $(this).closest('.header-row');
-                            const totalRows = $('.header-row').length;
-                            
-                            // Don't remove if it's the last row (keep at least one)
-                            if (totalRows > 1) {
-                                $row.fadeOut(300, function() {
-                                    $(this).remove();
-                                    reindexHeaders();
-                                    updateHeadersCount();
-                                });
-                            } else {
-                                // Clear the last row instead of removing it
-                                $row.find('.header-key, .header-value').val('');
-                                $row.find('.header-key').focus();
-                            }
-                        });
-                        
-                        // Reindex header rows after removal
-                        function reindexHeaders() {
-                            $('.header-row').each(function(index) {
-                                $(this).attr('data-index', index);
-                                $(this).find('.header-key').attr('name', `headers[${index}][key]`);
-                                $(this).find('.header-value').attr('name', `headers[${index}][value]`);
-                            });
-                            headerIndex = $('.header-row').length;
-                        }
-                        
-                        // Auto-focus next input when Enter is pressed in key field
-                        $(document).on('keydown', '.header-key', function(e) {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                $(this).closest('.header-row').find('.header-value').focus();
-                            }
-                        });
-                        
-                        // Auto-focus next row or add new when Enter is pressed in value field
-                        $(document).on('keydown', '.header-value', function(e) {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const $row = $(this).closest('.header-row');
-                                const $nextRow = $row.next('.header-row');
-                                
-                                if ($nextRow.length > 0) {
-                                    $nextRow.find('.header-key').focus();
-                                } else {
-                                    $('#add-header').click();
-                                }
-                            }
-                        });
-                        
-                        // Show/hide tooltip on mobile
-                        $('.tooltip-icon').on('click', function() {
-                            if ($(window).width() <= 768) {
-                                alert($(this).attr('title'));
-                            }
-                        });
-                        
-                        // Initial count update
-                        updateHeadersCount();
-                    });
-                    </script>
-
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const livekitToggle = document.getElementById('livekit_enable');
-                        const ragInput = document.getElementById('RAG_API_URL');
-                        const deepgramInput = document.getElementById('deepgramKEY');
-                        const ragLabel = document.getElementById('rag_label');
-                        const deepgramLabel = document.getElementById('deepgram_label');
-                        
-                        function toggleRequiredFields() {
-                            if (livekitToggle.checked) {
-                                ragInput.setAttribute('required', 'required');
-                                deepgramInput.setAttribute('required', 'required');
-                                ragLabel.innerHTML = '<strong>Custom RAG API URL <span style="color: black;">*</span></strong>';
-                                deepgramLabel.innerHTML = '<strong>Deepgram API Key <span style="color: black;">*</span></strong>';
-                            } else {
-                                ragInput.removeAttribute('required');
-                                deepgramInput.removeAttribute('required');
-                                ragLabel.innerHTML = '<strong>Custom RAG API URL</strong>';
-                                deepgramLabel.innerHTML = '<strong>Deepgram API Key</strong>';
-                            }
-                        }
-                        
-                        // Set initial state
-                        toggleRequiredFields();
-                        
-                        // Update when checkbox changes
-                        livekitToggle.addEventListener('change', toggleRequiredFields);
-                    });
-                    </script>
                     <div class="form-divider"></div>                
                         <div class="boxed">
                             <h2>Disclaimer</h2>
@@ -1535,113 +502,6 @@ input[type="checkbox"] {
                             </table>
                         </div>
 
-                        <script>
-                        function toggleDisclaimerFields(isEnabled) {
-                            const disclaimerFieldsRow = document.getElementById('disclaimer_fields_row');
-                            const titleInput = document.getElementById('disclaimer_title');
-                            const editorIframe = document.querySelector('#disclaimer_editor_ifr');
-                            const editorBody = editorIframe ? editorIframe.contentDocument.body : null;
-                            
-                            if (isEnabled) {
-                                disclaimerFieldsRow.style.display = '';
-                                // Add required attribute
-                                if (titleInput) {
-                                    titleInput.required = true;
-                                }
-                                // For TinyMCE editor, we need to handle validation differently
-                                if (window.tinymce && window.tinymce.get('disclaimer_editor')) {
-                                    window.tinymce.get('disclaimer_editor').getBody().setAttribute('required', 'true');
-                                }
-                            } else {
-                                disclaimerFieldsRow.style.display = 'none';
-                                // Remove required attribute
-                                if (titleInput) {
-                                    titleInput.required = false;
-                                    titleInput.removeAttribute('required');
-                                }
-                                // For TinyMCE editor
-                                if (window.tinymce && window.tinymce.get('disclaimer_editor')) {
-                                    window.tinymce.get('disclaimer_editor').getBody().removeAttribute('required');
-                                }
-                                // Hide error messages
-                                document.getElementById('disclaimer_title_error').style.display = 'none';
-                                document.getElementById('disclaimer_content_error').style.display = 'none';
-                            }
-                        }
-
-                        // Initialize on page load
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const disclaimerCheckbox = document.getElementById('disclaimer_enable');
-                            if (disclaimerCheckbox) {
-                                toggleDisclaimerFields(disclaimerCheckbox.checked);
-                            }
-                            
-                            // Add form validation
-                            const form = document.querySelector('form');
-                            if (form) {
-                                form.addEventListener('submit', function(e) {
-                                    const disclaimerEnabled = document.getElementById('disclaimer_enable').checked;
-                                    const titleInput = document.getElementById('disclaimer_title');
-                                    const editor = window.tinymce ? window.tinymce.get('disclaimer_editor') : null;
-                                    const editorContent = editor ? editor.getContent().trim() : '';
-                                    let isValid = true;
-                                    
-                                    if (disclaimerEnabled) {
-                                        // Validate title
-                                        if (!titleInput.value.trim()) {
-                                            document.getElementById('disclaimer_title_error').style.display = 'block';
-                                            titleInput.focus();
-                                            isValid = false;
-                                        } else {
-                                            document.getElementById('disclaimer_title_error').style.display = 'none';
-                                        }
-                                        
-                                        // Validate content
-                                        if (!editorContent) {
-                                            document.getElementById('disclaimer_content_error').style.display = 'block';
-                                            if (editor) {
-                                                editor.focus();
-                                            }
-                                            isValid = false;
-                                        } else {
-                                            document.getElementById('disclaimer_content_error').style.display = 'none';
-                                        }
-                                        
-                                        if (!isValid) {
-                                            e.preventDefault();
-                                            alert('Please fill in all required disclaimer fields.');
-                                        }
-                                    }
-                                });
-                            }
-                            
-                            // Real-time validation for title
-                            const titleInput = document.getElementById('disclaimer_title');
-                            if (titleInput) {
-                                titleInput.addEventListener('input', function() {
-                                    if (!this.value.trim()) {
-                                        document.getElementById('disclaimer_title_error').style.display = 'block';
-                                    } else {
-                                        document.getElementById('disclaimer_title_error').style.display = 'none';
-                                    }
-                                });
-                            }
-                            
-                            // Real-time validation for TinyMCE editor
-                            if (window.tinymce && window.tinymce.get('disclaimer_editor')) {
-                                const editor = window.tinymce.get('disclaimer_editor');
-                                editor.on('keyup change', function() {
-                                    const content = editor.getContent().trim();
-                                    if (!content) {
-                                        document.getElementById('disclaimer_content_error').style.display = 'block';
-                                    } else {
-                                        document.getElementById('disclaimer_content_error').style.display = 'none';
-                                    }
-                                });
-                            }
-                        });
-                        </script>
-
                     <div class="form-divider"></div>                
                     <div class="boxed">
                         <h2>User Form</h2>
@@ -1678,7 +538,7 @@ input[type="checkbox"] {
 
                                     <p class="description">Select a form to show before the session starts</p>
                                     <p class="description">
-                                        <a href="<?php echo admin_url('admin.php?page=avatar-form-builder'); ?>" target="_blank">
+                                        <a href="<?php echo esc_url(admin_url('admin.php?page=avatar-form-builder')); ?>" target="_blank">
                                             Manage forms in Form Builder →
                                         </a>
                                     </p>
@@ -1686,58 +546,6 @@ input[type="checkbox"] {
                             </tr>
                         </table>
                     </div>
-
-                    <script>
-                    function toggleFormSelection(checkbox) {
-                        const formRow = document.getElementById('form_selection_row');
-                        const selectField = document.getElementById('selected_form_id');
-                        
-                        if (checkbox.checked) {
-                            formRow.style.display = 'table-row';
-                            selectField.required = true;
-                        } else {
-                            formRow.style.display = 'none';
-                            selectField.required = false;
-                            selectField.value = '0';
-                        }
-                    }
-
-                    // Form submission validation
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const form = document.querySelector('form[name="post"]') || document.querySelector('form');
-                        
-                        if (form) {
-                            form.addEventListener('submit', function(e) {
-                                const userFormEnabled = document.getElementById('user_form_enable').checked;
-                                const formSelected = document.getElementById('selected_form_id').value;
-                                
-                                if (userFormEnabled && (formSelected === '0' || formSelected === '')) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    
-                                    alert('Please select a form when User Form is enabled.');
-                                    document.getElementById('selected_form_id').focus();
-                                    
-                                    // Add visual error
-                                    const selectField = document.getElementById('selected_form_id');
-                                    selectField.style.borderColor = '#dc3232';
-                                    selectField.style.boxShadow = '0 0 0 1px #dc3232';
-                                    
-                                    return false;
-                                }
-                                return true;
-                            });
-                        }
-                    });
-                    </script>
-
-                    <style>
-                    /* Optional: Style for required field */
-                    #selected_form_id:invalid {
-                        border-color: #dc3232;
-                        box-shadow: 0 0 0 1px #dc3232;
-                    }
-                    </style>
 
                     <div class="form-divider"></div>
                     
@@ -1819,129 +627,6 @@ input[type="checkbox"] {
                         </table>
                     </div>
 
-                    <script>
-                    function toggleInstructionFields(isEnabled) {
-                        const skipInstructionRow = document.getElementById('skip_instruction_row');
-                        const instructionFieldsRow = document.getElementById('instruction_fields_row');
-                        const titleInput = document.getElementById('instruction_title');
-                        const editor = window.tinymce ? window.tinymce.get('instruction_editor') : null;
-                        
-                        if (isEnabled) {
-                            skipInstructionRow.style.display = '';
-                            instructionFieldsRow.style.display = '';
-                            
-                            // Add required attributes
-                            if (titleInput) {
-                                titleInput.required = true;
-                            }
-                            
-                            // For TinyMCE editor
-                            if (editor) {
-                                editor.getBody().setAttribute('required', 'true');
-                            }
-                            
-                            // Hide error messages when enabling
-                            document.getElementById('instruction_title_error').style.display = 'none';
-                            document.getElementById('instruction_content_error').style.display = 'none';
-                        } else {
-                            skipInstructionRow.style.display = 'none';
-                            instructionFieldsRow.style.display = 'none';
-                            
-                            // Remove required attributes
-                            if (titleInput) {
-                                titleInput.required = false;
-                                titleInput.removeAttribute('required');
-                            }
-                            
-                            // For TinyMCE editor
-                            if (editor) {
-                                editor.getBody().removeAttribute('required');
-                            }
-                            
-                            // Hide error messages
-                            document.getElementById('instruction_title_error').style.display = 'none';
-                            document.getElementById('instruction_content_error').style.display = 'none';
-                        }
-                    }
-
-                    // Initialize on page load
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const instructionCheckbox = document.getElementById('instruction_enable');
-                        if (instructionCheckbox) {
-                            toggleInstructionFields(instructionCheckbox.checked);
-                        }
-                        
-                        // Add form validation
-                        const form = document.querySelector('form');
-                        if (form) {
-                            form.addEventListener('submit', function(e) {
-                                const instructionEnabled = document.getElementById('instruction_enable').checked;
-                                const titleInput = document.getElementById('instruction_title');
-                                const editor = window.tinymce ? window.tinymce.get('instruction_editor') : null;
-                                const editorContent = editor ? editor.getContent().trim() : '';
-                                let isValid = true;
-                                
-                                // Only validate if instructions are enabled
-                                if (instructionEnabled) {
-                                    // Validate title
-                                    if (!titleInput.value.trim()) {
-                                        document.getElementById('instruction_title_error').style.display = 'block';
-                                        titleInput.focus();
-                                        isValid = false;
-                                    } else {
-                                        document.getElementById('instruction_title_error').style.display = 'none';
-                                    }
-                                    
-                                    // Validate content
-                                    if (!editorContent) {
-                                        document.getElementById('instruction_content_error').style.display = 'block';
-                                        if (editor) {
-                                            editor.focus();
-                                        }
-                                        isValid = false;
-                                    } else {
-                                        document.getElementById('instruction_content_error').style.display = 'none';
-                                    }
-                                    
-                                    if (!isValid) {
-                                        e.preventDefault();
-                                        alert('Please fill in all required video instruction fields.');
-                                    }
-                                }
-                            });
-                        }
-                        
-                        // Real-time validation for title
-                        const titleInput = document.getElementById('instruction_title');
-                        if (titleInput) {
-                            titleInput.addEventListener('input', function() {
-                                const instructionEnabled = document.getElementById('instruction_enable').checked;
-                                
-                                if (instructionEnabled && !this.value.trim()) {
-                                    document.getElementById('instruction_title_error').style.display = 'block';
-                                } else {
-                                    document.getElementById('instruction_title_error').style.display = 'none';
-                                }
-                            });
-                        }
-                        
-                        // Real-time validation for TinyMCE editor
-                        if (window.tinymce && window.tinymce.get('instruction_editor')) {
-                            const editor = window.tinymce.get('instruction_editor');
-                            editor.on('keyup change', function() {
-                                const instructionEnabled = document.getElementById('instruction_enable').checked;
-                                const content = editor.getContent().trim();
-                                
-                                if (instructionEnabled && !content) {
-                                    document.getElementById('instruction_content_error').style.display = 'block';
-                                } else {
-                                    document.getElementById('instruction_content_error').style.display = 'none';
-                                }
-                            });
-                        }
-                    });
-                    </script>
-
                     <div class="form-divider"></div>                
                     <div class="boxed mb-20">
                         <h2 style="display: flex; align-items: center; gap: 8px;">
@@ -1962,24 +647,24 @@ input[type="checkbox"] {
                             <div id="avatar_studio-tab-en" class="avatar_studio-tab-content active">
                                 <label for="welcome_message_en"><strong>Welcome Message (En)</strong></label><br>
                                 <input type="text" id="welcome_message_en" class="regular-text full-width"
-                                    name="welcome_message[en]" value="<?php echo $welcome_message['en'] ?? ''; ?>" placeholder="Hello! How can I assist you today?" />
+                                    name="welcome_message[en]" value="<?php echo esc_attr($welcome_message['en'] ?? ''); ?>" placeholder="Hello! How can I assist you today?" />
                             </div>
 
                             <div id="avatar_studio-tab-es" class="avatar_studio-tab-content">
                                 <label for="welcome_message_es"><strong>Welcome Message (Es)</strong></label><br>
                                 <input type="text" id="welcome_message_es" class="regular-text full-width"
-                                    name="welcome_message[es]" value="<?php echo $welcome_message['es'] ?? ''; ?>" placeholder="¡Hola! ¿Cómo puedo ayudarte hoy?" />
+                                    name="welcome_message[es]" value="<?php echo esc_attr($welcome_message['es'] ?? ''); ?>" placeholder="¡Hola! ¿Cómo puedo ayudarte hoy?" />
                             </div>
 
                             <div id="avatar_studio-tab-fr" class="avatar_studio-tab-content">
                                 <label for="welcome_message_fr"><strong>Welcome Message (Fr)</strong></label><br>
                                 <input type="text" id="welcome_message_fr" class="regular-text full-width"
-                                    name="welcome_message[fr]" value="<?php echo $welcome_message['fr'] ?? ''; ?>" placeholder="Bonjour! Comment puis-je vous aider aujourd'hui?" />
+                                    name="welcome_message[fr]" value="<?php echo esc_attr($welcome_message['fr'] ?? ''); ?>" placeholder="Bonjour! Comment puis-je vous aider aujourd'hui?" />
                             </div>
                             <div id="avatar_studio-tab-de" class="avatar_studio-tab-content">
                                 <label for="welcome_message_de"><strong>Welcome Message (De)</strong></label><br>
                                 <input type="text" id="welcome_message_de" class="regular-text full-width"
-                                    name="welcome_message[de]" value="<?php echo $welcome_message['de'] ?? ''; ?>" placeholder="Hallo! Wie kann ich Ihnen heute helfen?" />
+                                    name="welcome_message[de]" value="<?php echo esc_attr($welcome_message['de'] ?? ''); ?>" placeholder="Hallo! Wie kann ich Ihnen heute helfen?" />
                             </div>
                         </div>
                     </div>
@@ -2014,37 +699,33 @@ input[type="checkbox"] {
                                 
                                 foreach ($toast_messages as $index => $toast):
                                 ?>
-                                <div class="toast-message-row" data-index="<?php echo $index; ?>">
+                                <div class="toast-message-row" data-index="<?php echo esc_attr($index); ?>">
                                     <div class="toast-message-inputs">
-                                        <!-- Message Input (Larger) -->
                                         <div class="toast-input-group message-group">
                                             <span class="toast-label">Message</span>
                                             <input type="text" 
-                                                name="toast_messages[<?php echo $index; ?>][message]" 
+                                                name="toast_messages[<?php echo esc_attr($index); ?>][message]" 
                                                 placeholder="Enter your message here..."
                                                 value="<?php echo esc_attr($toast['message'] ?? ''); ?>"
                                                 class="toast-message">
                                         </div>
                                         
-                                        <!-- Type Select (Smaller) -->
                                         <div class="toast-input-group type-group">
                                             <span class="toast-label">Type</span>
-                                            <select name="toast_messages[<?php echo $index; ?>][type]" class="toast-type">
+                                            <select name="toast_messages[<?php echo esc_attr($index); ?>][type]" class="toast-type">
                                                 <option value="" <?php echo empty($toast['type'] ?? '') ? 'selected' : ''; ?>>Select Type</option>
                                                 <option value="success" <?php echo ($toast['type'] ?? '') == 'success' ? 'selected' : ''; ?>>Success</option>
                                                 <option value="error" <?php echo ($toast['type'] ?? '') == 'error' ? 'selected' : ''; ?>>Error</option>
                                                 <option value="warn" <?php echo ($toast['type'] ?? '') == 'warn' ? 'selected' : ''; ?>>Warning</option>
                                                 <option value="info" <?php echo ($toast['type'] ?? '') == 'info' ? 'selected' : ''; ?>>Info</option>
                                             </select>
-
                                         </div>
                                         
-                                        <!-- Time Input (Smaller) -->
                                         <div class="toast-input-group time-group">
                                             <span class="toast-label">Time (seconds)</span>
                                             <div class="time-input-wrapper">
                                                 <input type="number" 
-                                                    name="toast_messages[<?php echo $index; ?>][time]" 
+                                                    name="toast_messages[<?php echo esc_attr($index); ?>][time]" 
                                                     placeholder="Sec"
                                                     min="1"
                                                     value="<?php echo esc_attr($toast['time'] ?? ''); ?>"
@@ -2068,635 +749,6 @@ input[type="checkbox"] {
                             </div>
                         </div>
                     </div>
-
-                    <style>
-                    /* Toast Messages Styles */
-                    .toast-messages-wrapper {
-                        background: #f8f9fa;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        padding: 20px;
-                        margin-top: 15px;
-                    }
-
-                    .toast-messages-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: flex-start;
-                        margin-bottom: 20px;
-                        padding-bottom: 15px;
-                        border-bottom: 2px solid #e0e0e0;
-                    }
-
-                    .toast-messages-info {
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    }
-
-                    .toast-messages-container {
-                        margin-bottom: 20px;
-                    }
-
-                    .toast-message-row {
-                        display: flex;
-                        align-items: flex-start;
-                        gap: 15px;
-                        margin-bottom: 15px;
-                        padding: 15px;
-                        background: white;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 6px;
-                        transition: all 0.2s ease;
-                    }
-
-                    .toast-message-row:hover {
-                        border-color: #2271b1;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    }
-
-                    .toast-message-inputs {
-                        flex: 1;
-                        display: flex;
-                        gap: 15px;
-                        align-items: flex-start;
-                    }
-
-                    /* Input Group Sizing */
-                    .toast-input-group {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 6px;
-                    }
-
-                    /* Message field - Larger (60%) */
-                    .toast-input-group.message-group {
-                        flex: 3; /* Takes 3 parts of available space */
-                        min-width: 0;
-                    }
-
-                    /* Type and Time fields - Smaller (20% each) */
-                    .toast-input-group.type-group,
-                    .toast-input-group.time-group {
-                        flex: 1; /* Takes 1 part each */
-                        min-width: 150px;
-                    }
-
-                    .toast-label {
-                        font-size: 12px;
-                        font-weight: 600;
-                        color: #666;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
-                    }
-
-                    /* Make all inputs equal height */
-                    .toast-message,
-                    .toast-type,
-                    .toast-time {
-                        width: 100%;
-                        padding: 12px; /* Consistent padding */
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        transition: all 0.2s ease;
-                        box-sizing: border-box;
-                        height: 44px; /* Fixed equal height */
-                        line-height: 20px;
-                    }
-
-                    .toast-message:focus,
-                    .toast-type:focus,
-                    .toast-time:focus {
-                        border-color: #2271b1;
-                        outline: none;
-                        box-shadow: 0 0 0 1px rgba(34, 113, 177, 0.2);
-                    }
-
-                    /* Select specific styling */
-                    .toast-type {
-                        background: white url('data:image/svg+xml;charset=US-ASCII,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 10px center;
-                        background-size: 16px;
-                        appearance: none;
-                        -webkit-appearance: none;
-                        -moz-appearance: none;
-                        padding-right: 35px;
-                        cursor: pointer;
-                    }
-
-                    /* Required field indicators */
-                    .toast-type:required,
-                    .toast-time:required {
-                        border-left: 3px solid #dc3545 !important;
-                    }
-
-                    .toast-type:required:valid,
-                    .toast-time:required:valid {
-                        border-left-color: #198754 !important;
-                    }
-
-                    /* Time input specific */
-                    .time-input-wrapper {
-                        position: relative;
-                        width: 100%;
-                    }
-
-                    .time-input-wrapper::after {
-                        content: 'sec';
-                        position: absolute;
-                        right: 10px;
-                        top: 50%;
-                        transform: translateY(-50%);
-                        color: #666;
-                        font-size: 12px;
-                        font-weight: 500;
-                        pointer-events: none;
-                    }
-
-                    .toast-time {
-                        padding-right: 40px;
-                    }
-
-                    .remove-toast-message {
-                        padding: 12px 15px;
-                        background: #dc3545;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                        align-self: flex-start;
-                        height: 44px; /* Match input height */
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        min-width: 44px;
-                    }
-
-                    .remove-toast-message:hover {
-                        background: #c82333;
-                        transform: translateY(-1px);
-                    }
-
-                    .remove-toast-message .dashicons {
-                        font-size: 18px;
-                        width: 18px;
-                        height: 18px;
-                        vertical-align: middle;
-                    }
-
-                    .toast-messages-footer {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        padding-top: 15px;
-                        border-top: 1px solid #e0e0e0;
-                    }
-
-                    #add-toast-message {
-                        padding: 12px 24px;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                        height: 44px; /* Match input height */
-                        font-size: 14px;
-                        font-weight: 500;
-                    }
-
-                    #add-toast-message .dashicons {
-                        font-size: 18px;
-                        width: 18px;
-                        height: 18px;
-                    }
-
-                    .toast-messages-count {
-                        font-size: 13px;
-                        color: #666;
-                        font-weight: 500;
-                    }
-
-                    /* Type color indicators - show in the select itself */
-                    .toast-type {
-                        color: inherit;
-                    }
-
-                    .toast-type option[value="success"] {
-                        color: #198754;
-                        font-weight: 500;
-                    }
-
-                    .toast-type option[value="error"] {
-                        color: #dc3545;
-                        font-weight: 500;
-                    }
-
-                    .toast-type option[value="warn"] {
-                        color: #fd7e14;
-                        font-weight: 500;
-                    }
-
-                    .toast-type option[value="info"] {
-                        color: #6c757d;
-                        font-weight: 500;
-                    }
-
-                    .toast-type:required,
-                    .toast-time:required {
-                        border-left: 3px solid #dc3545 !important;
-                    }
-
-                    .toast-type:required:valid,
-                    .toast-time:required:valid {
-                        border-left-color: #198754 !important;
-                    }
-
-                    /* Responsive design */
-                    @media (max-width: 1024px) {
-                        .toast-input-group.message-group {
-                            flex: 2;
-                        }
-                        
-                        .toast-input-group.type-group,
-                        .toast-input-group.time-group {
-                            min-width: 120px;
-                        }
-                    }
-
-                    @media (max-width: 768px) {
-                        .toast-message-inputs {
-                            flex-direction: column;
-                            gap: 10px;
-                        }
-                        
-                        .toast-message-row {
-                            flex-direction: column;
-                            gap: 10px;
-                        }
-                        
-                        .toast-input-group.message-group,
-                        .toast-input-group.type-group,
-                        .toast-input-group.time-group {
-                            width: 100%;
-                            flex: none;
-                            min-width: auto;
-                        }
-                        
-                        .remove-toast-message {
-                            align-self: flex-end;
-                            height: 40px;
-                            min-width: 40px;
-                        }
-                        
-                        .toast-messages-footer {
-                            flex-direction: column;
-                            gap: 15px;
-                            align-items: flex-start;
-                        }
-                    }
-
-                    @media (max-width: 480px) {
-                        .toast-message,
-                        .toast-type,
-                        .toast-time {
-                            height: 40px;
-                            padding: 10px;
-                            font-size: 13px;
-                        }
-                        
-                        .remove-toast-message,
-                        #add-toast-message {
-                            height: 40px;
-                        }
-                    }
-                    </style>
-
-                    <script>
-                    jQuery(document).ready(function($) {
-                        let toastIndex = <?php echo count($toast_messages); ?>;
-                        let timeLimit = <?php echo $avatar && $avatar->time_limit ? $avatar->time_limit * 60 : 3600; ?>; // Convert minutes to seconds
-                        
-                        // Update time limit from the time_limit input
-                        function updateTimeLimit() {
-                            const minutes = $('#time_limit').val();
-                            if (minutes && !isNaN(minutes)) {
-                                timeLimit = minutes * 60; // Convert to seconds
-                            }
-                        }
-                        
-                        // Monitor time limit changes
-                        $('#time_limit').on('change input', function() {
-                            updateTimeLimit();
-                            validateAllToastTimesAndTypes();
-                        });
-                        
-                        // Update toast messages count
-                        function updateToastMessagesCount() {
-                            const count = $('.toast-message-row').length;
-                            $('#toast-messages-count').text(count + ' message(s) configured');
-                        }
-                        
-                        // Toggle required fields based on message input
-                        function toggleRequiredFields($row) {
-                            const $messageInput = $row.find('.toast-message');
-                            const $typeSelect = $row.find('.toast-type');
-                            const $timeInput = $row.find('.toast-time');
-                            
-                            const hasMessage = $messageInput.val().trim() !== '';
-                            
-                            // Toggle required attribute based on message input
-                            if (hasMessage) {
-                                $typeSelect.attr('required', 'required');
-                                $timeInput.attr('required', 'required');
-                            } else {
-                                $typeSelect.removeAttr('required');
-                                $timeInput.removeAttr('required');
-                                $typeSelect.css('border-color', '#ddd');
-                                $timeInput.css('border-color', '#ddd');
-                            }
-                        }
-                        
-                        // Validate type selection
-                        function validateToastType($select) {
-                            const $row = $select.closest('.toast-message-row');
-                            const $messageInput = $row.find('.toast-message');
-                            const hasMessage = $messageInput.val().trim() !== '';
-                            const hasType = $select.val() !== '';
-                            
-                            // Only validate type if message exists
-                            if (hasMessage && !hasType) {
-                                $select.css('border-color', '#dc3545');
-                                return false;
-                            } else {
-                                $select.css('border-color', '#ddd');
-                                return true;
-                            }
-                        }
-                        
-                        // Validate toast time
-                        function validateToastTime($input) {
-                            const time = parseInt($input.val());
-                            const $row = $input.closest('.toast-message-row');
-                            const $validation = $row.find('.toast-time-validation');
-                            const allTimes = [];
-                            const $messageInput = $row.find('.toast-message');
-                            const $typeSelect = $row.find('.toast-type');
-                            const hasMessage = $messageInput.val().trim() !== '';
-                            const hasType = $typeSelect.val() !== '';
-                            
-                            // Collect all times
-                            $('.toast-time').each(function() {
-                                if (this !== $input[0] && $(this).val().trim() !== '') {
-                                    allTimes.push(parseInt($(this).val()));
-                                }
-                            });
-                            
-                            // Clear previous validation
-                            $validation.hide().text('');
-                            $input.css('border-color', '#ddd');
-                            
-                            // If message exists, validate type and time
-                            if (hasMessage) {
-                                // Validate type if message exists
-                                if (!hasType) {
-                                    $typeSelect.css('border-color', '#dc3545');
-                                    $validation.text('Type is required when message is entered').show();
-                                    $input.css('border-color', '#dc3545');
-                                    return false;
-                                } else {
-                                    $typeSelect.css('border-color', '#ddd');
-                                }
-                                
-                                // Validate time if message exists
-                                if (isNaN(time)) {
-                                    $validation.text('Time is required when message is entered').show();
-                                    $input.css('border-color', '#dc3545');
-                                    return false;
-                                }
-                                
-                                if (time < 1) {
-                                    $validation.text('Time must be at least 1 second').show();
-                                    $input.css('border-color', '#dc3545');
-                                    return false;
-                                }
-                                
-                                if (time > timeLimit) {
-                                    $validation.text('Time cannot exceed session limit (' + (timeLimit/60) + ' minutes)').show();
-                                    $input.css('border-color', '#dc3545');
-                                    return false;
-                                }
-                                
-                                if (allTimes.includes(time)) {
-                                    $validation.text('This time is already used by another message').show();
-                                    $input.css('border-color', '#dc3545');
-                                    return false;
-                                }
-                            } else {
-                                // If no message, clear any validation and remove required
-                                $typeSelect.css('border-color', '#ddd');
-                                $typeSelect.removeAttr('required');
-                                $input.removeAttr('required');
-                            }
-                            
-                            return true;
-                        }
-                        
-                        // Validate all toast times and types
-                        function validateAllToastTimesAndTypes() {
-                            let allValid = true;
-                            $('.toast-message-row').each(function() {
-                                const $row = $(this);
-                                const $messageInput = $row.find('.toast-message');
-                                const $typeSelect = $row.find('.toast-type');
-                                const $timeInput = $row.find('.toast-time');
-                                
-                                const hasMessage = $messageInput.val().trim() !== '';
-                                
-                                if (hasMessage) {
-                                    // Validate type
-                                    if (!validateToastType($typeSelect)) {
-                                        allValid = false;
-                                    }
-                                    
-                                    // Validate time
-                                    if (!validateToastTime($timeInput)) {
-                                        allValid = false;
-                                    }
-                                }
-                            });
-                            return allValid;
-                        }
-                        
-                        // Add new toast message row
-                        $('#add-toast-message').on('click', function() {
-                            const rowHtml = `
-                                <div class="toast-message-row" data-index="${toastIndex}">
-                                    <div class="toast-message-inputs">
-                                        <div class="toast-input-group message-group">
-                                            <span class="toast-label">Message</span>
-                                            <input type="text" 
-                                                name="toast_messages[${toastIndex}][message]" 
-                                                placeholder="Enter your message here..."
-                                                value=""
-                                                class="toast-message">
-                                        </div>
-                                        
-                                        <div class="toast-input-group type-group">
-                                            <span class="toast-label">Type</span>
-                                            <select name="toast_messages[${toastIndex}][type]" class="toast-type">
-                                                <option value="">Select Type</option>
-                                                <option value="success">Success</option>
-                                                <option value="error">Error</option>
-                                                <option value="warn">Warn</option>
-                                                <option value="info">Info</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="toast-input-group time-group">
-                                            <span class="toast-label">Time (seconds)</span>
-                                            <div class="time-input-wrapper">
-                                                <input type="number" 
-                                                    name="toast_messages[${toastIndex}][time]" 
-                                                    placeholder="Sec"
-                                                    min="1"
-                                                    value=""
-                                                    class="toast-time">
-                                            </div>
-                                            <div class="toast-time-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
-                                        </div>
-                                    </div>
-                                    <button style="margin-top: 24px;" type="button" class="button button-secondary remove-toast-message" title="Remove this toast message">
-                                        <span class="dashicons dashicons-trash"></span>
-                                    </button>
-                                </div>
-                            `;
-                            
-                            $('#toast-messages-container').append(rowHtml);
-                            toastIndex++;
-                            updateToastMessagesCount();
-                            
-                            // Focus on the new message input
-                            $('#toast-messages-container .toast-message-row:last-child .toast-message').focus();
-                            
-                            // Initialize required fields for the new row
-                            toggleRequiredFields($('#toast-messages-container .toast-message-row:last-child'));
-                        });
-                        
-                        // Remove toast message row
-                        $(document).on('click', '.remove-toast-message', function() {
-                            const $row = $(this).closest('.toast-message-row');
-                            const totalRows = $('.toast-message-row').length;
-                            
-                            // Don't remove if it's the last row (keep at least one)
-                            if (totalRows > 1) {
-                                $row.fadeOut(300, function() {
-                                    $(this).remove();
-                                    reindexToastMessages();
-                                    updateToastMessagesCount();
-                                    validateAllToastTimesAndTypes();
-                                });
-                            } else {
-                                // Clear the last row instead of removing it
-                                $row.find('.toast-message, .toast-time').val('');
-                                $row.find('.toast-type').val('');
-                                $row.find('.toast-message').focus();
-                                toggleRequiredFields($row);
-                                validateAllToastTimesAndTypes();
-                            }
-                        });
-                        
-                        // Reindex toast message rows after removal
-                        function reindexToastMessages() {
-                            $('.toast-message-row').each(function(index) {
-                                $(this).attr('data-index', index);
-                                
-                                // Update message field
-                                $(this).find('.toast-message').attr('name', `toast_messages[${index}][message]`);
-                                
-                                // Update type field
-                                $(this).find('.toast-type').attr('name', `toast_messages[${index}][type]`);
-                                
-                                // Update time field
-                                $(this).find('.toast-time').attr('name', `toast_messages[${index}][time]`);
-                            });
-                            toastIndex = $('.toast-message-row').length;
-                        }
-                        
-                        // Event listener for message input changes
-                        $(document).on('input', '.toast-message', function() {
-                            const $row = $(this).closest('.toast-message-row');
-                            toggleRequiredFields($row);
-                            validateAllToastTimesAndTypes();
-                        });
-                        
-                        // Event listener for type select changes
-                        $(document).on('change', '.toast-type', function() {
-                            validateToastType($(this));
-                            validateAllToastTimesAndTypes();
-                        });
-                        
-                        // Validate time input on blur
-                        $(document).on('blur', '.toast-time', function() {
-                            validateToastTime($(this));
-                        });
-                        
-                        // Auto-focus next input when Enter is pressed
-                        $(document).on('keydown', '.toast-message', function(e) {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                $(this).closest('.toast-message-row').find('.toast-type').focus();
-                            }
-                        });
-                        
-                        $(document).on('keydown', '.toast-type', function(e) {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                $(this).closest('.toast-message-row').find('.toast-time').focus();
-                            }
-                        });
-                        
-                        $(document).on('keydown', '.toast-time', function(e) {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const $row = $(this).closest('.toast-message-row');
-                                const $nextRow = $row.next('.toast-message-row');
-                                
-                                if ($nextRow.length > 0) {
-                                    $nextRow.find('.toast-message').focus();
-                                } else {
-                                    $('#add-toast-message').click();
-                                }
-                            }
-                        });
-                        
-                        // Show/hide tooltip on mobile
-                        $('.tooltip-icon').on('click', function() {
-                            if ($(window).width() <= 768) {
-                                alert($(this).attr('title'));
-                            }
-                        });
-                        
-                        // Initial setup
-                        updateTimeLimit();
-                        updateToastMessagesCount();
-                        validateAllToastTimesAndTypes();
-                        
-                        // Initialize required fields for existing rows
-                        $('.toast-message-row').each(function() {
-                            toggleRequiredFields($(this));
-                        });
-                        
-                        // Form submission validation
-                        $('#avatarForm').on('submit', function(e) {
-                            if (!validateAllToastTimesAndTypes()) {
-                                e.preventDefault();
-                                alert('Please fix the toast message validation errors before saving.');
-                                $('.toast-message-row:has(.toast-message:not(:empty)) .toast-type:invalid, .toast-time:invalid').first().focus();
-                                return false;
-                            }
-                        });
-                    });
-                    </script>
-
                 </div>
             </div>
 
@@ -2764,11 +816,11 @@ input[type="checkbox"] {
                                             <div class="input-controls">
                                                 <input type="text" name="styles[chatBox][width]"
                                                     class="width-input width "
-                                                    value="<?php echo (isset($chatBoxStyle['width'])) ? $chatBoxStyle['width'] : 550; ?>" />
+                                                    value="<?php echo (isset($chatBoxStyle['width'])) ? esc_attr($chatBoxStyle['width']) : 550; ?>" />
 
                                                 <span class="clear-btn"
                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
-                                            </div>
+                                             </div>
                                         </div>
 
                                         <div class="style-wrapper">
@@ -2776,7 +828,7 @@ input[type="checkbox"] {
                                             <div class="input-controls">
                                                 <input type="text" name="styles[chatBox][height]"
                                                     class="height-input height "
-                                                    value="<?php echo (isset($chatBoxStyle['height'])) ? $chatBoxStyle['height'] : ''; ?>" />
+                                                    value="<?php echo isset($chatBoxStyle['height']) ? esc_attr($chatBoxStyle['height']) : ''; ?>" />
 
                                                 <span class="clear-btn"
                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -2789,9 +841,9 @@ input[type="checkbox"] {
                                                 <div class="input-with-clear">
                                                     <input type="text" name="styles[chatBox][background]"
                                                         id="heading-background"
-                                                        class="background  gradient-color-picker"
+                                                        class="background gradient-color-picker"
                                                         data-alpha-enabled="true"
-                                                        value="<?php echo (isset($chatBoxStyle['background'])) ? $chatBoxStyle['background'] : ''; ?>"
+                                                        value="<?php echo isset($chatBoxStyle['background']) ? esc_attr($chatBoxStyle['background']) : ''; ?>"
                                                         placeholder="" />
                                                     <span class="clear-btn"
                                                         onclick="clearLCColorPicker(this)">&#x2715;</span>
@@ -2803,7 +855,7 @@ input[type="checkbox"] {
                                             <div class="input-controls">
                                                 <input type="text" name="styles[chatBox][color]" id="heading-color"
                                                     class="color color-picker"
-                                                    value="<?php echo (isset($chatBoxStyle['color'])) ? $chatBoxStyle['color'] : '#FFFFFF'; ?>" />
+                                                    value="<?php echo isset($chatBoxStyle['color']) ? esc_attr($chatBoxStyle['color']) : '#FFFFFF'; ?>" />
                                             </div>
                                         </div>
 
@@ -2842,7 +894,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chatBox][border][width]"
                                                             id="heading-border-width" class="border-input border-width"
-                                                            value="<?php echo (isset($chatBoxStyle['border']['width'])) ? $chatBoxStyle['border']['width'] : '1'; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['border']['width']) ? esc_attr($chatBoxStyle['border']['width']) : '1'; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -2856,7 +908,7 @@ input[type="checkbox"] {
                                                         $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                         $selected = isset($chatBoxStyle['border']['style']) ? $chatBoxStyle['border']['style'] : 'solid';
                                                         foreach ($styles as $style) {
-                                                            echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                            echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                         }
                                                         ?>
                                                     </select>
@@ -2866,7 +918,7 @@ input[type="checkbox"] {
                                                 <div class="col">
                                                     <input type="color" name="styles[chatBox][border][color]"
                                                         id="heading-border-color" class="border-color"
-                                                        value="<?php echo (isset($chatBoxStyle['border']['color'])) ? $chatBoxStyle['border']['color'] : '#000000'; ?>" />
+                                                        value="<?php echo isset($chatBoxStyle['border']['color']) ? esc_attr($chatBoxStyle['border']['color']) : '#000000'; ?>" />
                                                 </div>
                                             </div>
                                         </div>
@@ -2878,7 +930,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chatBox][border-radius][top]"
                                                             class="border-radius-input border-radius-top"
-                                                            value="<?php echo isset($chatBoxStyle['border-radius']['top']) ? $chatBoxStyle['border-radius']['top'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['border-radius']['top']) ? esc_attr($chatBoxStyle['border-radius']['top']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -2888,7 +940,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chatBox][border-radius][right]"
                                                             class="border-radius-input border-radius-right"
-                                                            value="<?php echo isset($chatBoxStyle['border-radius']['right']) ? $chatBoxStyle['border-radius']['right'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['border-radius']['right']) ? esc_attr($chatBoxStyle['border-radius']['right']) : ''; ?>" />
 
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -2899,7 +951,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chatBox][border-radius][bottom]"
                                                             class="border-radius-input border-radius-bottom"
-                                                            value="<?php echo isset($chatBoxStyle['border-radius']['bottom']) ? $chatBoxStyle['border-radius']['bottom'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['border-radius']['bottom']) ? esc_attr($chatBoxStyle['border-radius']['bottom']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -2909,7 +961,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chatBox][border-radius][left]"
                                                             class="border-radius-input border-radius-left"
-                                                            value="<?php echo isset($chatBoxStyle['border-radius']['left']) ? $chatBoxStyle['border-radius']['left'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['border-radius']['left']) ? esc_attr($chatBoxStyle['border-radius']['left']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -2924,7 +976,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chatBox][padding][top]"
                                                             id="heading-padding-top" class="padding-input padding-top"
-                                                            value="<?php echo (isset($chatBoxStyle['padding']['top'])) ? $chatBoxStyle['padding']['top'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['padding']['top']) ? esc_attr($chatBoxStyle['padding']['top']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -2935,7 +987,7 @@ input[type="checkbox"] {
                                                             name="styles[chatBox][padding][right]"
                                                             id="heading-padding-right"
                                                             class="padding-input padding-right"
-                                                            value="<?php echo (isset($chatBoxStyle['padding']['right'])) ? $chatBoxStyle['padding']['right'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['padding']['right']) ? esc_attr($chatBoxStyle['padding']['right']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -2946,7 +998,7 @@ input[type="checkbox"] {
                                                             name="styles[chatBox][padding][bottom]"
                                                             id="heading-padding-bottom"
                                                             class="padding-input padding-bottom"
-                                                            value="<?php echo (isset($chatBoxStyle['padding']['bottom'])) ? $chatBoxStyle['padding']['bottom'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['padding']['bottom']) ? esc_attr($chatBoxStyle['padding']['bottom']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -2956,7 +1008,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chatBox][padding][left]"
                                                             id="heading-padding-left" class="padding-input padding-left"
-                                                            value="<?php echo (isset($chatBoxStyle['padding']['left'])) ? $chatBoxStyle['padding']['left'] : ''; ?>" />
+                                                            value="<?php echo isset($chatBoxStyle['padding']['left']) ? esc_attr($chatBoxStyle['padding']['left']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3017,7 +1069,7 @@ input[type="checkbox"] {
                                                 <div class="input-controls">
                                                     <input type="text" name="styles[thumbnail][mini][width]"
                                                         class="width-input width "
-                                                        value="<?php echo (isset($thumbnailStyle['mini']['width'])) ? $thumbnailStyle['mini']['width'] : 80; ?>" />
+                                                        value="<?php echo isset($thumbnailStyle['mini']['width']) ? esc_attr($thumbnailStyle['mini']['width']) : 80; ?>" />
                                                     <span class="clear-btn"
                                                         onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                 </div>
@@ -3028,7 +1080,7 @@ input[type="checkbox"] {
                                                 <div class="input-controls">
                                                     <input type="text" name="styles[thumbnail][mini][height]"
                                                         class="height-input height "
-                                                        value="<?php echo (isset($thumbnailStyle['mini']['height'])) ? $thumbnailStyle['mini']['height'] : ''; ?>" />
+                                                        value="<?php echo isset($thumbnailStyle['mini']['height']) ? esc_attr($thumbnailStyle['mini']['height']) : ''; ?>" />
 
                                                     <span class="clear-btn"
                                                         onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -3068,7 +1120,7 @@ input[type="checkbox"] {
                                                 <div class="input-controls">
                                                     <input type="text" name="styles[thumbnail][medium][width]"
                                                         class="width-input width "
-                                                        value="<?php echo (isset($thumbnailStyle['medium']['width'])) ? $thumbnailStyle['medium']['width'] : 150; ?>" />
+                                                        value="<?php echo isset($thumbnailStyle['medium']['width']) ? esc_attr($thumbnailStyle['medium']['width']) : 150; ?>" />
                                                     <span class="clear-btn"
                                                         onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                 </div>
@@ -3079,7 +1131,7 @@ input[type="checkbox"] {
                                                 <div class="input-controls">
                                                     <input type="text" name="styles[thumbnail][medium][height]"
                                                         class="height-input height "
-                                                        value="<?php echo (isset($thumbnailStyle['medium']['height'])) ? $thumbnailStyle['medium']['height'] : ''; ?>" />
+                                                        value="<?php echo isset($thumbnailStyle['medium']['height']) ? esc_attr($thumbnailStyle['medium']['height']) : ''; ?>" />
 
                                                     <span class="clear-btn"
                                                         onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -3115,7 +1167,7 @@ input[type="checkbox"] {
                                                 <div class="input-controls">
                                                     <input type="text" name="styles[thumbnail][large][width]"
                                                         class="width-input width "
-                                                        value="<?php echo (isset($thumbnailStyle['large']['width'])) ? $thumbnailStyle['large']['width'] : 200; ?>" />
+                                                        value="<?php echo isset($thumbnailStyle['large']['width']) ? esc_attr($thumbnailStyle['large']['width']) : 200; ?>" />
                                                     <span class="clear-btn"
                                                         onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                 </div>
@@ -3126,7 +1178,7 @@ input[type="checkbox"] {
                                                 <div class="input-controls">
                                                     <input type="text" name="styles[thumbnail][large][height]"
                                                         class="height-input height "
-                                                        value="<?php echo (isset($thumbnailStyle['large']['height'])) ? $thumbnailStyle['large']['height'] : ''; ?>" />
+                                                        value="<?php echo isset($thumbnailStyle['large']['height']) ? esc_attr($thumbnailStyle['large']['height']) : ''; ?>" />
 
                                                     <span class="clear-btn"
                                                         onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -3145,11 +1197,11 @@ input[type="checkbox"] {
                                             <label>Background:</label>
                                             <div class="input-controls">
                                                 <div class="input-with-clear">
-                                                    <input type="text" name="styles[heading][background]"
+                                                   <input type="text" name="styles[heading][background]"
                                                         id="heading-background"
-                                                        class="background  gradient-color-picker"
+                                                        class="background gradient-color-picker"
                                                         data-alpha-enabled="true"
-                                                        value="<?php echo (isset($headingStyle['background'])) ? $headingStyle['background'] : ''; ?>"
+                                                        value="<?php echo isset($headingStyle['background']) ? esc_attr($headingStyle['background']) : ''; ?>"
                                                         placeholder="" />
                                                     <span class="clear-btn"
                                                         onclick="clearLCColorPicker(this)">&#x2715;</span>
@@ -3162,7 +1214,7 @@ input[type="checkbox"] {
                                             <div class="input-controls">
                                                 <input type="text" name="styles[heading][color]" id="heading-color"
                                                     class="color color-picker"
-                                                    value="<?php echo (isset($headingStyle['color'])) ? $headingStyle['color'] : '#FFFFFF'; ?>" />
+                                                    value="<?php echo isset($headingStyle['color']) ? esc_attr($headingStyle['color']) : '#FFFFFF'; ?>" />
                                             </div>
                                         </div>
 
@@ -3200,7 +1252,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[heading][border][width]"
                                                             id="heading-border-width" class="border-input border-width"
-                                                            value="<?php echo (isset($headingStyle['border']['width'])) ? $headingStyle['border']['width'] : '1'; ?>" />
+                                                            value="<?php echo isset($headingStyle['border']['width']) ? esc_attr($headingStyle['border']['width']) : '1'; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3214,7 +1266,7 @@ input[type="checkbox"] {
                                                         $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                         $selected = isset($headingStyle['border']['style']) ? $headingStyle['border']['style'] : 'solid';
                                                         foreach ($styles as $style) {
-                                                            echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                            echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                         }
                                                         ?>
                                                     </select>
@@ -3224,7 +1276,7 @@ input[type="checkbox"] {
                                                 <div class="col">
                                                     <input type="color" name="styles[heading][border][color]"
                                                         id="heading-border-color" class="border-color"
-                                                        value="<?php echo (isset($headingStyle['border']['color'])) ? $headingStyle['border']['color'] : '#000000'; ?>" />
+                                                        value="<?php echo isset($headingStyle['border']['color']) ? esc_attr($headingStyle['border']['color']) : '#000000'; ?>" />
                                                 </div>
                                             </div>
                                         </div>
@@ -3236,7 +1288,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[heading][border-radius][top]"
                                                             class="border-radius-input border-radius-top"
-                                                            value="<?php echo isset($headingStyle['border-radius']['top']) ? $headingStyle['border-radius']['top'] : ''; ?>" />
+                                                            value="<?php echo isset($headingStyle['border-radius']['top']) ? esc_attr($headingStyle['border-radius']['top']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3246,7 +1298,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[heading][border-radius][right]"
                                                             class="border-radius-input border-radius-right"
-                                                            value="<?php echo isset($headingStyle['border-radius']['right']) ? $headingStyle['border-radius']['right'] : ''; ?>" />
+                                                            value="<?php echo isset($headingStyle['border-radius']['right']) ? esc_attr($headingStyle['border-radius']['right']) : ''; ?>" />
 
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -3257,7 +1309,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[heading][border-radius][bottom]"
                                                             class="border-radius-input border-radius-bottom"
-                                                            value="<?php echo isset($headingStyle['border-radius']['bottom']) ? $headingStyle['border-radius']['bottom'] : ''; ?>" />
+                                                            value="<?php echo isset($headingStyle['border-radius']['bottom']) ? esc_attr($headingStyle['border-radius']['bottom']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3267,7 +1319,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[heading][border-radius][left]"
                                                             class="border-radius-input border-radius-left"
-                                                            value="<?php echo isset($headingStyle['border-radius']['left']) ? $headingStyle['border-radius']['left'] : ''; ?>" />
+                                                            value="<?php echo isset($headingStyle['border-radius']['left']) ? esc_attr($headingStyle['border-radius']['left']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3282,7 +1334,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[heading][padding][top]"
                                                             id="heading-padding-top" class="padding-input padding-top"
-                                                            value="<?php echo (isset($headingStyle['padding']['top'])) ? $headingStyle['padding']['top'] : ''; ?>" />
+                                                            value="<?php echo isset($headingStyle['padding']['top']) ? esc_attr($headingStyle['padding']['top']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3293,7 +1345,7 @@ input[type="checkbox"] {
                                                             name="styles[heading][padding][right]"
                                                             id="heading-padding-right"
                                                             class="padding-input padding-right"
-                                                            value="<?php echo (isset($headingStyle['padding']['right'])) ? $headingStyle['padding']['right'] : ''; ?>" />
+                                                            value="<?php echo isset($headingStyle['padding']['right']) ? esc_attr($headingStyle['padding']['right']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3304,8 +1356,7 @@ input[type="checkbox"] {
                                                             name="styles[heading][padding][bottom]"
                                                             id="heading-padding-bottom"
                                                             class="padding-input padding-bottom"
-                                                            value="<?php echo (isset($headingStyle['padding']['bottom'])) ? $headingStyle['padding']['bottom'] : ''; ?>" />
-                                                        <span class="clear-btn"
+                                                            value="<?php echo isset($headingStyle['padding']['bottom']) ? esc_attr($headingStyle['padding']['bottom']) : ''; ?>" />
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
                                                 </div>
@@ -3314,7 +1365,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[heading][padding][left]"
                                                             id="heading-padding-left" class="padding-input padding-left"
-                                                            value="<?php echo (isset($headingStyle['padding']['left'])) ? $headingStyle['padding']['left'] : ''; ?>" />
+                                                            value="<?php echo isset($headingStyle['padding']['left']) ? esc_attr($headingStyle['padding']['left']) : ''; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -3344,7 +1395,7 @@ input[type="checkbox"] {
                                             <div class="input-controls">
                                                 <input type="number" min="0" name="styles[heading][font-size]"
                                                     class="font-size "
-                                                    value="<?php echo (isset($headingStyle['font-size'])) ? $headingStyle['font-size'] : 14; ?>" />
+                                                    value="<?php echo isset($headingStyle['font-size']) ? esc_attr($headingStyle['font-size']) : 14; ?>" />
                                             </div>
                                         </div>
 
@@ -3353,7 +1404,7 @@ input[type="checkbox"] {
                                             <div class="input-controls">
                                                 <input type="number" min="0" name="styles[heading][line-height]"
                                                     class="line-height "
-                                                    value="<?php echo (isset($headingStyle['line-height'])) ? $headingStyle['line-height'] : ''; ?>" />
+                                                    value="<?php echo isset($headingStyle['line-height']) ? esc_attr($headingStyle['line-height']) : ''; ?>" />
                                             </div>
                                         </div>
 
@@ -3384,7 +1435,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="start_button_label"
                                                             id="start_button_label" class=" "
-                                                            value="<?php echo $avatar && $avatar->start_button_label ? stripslashes($avatar->start_button_label) : ''; ?>" />
+                                                            value="<?php echo $avatar && $avatar->start_button_label ? esc_attr(stripslashes($avatar->start_button_label)) : ''; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -3393,9 +1444,9 @@ input[type="checkbox"] {
                                                         <div class="input-with-clear">
                                                             <input type="text"
                                                                 name="styles[chat-start-button][background]"
-                                                                class="background  gradient-color-picker"
+                                                                class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo (isset($chatStartButtonStyle['background'])) ? $chatStartButtonStyle['background'] : 'rgba(29, 78, 216, 0.5)'; ?>" />
+                                                                value="<?php echo isset($chatStartButtonStyle['background']) ? esc_attr($chatStartButtonStyle['background']) : 'rgba(29, 78, 216, 0.5)'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -3406,7 +1457,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[chat-start-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo (isset($chatStartButtonStyle['color'])) ? $chatStartButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($chatStartButtonStyle['color']) ? esc_attr($chatStartButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
 
@@ -3425,7 +1476,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-start-button][border][width]"
                                                                     id="heading-border-width"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo (isset($chatStartButtonStyle['border']['width'])) ? $chatStartButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['border']['width']) ? esc_attr($chatStartButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3439,18 +1490,18 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($chatStartButtonStyle['border']['style']) ? $chatStartButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
                                                         </div>
-
+                                                                
                                                         <!-- Color -->
                                                         <div class="col">
                                                             <input type="color"
                                                                 name="styles[chat-start-button][border][color]"
                                                                 id="heading-border-color" class="border-color"
-                                                                value="<?php echo (isset($chatStartButtonStyle['border']['color'])) ? $chatStartButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($chatStartButtonStyle['border']['color']) ? esc_attr($chatStartButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -3462,7 +1513,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-start-button][border-radius][top]"
                                                                     class="border-radius-input border-radius-top"
-                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['top']) ? $chatStartButtonStyle['border-radius']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['top']) ? esc_attr($chatStartButtonStyle['border-radius']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3472,7 +1523,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-start-button][border-radius][right]"
                                                                     class="border-radius-input border-radius-right"
-                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['right']) ? $chatStartButtonStyle['border-radius']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['right']) ? esc_attr($chatStartButtonStyle['border-radius']['right']) : ''; ?>" />
 
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -3483,7 +1534,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-start-button][border-radius][bottom]"
                                                                     class="border-radius-input border-radius-bottom"
-                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['bottom']) ? $chatStartButtonStyle['border-radius']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['bottom']) ? esc_attr($chatStartButtonStyle['border-radius']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3493,7 +1544,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-start-button][border-radius][left]"
                                                                     class="border-radius-input border-radius-left"
-                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['left']) ? $chatStartButtonStyle['border-radius']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['border-radius']['left']) ? esc_attr($chatStartButtonStyle['border-radius']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3509,7 +1560,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-start-button][padding][top]"
                                                                     id="heading-padding-top"
                                                                     class="padding-input padding-top"
-                                                                    value="<?php echo (isset($chatStartButtonStyle['padding']['top'])) ? $chatStartButtonStyle['padding']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['padding']['top']) ? esc_attr($chatStartButtonStyle['padding']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3520,7 +1571,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-start-button][padding][right]"
                                                                     id="heading-padding-right"
                                                                     class="padding-input padding-right"
-                                                                    value="<?php echo (isset($chatStartButtonStyle['padding']['right'])) ? $chatStartButtonStyle['padding']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['padding']['right']) ? esc_attr($chatStartButtonStyle['padding']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3531,7 +1582,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-start-button][padding][bottom]"
                                                                     id="heading-padding-bottom"
                                                                     class="padding-input padding-bottom"
-                                                                    value="<?php echo (isset($chatStartButtonStyle['padding']['bottom'])) ? $chatStartButtonStyle['padding']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['padding']['bottom']) ? esc_attr($chatStartButtonStyle['padding']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3542,7 +1593,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-start-button][padding][left]"
                                                                     id="heading-padding-left"
                                                                     class="padding-input padding-left"
-                                                                    value="<?php echo (isset($chatStartButtonStyle['padding']['left'])) ? $chatStartButtonStyle['padding']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatStartButtonStyle['padding']['left']) ? esc_attr($chatStartButtonStyle['padding']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3572,7 +1623,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chat-start-button][font-size]"
                                                             class="font-size "
-                                                            value="<?php echo (isset($chatStartButtonStyle['font-size'])) ? $chatStartButtonStyle['font-size'] : 14; ?>" />
+                                                            value="<?php echo isset($chatStartButtonStyle['font-size']) ? esc_attr($chatStartButtonStyle['font-size']) : 14; ?>" />
                                                     </div>
                                                 </div>
 
@@ -3582,7 +1633,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[chat-start-button][line-height]"
                                                             class="line-height "
-                                                            value="<?php echo (isset($chatStartButtonStyle['line-height'])) ? $chatStartButtonStyle['line-height'] : ''; ?>" />
+                                                            value="<?php echo isset($chatStartButtonStyle['line-height']) ? esc_attr($chatStartButtonStyle['line-height']) : ''; ?>" />
                                                     </div>
                                                 </div>
 
@@ -3600,7 +1651,7 @@ input[type="checkbox"] {
                                                             <input type="text" name="styles[switch-button][background]"
                                                                 class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo isset($switchButtonStyle['background']) ? $switchButtonStyle['background'] : 'rgba(59, 130, 246, 0.5)'; ?>" />
+                                                                value="<?php echo isset($switchButtonStyle['background']) ? esc_attr($switchButtonStyle['background']) : 'rgba(59, 130, 246, 0.5)'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -3611,7 +1662,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[switch-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo isset($switchButtonStyle['color']) ? $switchButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($switchButtonStyle['color']) ? esc_attr($switchButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -3626,7 +1677,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][border][width]"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo isset($switchButtonStyle['border']['width']) ? $switchButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['border']['width']) ? esc_attr($switchButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3640,7 +1691,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($switchButtonStyle['border']['style']) ? $switchButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -3651,7 +1702,7 @@ input[type="checkbox"] {
                                                             <input type="color"
                                                                 name="styles[switch-button][border][color]"
                                                                 class="border-color"
-                                                                value="<?php echo isset($switchButtonStyle['border']['color']) ? $switchButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($switchButtonStyle['border']['color']) ? esc_attr($switchButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -3663,7 +1714,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][border-radius][top]"
                                                                     class="border-radius-input border-radius-top"
-                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['top']) ? $switchButtonStyle['border-radius']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['top']) ? esc_attr($switchButtonStyle['border-radius']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3673,7 +1724,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][border-radius][right]"
                                                                     class="border-radius-input border-radius-right"
-                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['right']) ? $switchButtonStyle['border-radius']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['right']) ? esc_attr($switchButtonStyle['border-radius']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3683,7 +1734,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][border-radius][bottom]"
                                                                     class="border-radius-input border-radius-bottom"
-                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['bottom']) ? $switchButtonStyle['border-radius']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['bottom']) ? esc_attr($switchButtonStyle['border-radius']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3693,7 +1744,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][border-radius][left]"
                                                                     class="border-radius-input border-radius-left"
-                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['left']) ? $switchButtonStyle['border-radius']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['border-radius']['left']) ? esc_attr($switchButtonStyle['border-radius']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3708,7 +1759,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][padding][top]"
                                                                     class="padding-input padding-top"
-                                                                    value="<?php echo isset($switchButtonStyle['padding']['top']) ? $switchButtonStyle['padding']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['padding']['top']) ? esc_attr($switchButtonStyle['padding']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3718,7 +1769,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][padding][right]"
                                                                     class="padding-input padding-right"
-                                                                    value="<?php echo isset($switchButtonStyle['padding']['right']) ? $switchButtonStyle['padding']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['padding']['right']) ? esc_attr($switchButtonStyle['padding']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3728,7 +1779,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][padding][bottom]"
                                                                     class="padding-input padding-bottom"
-                                                                    value="<?php echo isset($switchButtonStyle['padding']['bottom']) ? $switchButtonStyle['padding']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['padding']['bottom']) ? esc_attr($switchButtonStyle['padding']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3738,7 +1789,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[switch-button][padding][left]"
                                                                     class="padding-input padding-left"
-                                                                    value="<?php echo isset($switchButtonStyle['padding']['left']) ? $switchButtonStyle['padding']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($switchButtonStyle['padding']['left']) ? esc_attr($switchButtonStyle['padding']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3768,7 +1819,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[switch-button][font-size]"
                                                             class="font-size"
-                                                            value="<?php echo isset($switchButtonStyle['font-size']) ? $switchButtonStyle['font-size'] : 14; ?>" />
+                                                            value="<?php echo isset($switchButtonStyle['font-size']) ? esc_attr($switchButtonStyle['font-size']) : 14; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -3777,7 +1828,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[switch-button][line-height]"
                                                             class="line-height"
-                                                            value="<?php echo isset($switchButtonStyle['line-height']) ? $switchButtonStyle['line-height'] : ''; ?>" />
+                                                            value="<?php echo isset($switchButtonStyle['line-height']) ? esc_attr($switchButtonStyle['line-height']) : ''; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -3794,9 +1845,9 @@ input[type="checkbox"] {
 
                                                         <div class="input-with-clear">
                                                             <input type="text" name="styles[mic-button][background]"
-                                                                class="background  gradient-color-picker"
+                                                                class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo (isset($micButtonStyle['background'])) ? $micButtonStyle['background'] : '#EF4444'; ?>" />
+                                                                value="<?php echo isset($micButtonStyle['background']) ? esc_attr($micButtonStyle['background']) : '#EF4444'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -3807,7 +1858,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[mic-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo (isset($micButtonStyle['color'])) ? $micButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($micButtonStyle['color']) ? esc_attr($micButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
 
@@ -3826,7 +1877,7 @@ input[type="checkbox"] {
                                                                     name="styles[mic-button][border][width]"
                                                                     id="heading-border-width"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo (isset($micButtonStyle['border']['width'])) ? $micButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['border']['width']) ? esc_attr($micButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3840,7 +1891,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($micButtonStyle['border']['style']) ? $micButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -3850,7 +1901,7 @@ input[type="checkbox"] {
                                                         <div class="col">
                                                             <input type="color" name="styles[mic-button][border][color]"
                                                                 id="heading-border-color" class="border-color"
-                                                                value="<?php echo (isset($micButtonStyle['border']['color'])) ? $micButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($micButtonStyle['border']['color']) ? esc_attr($micButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -3862,7 +1913,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[mic-button][border-radius][top]"
                                                                     class="border-radius-input border-radius-top"
-                                                                    value="<?php echo isset($micButtonStyle['border-radius']['top']) ? $micButtonStyle['border-radius']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['border-radius']['top']) ? esc_attr($micButtonStyle['border-radius']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3872,7 +1923,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[mic-button][border-radius][right]"
                                                                     class="border-radius-input border-radius-right"
-                                                                    value="<?php echo isset($micButtonStyle['border-radius']['right']) ? $micButtonStyle['border-radius']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['border-radius']['right']) ? esc_attr($micButtonStyle['border-radius']['right']) : ''; ?>" />
 
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
@@ -3883,7 +1934,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[mic-button][border-radius][bottom]"
                                                                     class="border-radius-input border-radius-bottom"
-                                                                    value="<?php echo isset($micButtonStyle['border-radius']['bottom']) ? $micButtonStyle['border-radius']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['border-radius']['bottom']) ? esc_attr($micButtonStyle['border-radius']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3893,7 +1944,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[mic-button][border-radius][left]"
                                                                     class="border-radius-input border-radius-left"
-                                                                    value="<?php echo isset($micButtonStyle['border-radius']['left']) ? $micButtonStyle['border-radius']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['border-radius']['left']) ? esc_attr($micButtonStyle['border-radius']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3909,7 +1960,7 @@ input[type="checkbox"] {
                                                                     name="styles[mic-button][padding][top]"
                                                                     id="heading-padding-top"
                                                                     class="padding-input padding-top"
-                                                                    value="<?php echo (isset($micButtonStyle['padding']['top'])) ? $micButtonStyle['padding']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['padding']['top']) ? esc_attr($micButtonStyle['padding']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3920,7 +1971,7 @@ input[type="checkbox"] {
                                                                     name="styles[mic-button][padding][right]"
                                                                     id="heading-padding-right"
                                                                     class="padding-input padding-right"
-                                                                    value="<?php echo (isset($micButtonStyle['padding']['right'])) ? $micButtonStyle['padding']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['padding']['right']) ? esc_attr($micButtonStyle['padding']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3931,7 +1982,7 @@ input[type="checkbox"] {
                                                                     name="styles[mic-button][padding][bottom]"
                                                                     id="heading-padding-bottom"
                                                                     class="padding-input padding-bottom"
-                                                                    value="<?php echo (isset($micButtonStyle['padding']['bottom'])) ? $micButtonStyle['padding']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['padding']['bottom']) ? esc_attr($micButtonStyle['padding']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3942,7 +1993,7 @@ input[type="checkbox"] {
                                                                     name="styles[mic-button][padding][left]"
                                                                     id="heading-padding-left"
                                                                     class="padding-input padding-left"
-                                                                    value="<?php echo (isset($micButtonStyle['padding']['left'])) ? $micButtonStyle['padding']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($micButtonStyle['padding']['left']) ? esc_attr($micButtonStyle['padding']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -3953,17 +2004,15 @@ input[type="checkbox"] {
                                                 <div class="style-wrapper">
                                                     <label>Text Align:</label>
                                                     <div class="input-controls">
-                                                        <?php $textAlign = (isset($micButtonStyle['text-align'])) ? $micButtonStyle['text-align'] : 'left'; ?>
+                                                        <?php $textAlign = isset($micButtonStyle['text-align']) ? $micButtonStyle['text-align'] : 'left'; ?>
                                                         <select name="styles[mic-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php echo $textAlign == 'left' ? 'selected="selected"' : ''; ?>>
-                                                                Left</option>
-                                                            <option value="center" <?php echo $textAlign == 'center' ? 'selected="selected"' : ''; ?>>Center</option>
-                                                            <option value="right" <?php echo $textAlign == 'right' ? 'selected="selected"' : ''; ?>>Right</option>
-                                                            <option value="justify" <?php echo $textAlign == 'justify' ? 'selected="selected"' : ''; ?>>Justify</option>
-                                                            <option value="start" <?php echo $textAlign == 'start' ? 'selected="selected"' : ''; ?>>Start</option>
-                                                            <option value="end" <?php echo $textAlign == 'end' ? 'selected="selected"' : ''; ?>>
-                                                                End</option>
+                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left</option>
+                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center</option>
+                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right</option>
+                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify</option>
+                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start</option>
+                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -3972,7 +2021,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[mic-button][font-size]" class="font-size "
-                                                            value="<?php echo (isset($micButtonStyle['font-size'])) ? $micButtonStyle['font-size'] : 14; ?>" />
+                                                            value="<?php echo isset($micButtonStyle['font-size']) ? esc_attr($micButtonStyle['font-size']) : 14; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -3980,7 +2029,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[mic-button][line-height]" class="line-height "
-                                                            value="<?php echo (isset($micButtonStyle['line-height'])) ? $micButtonStyle['line-height'] : ''; ?>" />
+                                                            value="<?php echo isset($micButtonStyle['line-height']) ? esc_attr($micButtonStyle['line-height']) : ''; ?>" />
                                                     </div>
                                                 </div>
 
@@ -3999,7 +2048,7 @@ input[type="checkbox"] {
                                                             <input type="text" name="styles[camera-button][background]"
                                                                 class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo isset($cameraButtonStyle['background']) ? $cameraButtonStyle['background'] : 'rgba(239, 68, 68, 0.5)'; ?>" />
+                                                                value="<?php echo isset($cameraButtonStyle['background']) ? esc_attr($cameraButtonStyle['background']) : 'rgba(239, 68, 68, 0.5)'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -4010,7 +2059,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[camera-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo isset($cameraButtonStyle['color']) ? $cameraButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($cameraButtonStyle['color']) ? esc_attr($cameraButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -4025,7 +2074,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border][width]"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo isset($cameraButtonStyle['border']['width']) ? $cameraButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border']['width']) ? esc_attr($cameraButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4039,7 +2088,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($cameraButtonStyle['border']['style']) ? $cameraButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -4050,7 +2099,7 @@ input[type="checkbox"] {
                                                             <input type="color"
                                                                 name="styles[camera-button][border][color]"
                                                                 class="border-color"
-                                                                value="<?php echo isset($cameraButtonStyle['border']['color']) ? $cameraButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($cameraButtonStyle['border']['color']) ? esc_attr($cameraButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4062,7 +2111,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][top]"
                                                                     class="border-radius-input border-radius-top"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['top']) ? $cameraButtonStyle['border-radius']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['top']) ? esc_attr($cameraButtonStyle['border-radius']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4072,7 +2121,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][right]"
                                                                     class="border-radius-input border-radius-right"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['right']) ? $cameraButtonStyle['border-radius']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['right']) ? esc_attr($cameraButtonStyle['border-radius']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4082,7 +2131,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][bottom]"
                                                                     class="border-radius-input border-radius-bottom"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['bottom']) ? $cameraButtonStyle['border-radius']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['bottom']) ? esc_attr($cameraButtonStyle['border-radius']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4092,7 +2141,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][left]"
                                                                     class="border-radius-input border-radius-left"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['left']) ? $cameraButtonStyle['border-radius']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['left']) ? esc_attr($cameraButtonStyle['border-radius']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4107,7 +2156,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][padding][top]"
                                                                     class="padding-input padding-top"
-                                                                    value="<?php echo isset($cameraButtonStyle['padding']['top']) ? $cameraButtonStyle['padding']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['top']) ? esc_attr($cameraButtonStyle['padding']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4117,7 +2166,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][padding][right]"
                                                                     class="padding-input padding-right"
-                                                                    value="<?php echo isset($cameraButtonStyle['padding']['right']) ? $cameraButtonStyle['padding']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['right']) ? esc_attr($cameraButtonStyle['padding']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4127,7 +2176,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][padding][bottom]"
                                                                     class="padding-input padding-bottom"
-                                                                    value="<?php echo isset($cameraButtonStyle['padding']['bottom']) ? $cameraButtonStyle['padding']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['bottom']) ? esc_attr($cameraButtonStyle['padding']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4137,7 +2186,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][padding][left]"
                                                                     class="padding-input padding-left"
-                                                                    value="<?php echo isset($cameraButtonStyle['padding']['left']) ? $cameraButtonStyle['padding']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['left']) ? esc_attr($cameraButtonStyle['padding']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4152,12 +2201,12 @@ input[type="checkbox"] {
                                                         ?>
                                                         <select name="styles[camera-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php echo $textAlign == 'left' ? 'selected="selected"' : ''; ?>>Left</option>
-                                                            <option value="center" <?php echo $textAlign == 'center' ? 'selected="selected"' : ''; ?>>Center</option>
-                                                            <option value="right" <?php echo $textAlign == 'right' ? 'selected="selected"' : ''; ?>>Right</option>
-                                                            <option value="justify" <?php echo $textAlign == 'justify' ? 'selected="selected"' : ''; ?>>Justify</option>
-                                                            <option value="start" <?php echo $textAlign == 'start' ? 'selected="selected"' : ''; ?>>Start</option>
-                                                            <option value="end" <?php echo $textAlign == 'end' ? 'selected="selected"' : ''; ?>>End</option>
+                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left</option>
+                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center</option>
+                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right</option>
+                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify</option>
+                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start</option>
+                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -4167,7 +2216,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[camera-button][font-size]"
                                                             class="font-size"
-                                                            value="<?php echo isset($cameraButtonStyle['font-size']) ? $cameraButtonStyle['font-size'] : 14; ?>" />
+                                                            value="<?php echo isset($cameraButtonStyle['font-size']) ? esc_attr($cameraButtonStyle['font-size']) : 14; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -4176,26 +2225,25 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[camera-button][line-height]"
                                                             class="line-height"
-                                                            value="<?php echo isset($cameraButtonStyle['line-height']) ? $cameraButtonStyle['line-height'] : ''; ?>" />
+                                                            value="<?php echo isset($cameraButtonStyle['line-height']) ? esc_attr($cameraButtonStyle['line-height']) : ''; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div id="avatar_studio-tab-end-button" class="avatar_studio-tab-content  ">
+                                    <div id="avatar_studio-tab-end-button" class="avatar_studio-tab-content">
                                         <div class="row chat-end-button">
                                             <div class="col col-5">
                                                 <div class="style-wrapper">
                                                     <label>Background:</label>
                                                     <div class="input-controls">
-
                                                         <div class="input-with-clear">
                                                             <input type="text"
                                                                 name="styles[chat-end-button][background]"
-                                                                class="background  gradient-color-picker"
+                                                                class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo (isset($chatEndButtonStyle['background'])) ? $chatEndButtonStyle['background'] : '#1D4ED8'; ?>" />
+                                                                value="<?php echo isset($chatEndButtonStyle['background']) ? esc_attr($chatEndButtonStyle['background']) : '#1D4ED8'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -4206,11 +2254,9 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[chat-end-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo (isset($chatEndButtonStyle['color'])) ? $chatEndButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($chatEndButtonStyle['color']) ? esc_attr($chatEndButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
-
-
                                             </div>
 
                                             <div class="col col-5">
@@ -4224,7 +2270,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-end-button][border][width]"
                                                                     id="heading-border-width"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo (isset($chatEndButtonStyle['border']['width'])) ? $chatEndButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['border']['width']) ? esc_attr($chatEndButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4238,7 +2284,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($chatEndButtonStyle['border']['style']) ? $chatEndButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -4249,7 +2295,7 @@ input[type="checkbox"] {
                                                             <input type="color"
                                                                 name="styles[chat-end-button][border][color]"
                                                                 id="heading-border-color" class="border-color"
-                                                                value="<?php echo (isset($chatEndButtonStyle['border']['color'])) ? $chatEndButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($chatEndButtonStyle['border']['color']) ? esc_attr($chatEndButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4261,7 +2307,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-end-button][border-radius][top]"
                                                                     class="border-radius-input border-radius-top"
-                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['top']) ? $chatEndButtonStyle['border-radius']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['top']) ? esc_attr($chatEndButtonStyle['border-radius']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4271,8 +2317,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-end-button][border-radius][right]"
                                                                     class="border-radius-input border-radius-right"
-                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['right']) ? $chatEndButtonStyle['border-radius']['right'] : ''; ?>" />
-
+                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['right']) ? esc_attr($chatEndButtonStyle['border-radius']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4282,7 +2327,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-end-button][border-radius][bottom]"
                                                                     class="border-radius-input border-radius-bottom"
-                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['bottom']) ? $chatEndButtonStyle['border-radius']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['bottom']) ? esc_attr($chatEndButtonStyle['border-radius']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4292,7 +2337,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[chat-end-button][border-radius][left]"
                                                                     class="border-radius-input border-radius-left"
-                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['left']) ? $chatEndButtonStyle['border-radius']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['border-radius']['left']) ? esc_attr($chatEndButtonStyle['border-radius']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4308,7 +2353,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-end-button][padding][top]"
                                                                     id="heading-padding-top"
                                                                     class="padding-input padding-top"
-                                                                    value="<?php echo (isset($chatEndButtonStyle['padding']['top'])) ? $chatEndButtonStyle['padding']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['padding']['top']) ? esc_attr($chatEndButtonStyle['padding']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4319,7 +2364,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-end-button][padding][right]"
                                                                     id="heading-padding-right"
                                                                     class="padding-input padding-right"
-                                                                    value="<?php echo (isset($chatEndButtonStyle['padding']['right'])) ? $chatEndButtonStyle['padding']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['padding']['right']) ? esc_attr($chatEndButtonStyle['padding']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4330,7 +2375,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-end-button][padding][bottom]"
                                                                     id="heading-padding-bottom"
                                                                     class="padding-input padding-bottom"
-                                                                    value="<?php echo (isset($chatEndButtonStyle['padding']['bottom'])) ? $chatEndButtonStyle['padding']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['padding']['bottom']) ? esc_attr($chatEndButtonStyle['padding']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4341,7 +2386,7 @@ input[type="checkbox"] {
                                                                     name="styles[chat-end-button][padding][left]"
                                                                     id="heading-padding-left"
                                                                     class="padding-input padding-left"
-                                                                    value="<?php echo (isset($chatEndButtonStyle['padding']['left'])) ? $chatEndButtonStyle['padding']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($chatEndButtonStyle['padding']['left']) ? esc_attr($chatEndButtonStyle['padding']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4351,15 +2396,15 @@ input[type="checkbox"] {
                                                 <div class="style-wrapper">
                                                     <label>Text Align:</label>
                                                     <div class="input-controls">
-                                                        <?php $textAlign = (isset($chatEndButtonStyle['text-align'])) ? $chatEndButtonStyle['text-align'] : 'left'; ?>
+                                                        <?php $textAlign = isset($chatEndButtonStyle['text-align']) ? $chatEndButtonStyle['text-align'] : 'left'; ?>
                                                         <select name="styles[chat-end-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php echo $textAlign == 'left' ? 'selected="selected"' : ''; ?>> Left</option>
-                                                            <option value="center" <?php echo $textAlign == 'center' ? 'selected="selected"' : ''; ?>>Center</option>
-                                                            <option value="right" <?php echo $textAlign == 'right' ? 'selected="selected"' : ''; ?>>Right</option>
-                                                            <option value="justify" <?php echo $textAlign == 'justify' ? 'selected="selected"' : ''; ?>>Justify</option>
-                                                            <option value="start" <?php echo $textAlign == 'start' ? 'selected="selected"' : ''; ?>>Start</option>
-                                                            <option value="end" <?php echo $textAlign == 'end' ? 'selected="selected"' : ''; ?>> End</option>
+                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left</option>
+                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center</option>
+                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right</option>
+                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify</option>
+                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start</option>
+                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -4367,8 +2412,8 @@ input[type="checkbox"] {
                                                     <label>Font Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
-                                                            name="styles[chat-end-button][font-size]" class="font-size "
-                                                            value="<?php echo (isset($chatEndButtonStyle['font-size'])) ? $chatEndButtonStyle['font-size'] : 14; ?>" />
+                                                            name="styles[chat-end-button][font-size]" class="font-size"
+                                                            value="<?php echo isset($chatEndButtonStyle['font-size']) ? esc_attr($chatEndButtonStyle['font-size']) : 14; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -4376,13 +2421,10 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[chat-end-button][line-height]"
-                                                            class="line-height "
-                                                            value="<?php echo (isset($chatEndButtonStyle['line-height'])) ? $chatEndButtonStyle['line-height'] : ''; ?>" />
+                                                            class="line-height"
+                                                            value="<?php echo isset($chatEndButtonStyle['line-height']) ? esc_attr($chatEndButtonStyle['line-height']) : ''; ?>" />
                                                     </div>
                                                 </div>
-
-
-
                                             </div>
                                         </div>
                                     </div>
@@ -4397,7 +2439,7 @@ input[type="checkbox"] {
                                                             <input type="text" name="styles[transcript-button][background]"
                                                                 class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo isset($transcriptButtonStyle['background']) ? $transcriptButtonStyle['background'] : 'rgba(139, 92, 246, 0.5)'; ?>" />
+                                                                value="<?php echo isset($transcriptButtonStyle['background']) ? esc_attr($transcriptButtonStyle['background']) : 'rgba(139, 92, 246, 0.5)'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -4408,7 +2450,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[transcript-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo isset($transcriptButtonStyle['color']) ? $transcriptButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($transcriptButtonStyle['color']) ? esc_attr($transcriptButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -4423,7 +2465,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[transcript-button][border][width]"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo isset($transcriptButtonStyle['border']['width']) ? $transcriptButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($transcriptButtonStyle['border']['width']) ? esc_attr($transcriptButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4437,7 +2479,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($transcriptButtonStyle['border']['style']) ? $transcriptButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -4448,7 +2490,7 @@ input[type="checkbox"] {
                                                             <input type="color"
                                                                 name="styles[transcript-button][border][color]"
                                                                 class="border-color"
-                                                                value="<?php echo isset($transcriptButtonStyle['border']['color']) ? $transcriptButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($transcriptButtonStyle['border']['color']) ? esc_attr($transcriptButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4458,7 +2500,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[transcript-button][border-radius]"
                                                             class="border-radius-input"
-                                                            value="<?php echo isset($transcriptButtonStyle['border-radius']) ? $transcriptButtonStyle['border-radius'] : '8'; ?>" />
+                                                            value="<?php echo isset($transcriptButtonStyle['border-radius']) ? esc_attr($transcriptButtonStyle['border-radius']) : '8'; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -4469,7 +2511,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[transcript-button][padding]"
                                                             class="padding-input"
-                                                            value="<?php echo isset($transcriptButtonStyle['padding']) ? $transcriptButtonStyle['padding'] : '10'; ?>" />
+                                                            value="<?php echo isset($transcriptButtonStyle['padding']) ? esc_attr($transcriptButtonStyle['padding']) : '10'; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -4480,26 +2522,25 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[transcript-button][font-size]"
                                                             class="font-size"
-                                                            value="<?php echo isset($transcriptButtonStyle['font-size']) ? $transcriptButtonStyle['font-size'] : '14'; ?>" />
+                                                            value="<?php echo isset($transcriptButtonStyle['font-size']) ? esc_attr($transcriptButtonStyle['font-size']) : '14'; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div id="avatar_studio-tab-camera-button" class="avatar_studio-tab-content  ">
+                                    <div id="avatar_studio-tab-camera-button" class="avatar_studio-tab-content">
 
                                         <div class="row camera-button">
                                             <div class="col col-5">
                                                 <div class="style-wrapper">
                                                     <label>Background:</label>
                                                     <div class="input-controls">
-
                                                         <div class="input-with-clear">
                                                             <input type="text" name="styles[camera-button][background]"
-                                                                class="background  gradient-color-picker"
+                                                                class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo (isset($cameraButtonStyle['background'])) ? $cameraButtonStyle['background'] : '#EF4444'; ?>" />
+                                                                value="<?php echo isset($cameraButtonStyle['background']) ? esc_attr($cameraButtonStyle['background']) : '#EF4444'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -4510,15 +2551,12 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[camera-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo (isset($cameraButtonStyle['color'])) ? $cameraButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($cameraButtonStyle['color']) ? esc_attr($cameraButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
-
-
                                             </div>
 
                                             <div class="col col-5">
-
                                                 <div class="style-wrapper">
                                                     <label>Border :</label>
                                                     <div class="row gap-0">
@@ -4529,7 +2567,7 @@ input[type="checkbox"] {
                                                                     name="styles[camera-button][border][width]"
                                                                     id="heading-border-width"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo (isset($cameraButtonStyle['border']['width'])) ? $cameraButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border']['width']) ? esc_attr($cameraButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4543,7 +2581,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($cameraButtonStyle['border']['style']) ? $cameraButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -4554,7 +2592,7 @@ input[type="checkbox"] {
                                                             <input type="color"
                                                                 name="styles[camera-button][border][color]"
                                                                 id="heading-border-color" class="border-color"
-                                                                value="<?php echo (isset($cameraButtonStyle['border']['color'])) ? $cameraButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($cameraButtonStyle['border']['color']) ? esc_attr($cameraButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4566,7 +2604,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][top]"
                                                                     class="border-radius-input border-radius-top"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['top']) ? $cameraButtonStyle['border-radius']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['top']) ? esc_attr($cameraButtonStyle['border-radius']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4576,8 +2614,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][right]"
                                                                     class="border-radius-input border-radius-right"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['right']) ? $cameraButtonStyle['border-radius']['right'] : ''; ?>" />
-
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['right']) ? esc_attr($cameraButtonStyle['border-radius']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4587,7 +2624,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][bottom]"
                                                                     class="border-radius-input border-radius-bottom"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['bottom']) ? $cameraButtonStyle['border-radius']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['bottom']) ? esc_attr($cameraButtonStyle['border-radius']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4597,7 +2634,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[camera-button][border-radius][left]"
                                                                     class="border-radius-input border-radius-left"
-                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['left']) ? $cameraButtonStyle['border-radius']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['border-radius']['left']) ? esc_attr($cameraButtonStyle['border-radius']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4613,7 +2650,7 @@ input[type="checkbox"] {
                                                                     name="styles[camera-button][padding][top]"
                                                                     id="heading-padding-top"
                                                                     class="padding-input padding-top"
-                                                                    value="<?php echo (isset($cameraButtonStyle['padding']['top'])) ? $cameraButtonStyle['padding']['top'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['top']) ? esc_attr($cameraButtonStyle['padding']['top']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4624,7 +2661,7 @@ input[type="checkbox"] {
                                                                     name="styles[camera-button][padding][right]"
                                                                     id="heading-padding-right"
                                                                     class="padding-input padding-right"
-                                                                    value="<?php echo (isset($cameraButtonStyle['padding']['right'])) ? $cameraButtonStyle['padding']['right'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['right']) ? esc_attr($cameraButtonStyle['padding']['right']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4635,7 +2672,7 @@ input[type="checkbox"] {
                                                                     name="styles[camera-button][padding][bottom]"
                                                                     id="heading-padding-bottom"
                                                                     class="padding-input padding-bottom"
-                                                                    value="<?php echo (isset($cameraButtonStyle['padding']['bottom'])) ? $cameraButtonStyle['padding']['bottom'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['bottom']) ? esc_attr($cameraButtonStyle['padding']['bottom']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4646,7 +2683,7 @@ input[type="checkbox"] {
                                                                     name="styles[camera-button][padding][left]"
                                                                     id="heading-padding-left"
                                                                     class="padding-input padding-left"
-                                                                    value="<?php echo (isset($cameraButtonStyle['padding']['left'])) ? $cameraButtonStyle['padding']['left'] : ''; ?>" />
+                                                                    value="<?php echo isset($cameraButtonStyle['padding']['left']) ? esc_attr($cameraButtonStyle['padding']['left']) : ''; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4657,17 +2694,15 @@ input[type="checkbox"] {
                                                 <div class="style-wrapper">
                                                     <label>Text Align:</label>
                                                     <div class="input-controls">
-                                                        <?php $textAlign = (isset($cameraButtonStyle['text-align'])) ? $cameraButtonStyle['text-align'] : 'left'; ?>
+                                                        <?php $textAlign = isset($cameraButtonStyle['text-align']) ? $cameraButtonStyle['text-align'] : 'left'; ?>
                                                         <select name="styles[camera-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php echo $textAlign == 'left' ? 'selected="selected"' : ''; ?>>
-                                                                Left</option>
-                                                            <option value="center" <?php echo $textAlign == 'center' ? 'selected="selected"' : ''; ?>>Center</option>
-                                                            <option value="right" <?php echo $textAlign == 'right' ? 'selected="selected"' : ''; ?>>Right</option>
-                                                            <option value="justify" <?php echo $textAlign == 'justify' ? 'selected="selected"' : ''; ?>>Justify</option>
-                                                            <option value="start" <?php echo $textAlign == 'start' ? 'selected="selected"' : ''; ?>>Start</option>
-                                                            <option value="end" <?php echo $textAlign == 'end' ? 'selected="selected"' : ''; ?>>
-                                                                End</option>
+                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left</option>
+                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center</option>
+                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right</option>
+                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify</option>
+                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start</option>
+                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -4675,8 +2710,8 @@ input[type="checkbox"] {
                                                     <label>Font Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
-                                                            name="styles[camera-button][font-size]" class="font-size "
-                                                            value="<?php echo (isset($cameraButtonStyle['font-size'])) ? $cameraButtonStyle['font-size'] : 14; ?>" />
+                                                            name="styles[camera-button][font-size]" class="font-size"
+                                                            value="<?php echo isset($cameraButtonStyle['font-size']) ? esc_attr($cameraButtonStyle['font-size']) : 14; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -4684,14 +2719,12 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[camera-button][line-height]"
-                                                            class="line-height "
-                                                            value="<?php echo (isset($cameraButtonStyle['line-height'])) ? $cameraButtonStyle['line-height'] : ''; ?>" />
+                                                            class="line-height"
+                                                            value="<?php echo isset($cameraButtonStyle['line-height']) ? esc_attr($cameraButtonStyle['line-height']) : ''; ?>" />
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </div>
-
                                     </div>
 
                                     <div id="avatar_studio-tab-close-button" class="avatar_studio-tab-content">
@@ -4704,7 +2737,7 @@ input[type="checkbox"] {
                                                             <input type="text" name="styles[close-button][background]"
                                                                 class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo isset($closeButtonStyle['background']) ? $closeButtonStyle['background'] : 'rgba(220, 38, 38, 0.5)'; ?>" />
+                                                                value="<?php echo isset($closeButtonStyle['background']) ? esc_attr($closeButtonStyle['background']) : 'rgba(220, 38, 38, 0.5)'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -4715,7 +2748,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[close-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo isset($closeButtonStyle['color']) ? $closeButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($closeButtonStyle['color']) ? esc_attr($closeButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -4725,7 +2758,7 @@ input[type="checkbox"] {
                                                             <input type="text" name="styles[close-button][hover-background]"
                                                                 class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo isset($closeButtonStyle['hover-background']) ? $closeButtonStyle['hover-background'] : 'rgba(220, 38, 38, 0.8)'; ?>" />
+                                                                value="<?php echo isset($closeButtonStyle['hover-background']) ? esc_attr($closeButtonStyle['hover-background']) : 'rgba(220, 38, 38, 0.8)'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -4742,7 +2775,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[close-button][size]"
                                                                     class="size-input"
-                                                                    value="<?php echo isset($closeButtonStyle['size']) ? $closeButtonStyle['size'] : '32'; ?>" />
+                                                                    value="<?php echo isset($closeButtonStyle['size']) ? esc_attr($closeButtonStyle['size']) : '32'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4758,7 +2791,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[close-button][border][width]"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo isset($closeButtonStyle['border']['width']) ? $closeButtonStyle['border']['width'] : '1'; ?>" />
+                                                                    value="<?php echo isset($closeButtonStyle['border']['width']) ? esc_attr($closeButtonStyle['border']['width']) : '1'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4772,7 +2805,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($closeButtonStyle['border']['style']) ? $closeButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -4783,7 +2816,7 @@ input[type="checkbox"] {
                                                             <input type="color"
                                                                 name="styles[close-button][border][color]"
                                                                 class="border-color"
-                                                                value="<?php echo isset($closeButtonStyle['border']['color']) ? $closeButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($closeButtonStyle['border']['color']) ? esc_attr($closeButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4793,7 +2826,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[close-button][border-radius]"
                                                             class="border-radius-input"
-                                                            value="<?php echo isset($closeButtonStyle['border-radius']) ? $closeButtonStyle['border-radius'] : '50'; ?>" />
+                                                            value="<?php echo isset($closeButtonStyle['border-radius']) ? esc_attr($closeButtonStyle['border-radius']) : '50'; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -4807,7 +2840,7 @@ input[type="checkbox"] {
                                                                     name="styles[close-button][position-top]"
                                                                     class="position-input"
                                                                     placeholder="Top"
-                                                                    value="<?php echo isset($closeButtonStyle['position-top']) ? $closeButtonStyle['position-top'] : '10'; ?>" />
+                                                                    value="<?php echo isset($closeButtonStyle['position-top']) ? esc_attr($closeButtonStyle['position-top']) : '10'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4818,7 +2851,7 @@ input[type="checkbox"] {
                                                                     name="styles[close-button][position-right]"
                                                                     class="position-input"
                                                                     placeholder="Right"
-                                                                    value="<?php echo isset($closeButtonStyle['position-right']) ? $closeButtonStyle['position-right'] : '10'; ?>" />
+                                                                    value="<?php echo isset($closeButtonStyle['position-right']) ? esc_attr($closeButtonStyle['position-right']) : '10'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4831,7 +2864,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[close-button][font-size]"
                                                             class="font-size"
-                                                            value="<?php echo isset($closeButtonStyle['font-size']) ? $closeButtonStyle['font-size'] : '16'; ?>" />
+                                                            value="<?php echo isset($closeButtonStyle['font-size']) ? esc_attr($closeButtonStyle['font-size']) : '16'; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -4848,7 +2881,7 @@ input[type="checkbox"] {
                                                             <input type="text" name="styles[fullscreen-button][background]"
                                                                 class="background gradient-color-picker"
                                                                 data-alpha-enabled="true"
-                                                                value="<?php echo isset($fullscreenButtonStyle['background']) ? $fullscreenButtonStyle['background'] : 'rgba(59, 130, 246, 0.5)'; ?>" />
+                                                                value="<?php echo isset($fullscreenButtonStyle['background']) ? esc_attr($fullscreenButtonStyle['background']) : 'rgba(59, 130, 246, 0.5)'; ?>" />
                                                             <span class="clear-btn"
                                                                 onclick="clearLCColorPicker(this)">&#x2715;</span>
                                                         </div>
@@ -4859,7 +2892,7 @@ input[type="checkbox"] {
                                                     <div class="input-controls">
                                                         <input type="text" name="styles[fullscreen-button][color]"
                                                             class="color color-picker"
-                                                            value="<?php echo isset($fullscreenButtonStyle['color']) ? $fullscreenButtonStyle['color'] : '#FFFFFF'; ?>" />
+                                                            value="<?php echo isset($fullscreenButtonStyle['color']) ? esc_attr($fullscreenButtonStyle['color']) : '#FFFFFF'; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -4874,7 +2907,7 @@ input[type="checkbox"] {
                                                                 <input type="number" min="0"
                                                                     name="styles[fullscreen-button][border][width]"
                                                                     class="border-input border-width"
-                                                                    value="<?php echo isset($fullscreenButtonStyle['border']['width']) ? $fullscreenButtonStyle['border']['width'] : '0'; ?>" />
+                                                                    value="<?php echo isset($fullscreenButtonStyle['border']['width']) ? esc_attr($fullscreenButtonStyle['border']['width']) : '0'; ?>" />
                                                                 <span class="clear-btn"
                                                                     onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                             </div>
@@ -4888,7 +2921,7 @@ input[type="checkbox"] {
                                                                 $styles = ['none', 'solid', 'dashed', 'dotted', 'double'];
                                                                 $selected = isset($fullscreenButtonStyle['border']['style']) ? $fullscreenButtonStyle['border']['style'] : 'solid';
                                                                 foreach ($styles as $style) {
-                                                                    echo "<option value=\"$style\"" . ($selected == $style ? ' selected' : '') . ">$style</option>";
+                                                                    echo '<option value="' . esc_attr($style) . '"' . selected($selected, $style, false) . '>' . esc_html($style) . '</option>';
                                                                 }
                                                                 ?>
                                                             </select>
@@ -4899,7 +2932,7 @@ input[type="checkbox"] {
                                                             <input type="color"
                                                                 name="styles[fullscreen-button][border][color]"
                                                                 class="border-color"
-                                                                value="<?php echo isset($fullscreenButtonStyle['border']['color']) ? $fullscreenButtonStyle['border']['color'] : '#000000'; ?>" />
+                                                                value="<?php echo isset($fullscreenButtonStyle['border']['color']) ? esc_attr($fullscreenButtonStyle['border']['color']) : '#000000'; ?>" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4909,7 +2942,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[fullscreen-button][border-radius]"
                                                             class="border-radius-input"
-                                                            value="<?php echo isset($fullscreenButtonStyle['border-radius']) ? $fullscreenButtonStyle['border-radius'] : '50'; ?>" />
+                                                            value="<?php echo isset($fullscreenButtonStyle['border-radius']) ? esc_attr($fullscreenButtonStyle['border-radius']) : '50'; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -4920,7 +2953,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[fullscreen-button][padding]"
                                                             class="padding-input"
-                                                            value="<?php echo isset($fullscreenButtonStyle['padding']) ? $fullscreenButtonStyle['padding'] : '0'; ?>" />
+                                                            value="<?php echo isset($fullscreenButtonStyle['padding']) ? esc_attr($fullscreenButtonStyle['padding']) : '0'; ?>" />
                                                         <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
@@ -4931,7 +2964,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[fullscreen-button][font-size]"
                                                             class="font-size"
-                                                            value="<?php echo isset($fullscreenButtonStyle['font-size']) ? $fullscreenButtonStyle['font-size'] : '14'; ?>" />
+                                                            value="<?php echo isset($fullscreenButtonStyle['font-size']) ? esc_attr($fullscreenButtonStyle['font-size']) : '14'; ?>" />
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
@@ -4940,7 +2973,7 @@ input[type="checkbox"] {
                                                         <input type="number" min="0"
                                                             name="styles[fullscreen-button][icon-size]"
                                                             class="icon-size"
-                                                            value="<?php echo isset($fullscreenButtonStyle['icon-size']) ? $fullscreenButtonStyle['icon-size'] : '16'; ?>" />
+                                                            value="<?php echo isset($fullscreenButtonStyle['icon-size']) ? esc_attr($fullscreenButtonStyle['icon-size']) : '16'; ?>" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -4992,8 +3025,8 @@ input[type="checkbox"] {
                         
                         <div id="chatBox" class="show preview-mode session-before">
                             <div id="chat-widget">
-                                <input type="hidden" id="pageId" value="<?php echo get_the_ID(); ?>">
-                                <input type="hidden" id="avatarStudioId" value="<?php echo $avatar_studio_id; ?>">
+                                <input type="hidden" id="pageId" value="<?php echo esc_attr(get_the_ID()); ?>">
+                                <input type="hidden" id="avatarStudioId" value="<?php echo esc_attr($avatar_studio_id); ?>">
                                 <?php require(plugin_dir_path(__FILE__) . '../avatarContainer.php'); ?>
                             </div>
                         </div>
@@ -5011,24 +3044,12 @@ input[type="checkbox"] {
             array('id' => 'saveBtn') // ✅ Add your custom ID here
         );
         ?>
-        <style>
-            #saveBtn {
-                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-                color: #fff;
-                padding: 6px 18px;
-                border-radius: 6px;
-                border: none;
-            }
-            #saveBtn:hover {
-                background: linear-gradient(135deg, #38b1c5 10%, #da922c 90%);
-            }
-        </style>
     </form>
 
 </div>
 
-<script>
-    let plugin_dir_url = '<?php echo plugin_dir_url(__FILE__); ?>../';
+<!-- <script>
+    let plugin_dir_url = '<?php echo esc_url(plugin_dir_url(__FILE__)); ?>../';
     function isNumeric(value) {
         return value !== '' && value !== null && !isNaN(value) && isFinite(value);
     }
@@ -5112,10 +3133,10 @@ input[type="checkbox"] {
         const avatar_title = document.getElementById('avatar_title').value.trim();
         const preview_image = document.getElementById('preview_image').value.trim();
         if (previewImage) {
-            previewImage.src = preview_image || '<?php echo $previewImage; ?>';
+            previewImage.src = preview_image || '<?php echo esc_url($previewImage); ?>';
         }
         if (avatarVideo) {
-            avatarVideo.setAttribute('poster', preview_image || '<?php echo $previewImage; ?>');
+            avatarVideo.setAttribute('poster', preview_image || '<?php echo esc_url($previewImage); ?>');
         }
 
         /**
@@ -6077,226 +4098,9 @@ input[type="checkbox"] {
 
     });
 
-</script>
+</script> -->
 
-
-<style>
-/* Enhanced Preview Area Styles */
-.preview-area {
-    /* background: #f8f9fa;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
-}
-
-.preview-area h2 {
-    color: #2c3e50;
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Preview Mode Toggle */
-.preview-mode-toggle {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 10px;
-    background: white;
-    padding: 8px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.preview-mode-btn {
-    flex: 1;
-    padding: 12px 20px;
-    border: 2px solid #e5e7eb;
-    background: white;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.preview-mode-btn:hover {
-    border-color: #38b1c5;
-    color: #38b1c5;
-}
-
-.preview-mode-btn.active {
-    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-    border-color: transparent;
-    color: white;
-    font-weight: 600;
-}
-
-.preview-mode-btn i {
-    font-size: 16px;
-}
-
-/* Fixed Preview Container */
-.preview-container {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    min-height: 500px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
-
-#chatBox.preview-mode {
-    position: relative !important;
-    margin: 0 auto !important;
-    transform: none !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
-    left: 0%;
-}
-
-
-/* Session State Specific Styles */
-/* Before Session Mode - Show only start button and thumbnail */
-.preview-mode.session-beforebion-beforebefore .chatBtnContainer {
-    display: flex !important;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-}
-
-.preview-mode.session-before #startSession {
-    display: inline-flex !important;
-}
-
-.preview-mode.session-before .transcriptToggleButton {
-    display: flex;
-}
-
-.preview-mode.session-before .actionContainer,
-.preview-mode.session-before #chatBox-close,
-.preview-mode.session-before .action-view-transcript,
-.preview-mode.session-before .chatBox-fullscreen,
-.preview-mode.session-before .language-switcher,
-.preview-mode.session-before .disclaimer,
-.preview-mode.session-before .instruction,
-.preview-mode.session-before .userform {
-    /* display: none !important; */
-}
-
-.preview-mode.session-during .language-switcher {
-    display: none !important;
-}
-
-.preview-mode.session-during #fullscreen {
-    display: none;
-}
-
-.preview-mode.session-during #chatBox .hide {
-    display: flex !important;
-}
-
-.preview-mode.session-before .welcomeContainer {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-}
-
-.preview-mode.session-before .loadingText {
-    display: none !important;
-}
-
-.preview-mode.session-before .loading-icon {
-    display: none !important;
-}
-
-/* During Session Mode - Show session controls */
-.preview-mode.session-during .chatBtnContainer {
-    display: none !important;
-}
-
-.preview-mode.session-during .actionContainer {
-    display: flex !important;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-}
-
-.preview-mode.session-during #endSession,
-.preview-mode.session-during #micToggler,
-.preview-mode.session-during {
-    display: inline-flex !important;
-}
-
-.transcriptToggleButton {
-    display: none;
-}
-
-.preview-mode.session-during #cameraToggler {
-    display: inline-flex !important;
-}
-
-.preview-mode.session-during #chatBox-close,
-.preview-mode.session-during .chatBox-fullscreen,
-.preview-mode.session-during .language-switcher,
-.preview-mode.session-during #switchInteractionMode,
-.preview-mode.session-during #listeningIcon {
-    /* display: none !important; */
-}
-
-/* Hide transcript container and user video in preview mode */
-.preview-mode ~ #transcriptContainer,
-.preview-mode .userVideoContainer {
-    display: flex !important;
-}
-
-.preview-mode.session-during #chatBox .hide {
-    display: flex !important;
-}
-
-/* Hide specific elements in both preview modes */
-.preview-mode #chatBox-close,
-.preview-mode .chatBox-fullscreen,
-.preview-mode .language-switcher {
-    /* display: none !important; */
-}
-
-/* Show video in during session mode */
-.preview-mode.session-during #video_holder {
-    display: block !important;
-}
-
-.preview-mode.session-before #video_holder {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .preview-mode-toggle {
-        flex-direction: column;
-    }
-    
-    .thumbnail-size-options {
-        flex-direction: column;
-    }
-}
-</style>
-
-<script>
+<!-- <script>
 // Enhanced Preview JavaScript
 document.addEventListener('DOMContentLoaded', () => {
     const previewModeBtns = document.querySelectorAll('.preview-mode-btn');
@@ -6479,8 +4283,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Your existing showChatBoxPreview function remains the same
 // Just ensure it doesn't override the position styling we've added
-</script>
-<script>
+</script> -->
+<!-- <script>
 // Copy shortcode functionality
 jQuery(document).ready(function($) {
     $('.copy-shortcode-btn').on('click', function(e) {
@@ -6503,8 +4307,8 @@ jQuery(document).ready(function($) {
         }, 2000);
     });
 });
-</script>
-<script>
+</script> -->
+<!-- <script>
 jQuery(document).ready(function($) {
     // Monitor preview image changes
     $('#preview_image').on('change input', function() {
@@ -6523,7 +4327,7 @@ jQuery(document).ready(function($) {
             $(this).closest('.image-uploader-wrap').find('.remove-image-btn').show();
         } else {
             // Reset to default if empty
-            const defaultImage = '<?php echo $previewImage; ?>';
+            const defaultImage = '<?php echo esc_url($previewImage); ?>';
             $('#avatarVideo').attr('poster', defaultImage);
             $('#previewImage').attr('src', defaultImage);
         }
@@ -6555,7 +4359,7 @@ jQuery(document).ready(function($) {
         wrapper.find('.image-url').val('').trigger('change');
     });
 });
-</script>
+</script> -->
 <?php
 // Add this hidden input to save the selected thumbnail size for preview
 ?>

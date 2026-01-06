@@ -1847,23 +1847,25 @@ class TCPDF_STATIC {
 	 * @since 6.2.25
 	 */
 	public static function url_exists($url) {
-		$crs = curl_init();
-        $curlopts = [];
-        if (
-            (ini_get('open_basedir') == '')
-            && (ini_get('safe_mode') === ''
-            || ini_get('safe_mode') === false)
-        ) {
-            $curlopts[CURLOPT_FOLLOWLOCATION] = true;
-        }
-        $curlopts = array_replace($curlopts, self::CURLOPT_DEFAULT);
-        $curlopts = array_replace($curlopts, K_CURLOPTS);
-        $curlopts = array_replace($curlopts, self::CURLOPT_FIXED);
-        $curlopts[CURLOPT_URL] = $url;
-        curl_setopt_array($crs, $curlopts);
-		curl_exec($crs);
-		$code = curl_getinfo($crs, CURLINFO_HTTP_CODE);
-		curl_close($crs);
+		// Use wp_remote_head for HEAD request (lighter than GET)
+		$response = wp_remote_head($url, [
+			'timeout' => 10,
+			'redirection' => 5,
+			// Follow redirects - WordPress handles this automatically
+			'sslverify' => false, // Consider setting to true for production
+		]);
+		
+		// Check for WordPress error
+		if (is_wp_error($response)) {
+			// Log error if needed
+			// error_log('URL check failed: ' . $response->get_error_message());
+			return false;
+		}
+		
+		// Get HTTP response code
+		$code = wp_remote_retrieve_response_code($response);
+		
+		// Return true for HTTP 200 (OK)
 		return ($code == 200);
 	}
 
@@ -1919,20 +1921,20 @@ class TCPDF_STATIC {
 		$alt = array($file);
 		//
 		if ((strlen($file) > 1)
-		    && ($file[0] === '/')
-		    && ($file[1] !== '/')
-		    && !empty($_SERVER['DOCUMENT_ROOT'])
-		    && ($_SERVER['DOCUMENT_ROOT'] !== '/')
+			&& ($file[0] === '/')
+			&& ($file[1] !== '/')
+			&& !empty($_SERVER['DOCUMENT_ROOT'])
+			&& ($_SERVER['DOCUMENT_ROOT'] !== '/')
 		) {
-		    $findroot = strpos($file, $_SERVER['DOCUMENT_ROOT']);
-		    if (($findroot === false) || ($findroot > 1)) {
-			$alt[] = htmlspecialchars_decode(urldecode($_SERVER['DOCUMENT_ROOT'].$file));
-		    }
+			$findroot = strpos($file, $_SERVER['DOCUMENT_ROOT']);
+			if (($findroot === false) || ($findroot > 1)) {
+				$alt[] = htmlspecialchars_decode(urldecode($_SERVER['DOCUMENT_ROOT'].$file));
+			}
 		}
 		//
 		$protocol = 'http';
 		if (!empty($_SERVER['HTTPS']) && (strtolower($_SERVER['HTTPS']) != 'off')) {
-		    $protocol .= 's';
+			$protocol .= 's';
 		}
 		//
 		$url = $file;
@@ -1943,26 +1945,26 @@ class TCPDF_STATIC {
 		$alt[] = $url;
 		//
 		if (preg_match('%^(https?)://%', $url)
-		    && empty($_SERVER['HTTP_HOST'])
-		    && empty($_SERVER['DOCUMENT_ROOT'])
+			&& empty($_SERVER['HTTP_HOST'])
+			&& empty($_SERVER['DOCUMENT_ROOT'])
 		) {
 			$urldata = parse_url($url);
 			if (empty($urldata['query'])) {
 				$host = $protocol.'://'.$_SERVER['HTTP_HOST'];
 				if (strpos($url, $host) === 0) {
-				    // convert URL to full server path
-				    $tmp = str_replace($host, $_SERVER['DOCUMENT_ROOT'], $url);
-				    $alt[] = htmlspecialchars_decode(urldecode($tmp));
+					// convert URL to full server path
+					$tmp = str_replace($host, $_SERVER['DOCUMENT_ROOT'], $url);
+					$alt[] = htmlspecialchars_decode(urldecode($tmp));
 				}
 			}
 		}
 		//
 		if (isset($_SERVER['SCRIPT_URI'])
-		    && !preg_match('%^(https?|ftp)://%', $file)
-		    && !preg_match('%^//%', $file)
+			&& !preg_match('%^(https?|ftp)://%', $file)
+			&& !preg_match('%^//%', $file)
 		) {
-		    $urldata = @parse_url($_SERVER['SCRIPT_URI']);
-		    $alt[] = $urldata['scheme'].'://'.$urldata['host'].(($file[0] == '/') ? '' : '/').$file;
+			$urldata = @parse_url($_SERVER['SCRIPT_URI']);
+			$alt[] = $urldata['scheme'].'://'.$urldata['host'].(($file[0] == '/') ? '' : '/').$file;
 		}
 		//
 		$alt = array_unique($alt);
@@ -1972,30 +1974,42 @@ class TCPDF_STATIC {
 			}
 			$ret = @file_get_contents($path);
 			if ( $ret != false ) {
-			    return $ret;
+				return $ret;
 			}
-			// try to use CURL for URLs
+			// try to use WordPress HTTP API for URLs
 			if (!ini_get('allow_url_fopen')
-				&& function_exists('curl_init')
 				&& preg_match('%^(https?|ftp)://%', $path)
 			) {
-				// try to get remote file data using cURL
-				$crs = curl_init();
-				$curlopts = [];
-				if (
-					(ini_get('open_basedir') == '')
-					&& (ini_get('safe_mode') === ''
-					|| ini_get('safe_mode') === false)
-				) {
-					$curlopts[CURLOPT_FOLLOWLOCATION] = true;
+				// try to get remote file data using WordPress HTTP API
+				$response = wp_remote_get($path, [
+					'timeout' => 30,
+					'redirection' => 5,
+					'sslverify' => false, // Consider true for production
+				]);
+				
+				// Check if request was successful
+				if (!is_wp_error($response)) {
+					$ret = wp_remote_retrieve_body($response);
+					$code = wp_remote_retrieve_response_code($response);
+					
+					if ($ret !== false && $code == 200) {
+						return $ret;
+					}
 				}
-				$curlopts = array_replace($curlopts, self::CURLOPT_DEFAULT);
-				$curlopts = array_replace($curlopts, K_CURLOPTS);
-				$curlopts = array_replace($curlopts, self::CURLOPT_FIXED);
-				$curlopts[CURLOPT_URL] = $url;
-				curl_setopt_array($crs, $curlopts);
-				$ret = curl_exec($crs);
-				curl_close($crs);
+				
+				// If WordPress HTTP API fails, try with basic context as fallback
+				$context = stream_context_create([
+					'http' => [
+						'timeout' => 30,
+						'ignore_errors' => true,
+					],
+					'ssl' => [
+						'verify_peer' => false,
+						'verify_peer_name' => false,
+					],
+				]);
+				
+				$ret = @file_get_contents($path, false, $context);
 				if ($ret !== false) {
 					return $ret;
 				}

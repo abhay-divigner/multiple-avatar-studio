@@ -41,6 +41,10 @@
  * @version 1.0.000
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 if (php_sapi_name() != 'cli') {
   echo 'You need to run this command from console.';
   exit(1);

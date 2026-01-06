@@ -25,7 +25,9 @@ class Avatar_Studio_Avatars_Table extends WP_List_Table
         $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
         $offset = ($paged - 1) * $per_page;
 
-        $orderby = isset($_GET['orderby']) ? sanitize_sql_orderby($_GET['orderby']) : 'id';
+        // Validate orderby parameter against allowed columns
+        $allowed_orderby = ['id', 'title', 'vendor', 'avatar_name', 'avatar_id', 'knowledge_id', 'time_limit', 'api_key', 'timestamp'];
+        $orderby = isset($_GET['orderby']) && in_array($_GET['orderby'], $allowed_orderby) ? sanitize_sql_orderby($_GET['orderby']) : 'id';
         $order = (isset($_GET['order']) && strtolower($_GET['order']) === 'asc') ? 'ASC' : 'DESC';
 
         $sortable_columns = ['id', 'title', 'timestamp'];
@@ -33,11 +35,22 @@ class Avatar_Studio_Avatars_Table extends WP_List_Table
             $orderby = 'id';
         }
 
+        // Sanitize table name
         $table = $wpdb->prefix . 'avatar_studio_avatars';
-        $total_items = $wpdb->get_var("SELECT COUNT(*) FROM $table");
+        
+        // Use wpdb->prepare for COUNT query too
+        $total_items = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM %i", $table));
 
+        // Build safe ORDER BY clause
+        $orderby_safe = sanitize_sql_orderby($orderby);
+        $order_safe = ($order === 'ASC') ? 'ASC' : 'DESC';
+        
+        // Prepare the query with proper escaping
         $query = $wpdb->prepare(
-            "SELECT * FROM $table ORDER BY $orderby $order LIMIT %d OFFSET %d",
+            "SELECT * FROM %i ORDER BY %i %s LIMIT %d OFFSET %d",
+            $table,
+            $orderby_safe,
+            $order_safe,
             $per_page,
             $offset
         );
