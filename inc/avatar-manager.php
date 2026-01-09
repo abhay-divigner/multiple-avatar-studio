@@ -7,7 +7,7 @@ wp_enqueue_style(
     'avatar-manager-styles',
     plugin_dir_url(__FILE__) . '../assets/css/avatar-manager.css',
     array(),
-    '1.0.0'
+    '1.0.6'
 );
 
 class avatarManager
@@ -117,14 +117,14 @@ class avatarManager
                 <div class="vendor-options">
                     <a href="<?php echo esc_url(admin_url('admin.php?page=avatar_studio-add-avatar&vendor=tavus')); ?>" class="vendor-option">
                         <div class="vendor-icon">
-                        <img style="width: 100px" src="<?php echo esc_url(get_site_url()); ?>/wp-content/plugins/InteractiveAvatarStudio/assets/images/tavus_logo.png" alt="Tavus Logo">
+                        <img style="width: 100px" src="<?php echo esc_url(get_site_url()); ?>/wp-content/plugins/interactive-avatar-studio/assets/images/tavus_logo.png" alt="Tavus Logo">
                         </div>
                         <strong>Tavus</strong>
                     </a>
                     
                     <a href="<?php echo esc_url(admin_url('admin.php?page=avatar_studio-add-avatar&vendor=heygen')); ?>" class="vendor-option">
                         <div class="vendor-icon">
-                            <img style="width: 100px" src="<?php echo esc_url(get_site_url()); ?>/wp-content/plugins/InteractiveAvatarStudio/assets/images/heygen_logo.png" alt="Heygen Logo">
+                            <img style="width: 100px" src="<?php echo esc_url(get_site_url()); ?>/wp-content/plugins/interactive-avatar-studio/assets/images/heygen_logo.png" alt="Heygen Logo">
                         </div>
                         <strong>HeyGen</strong>
                     </a>

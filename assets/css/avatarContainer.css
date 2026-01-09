@@ -266,31 +266,66 @@ div#ea11y-root {
 
 /* Success Theme - Green */
 .notification.success {
-  background: rgba(16, 185, 129, 0.15);
-  color: #6ee7b7;
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  background: var(--toast-success-bg, red) !important;
+  color: var(--toast-success-color, #6ee7b7) !important;
+  border: var(--toast-success-border-width, 1px) solid
+    var(--toast-success-border-color, rgba(52, 211, 153, 0.3)) !important;
+  border-radius: var(--toast-success-border-radius, 12px) !important;
+  padding: var(--toast-success-padding, 12px) 16px !important;
+  font-size: var(--toast-success-font-size, 14px) !important;
+  box-shadow: var(
+    --toast-success-box-shadow,
+    0 8px 32px rgba(16, 185, 129, 0.25),
+    0 0 60px rgba(16, 185, 129, 0.1)
+  ) !important;
 }
 
 /* Error Theme - Red */
 .notification.error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ff4d4d;
-  border: 1px solid rgba(248, 113, 113, 0.3);
-  /* text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); */
+  background: var(--toast-error-bg, rgba(239, 68, 68, 0.15)) !important;
+  color: var(--toast-error-color, #ff4d4d) !important;
+  border: var(--toast-error-border-width, 1px) solid
+    var(--toast-error-border-color, rgba(248, 113, 113, 0.3)) !important;
+  border-radius: var(--toast-error-border-radius, 12px) !important;
+  padding: var(--toast-error-padding, 12px) 16px !important;
+  font-size: var(--toast-error-font-size, 14px) !important;
+  box-shadow: var(
+    --toast-error-box-shadow,
+    0 8px 32px rgba(239, 68, 68, 0.25),
+    0 0 60px rgba(239, 68, 68, 0.1)
+  ) !important;
 }
 
 /* Warning Theme - Yellow */
 .notification.warn {
-  background: rgba(234, 179, 8, 0.15) !important;
-  color: #fde047 !important;
-  border: 1px solid rgba(250, 204, 21, 0.3) !important;
+  background: var(--toast-warning-bg, rgba(234, 179, 8, 0.15)) !important;
+  color: var(--toast-warning-color, #fde047) !important;
+  border: var(--toast-warning-border-width, 1px) solid
+    var(--toast-warning-border-color, rgba(250, 204, 21, 0.3)) !important;
+  border-radius: var(--toast-warning-border-radius, 12px) !important;
+  padding: var(--toast-warning-padding, 12px) 16px !important;
+  font-size: var(--toast-warning-font-size, 14px) !important;
+  box-shadow: var(
+    --toast-warning-box-shadow,
+    0 8px 32px rgba(234, 179, 8, 0.25),
+    0 0 60px rgba(234, 179, 8, 0.1)
+  ) !important;
 }
 
 /* Info Theme - Purple */
 .notification.info {
-  background: rgba(139, 92, 246, 0.15);
-  color: #c4b5fd;
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: var(--toast-info-bg, rgba(139, 92, 246, 0.15)) !important;
+  color: var(--toast-info-color, #c4b5fd) !important;
+  border: var(--toast-info-border-width, 1px) solid
+    var(--toast-info-border-color, rgba(167, 139, 250, 0.3)) !important;
+  border-radius: var(--toast-info-border-radius, 12px) !important;
+  padding: var(--toast-info-padding, 12px) 16px !important;
+  font-size: var(--toast-info-font-size, 14px) !important;
+  box-shadow: var(
+    --toast-info-box-shadow,
+    0 8px 32px rgba(139, 92, 246, 0.25),
+    0 0 60px rgba(139, 92, 246, 0.1)
+  ) !important;
 }
 
 /* Message Text */

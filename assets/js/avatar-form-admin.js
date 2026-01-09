@@ -1939,3 +1939,266 @@ function setupVendorSpecificFields() {
     });
   });
 })(jQuery);
+// Function to update toast notification preview
+function updateToastPreview(type, buttonElement = null) {
+  const container = document.querySelector(
+    ".preview-container .toast-notification-container"
+  );
+
+  if (!container) {
+    // Create container if it doesn't exist
+    const previewArea = document.querySelector(".preview-container");
+    if (previewArea) {
+      const newContainer = document.createElement("div");
+      newContainer.className =
+        "toast-notification-container preview-toast-container";
+      newContainer.style.cssText =
+        "position: absolute !important; z-index: 10000 !important; top: 60px !important; right: 20px !important; display: flex !important; flex-direction: column !important; gap: 12px !important;";
+      previewArea.appendChild(newContainer);
+      container = newContainer;
+    } else {
+      console.error("Preview area not found");
+      return;
+    }
+  }
+
+  // Clear existing toasts
+  container.innerHTML = "";
+
+  if (type) {
+    // Remove active class from all toast buttons
+    const allToastButtons = document.querySelectorAll(
+      '.avatar_studio-tab-buttons .tab-btn[data-tab^="toast-"]'
+    );
+    allToastButtons.forEach((btn) => btn.classList.remove("active"));
+
+    // Add active class to clicked button if provided
+    if (buttonElement) {
+      buttonElement.classList.add("active");
+    } else {
+      // Find and activate the button matching the type
+      const buttonToActivate = document.querySelector(
+        `.avatar_studio-tab-buttons .tab-btn[data-tab="toast-${type}"]`
+      );
+      if (buttonToActivate) {
+        buttonToActivate.classList.add("active");
+      }
+    }
+
+    showToastPreview(type);
+  }
+}
+
+// Show toast notification in preview
+function showToastPreview(type) {
+  const container = document.querySelector(
+    ".preview-container .toast-notification-container"
+  );
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = `notification ${type}`;
+  toast.style.cssText =
+    "position: relative !important; opacity: 1 !important; animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;";
+
+  const messageSpan = document.createElement("span");
+  messageSpan.className = "notification-message";
+  messageSpan.textContent = getToastMessage(type);
+
+  toast.appendChild(messageSpan);
+  container.appendChild(toast);
+
+  // Apply current styles
+  applyToastStylesToElement(toast, type);
+}
+
+// Apply styles to specific toast element
+function applyToastStylesToElement(toastElement, type) {
+  const background = document.querySelector(
+    `input[name="styles[toast-${type}][background]"]`
+  )?.value;
+  const color = document.querySelector(
+    `input[name="styles[toast-${type}][color]"]`
+  )?.value;
+  const borderColor = document.querySelector(
+    `input[name="styles[toast-${type}][border-color]"]`
+  )?.value;
+  const borderWidth =
+    document.querySelector(`input[name="styles[toast-${type}][border-width]"]`)
+      ?.value || "1";
+  const borderRadius =
+    document.querySelector(`input[name="styles[toast-${type}][border-radius]"]`)
+      ?.value || "12";
+  const padding =
+    document.querySelector(`input[name="styles[toast-${type}][padding]"]`)
+      ?.value || "12";
+  const fontSize =
+    document.querySelector(`input[name="styles[toast-${type}][font-size]"]`)
+      ?.value || "14";
+  const boxShadow = document.querySelector(
+    `input[name="styles[toast-${type}][box-shadow]"]`
+  )?.value;
+
+  // Apply styles
+  if (background) {
+    toastElement.style.background = background;
+  }
+  if (color) {
+    toastElement.style.color = color;
+  }
+  if (borderColor) {
+    toastElement.style.border = `${borderWidth}px solid ${borderColor}`;
+  }
+  if (borderRadius) {
+    toastElement.style.borderRadius = `${borderRadius}px`;
+  }
+  if (padding) {
+    toastElement.style.padding = `${padding}px 16px`;
+  }
+  if (fontSize) {
+    toastElement.style.fontSize = `${fontSize}px`;
+  }
+  if (boxShadow) {
+    toastElement.style.boxShadow = boxShadow;
+  }
+}
+
+// Get toast message based on type
+function getToastMessage(type) {
+  switch (type) {
+    case "success":
+      return "Success: This is a demo success message";
+    case "error":
+      return "Error: This is a demo error message";
+    case "warning":
+      return "Warning: This is a demo warning message";
+    case "info":
+      return "Info: This is a demo info message";
+    // default:
+    //   return "Demo message";
+  }
+}
+
+// Add event listeners
+document.addEventListener("DOMContentLoaded", function () {
+  // Remove active class from all toast buttons on page load
+  const toastTabButtons = document.querySelectorAll(
+    '.avatar_studio-tab-buttons .tab-btn[data-tab^="toast-"]'
+  );
+  toastTabButtons.forEach((btn) => btn.classList.remove("active"));
+
+  // Listen to changes on all toast style inputs
+  const toastInputs = document.querySelectorAll('input[name*="styles[toast-"]');
+  toastInputs.forEach((input) => {
+    input.addEventListener("input", function () {
+      // Get the toast type from the input name
+      const inputName = this.name;
+      const typeMatch = inputName.match(
+        /styles\[toast-(success|error|warning|info)\]/
+      );
+      if (typeMatch && typeMatch[1]) {
+        const type = typeMatch[1];
+        // Check if this toast type is currently displayed
+        const activeToast = document.querySelector(
+          ".preview-toast-container .notification." + type
+        );
+        if (activeToast) {
+          // Update the displayed toast
+          applyToastStylesToElement(activeToast, type);
+        }
+      }
+    });
+  });
+
+  // Listen to toast tab button clicks
+  toastTabButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const type = this.dataset.tab.replace("toast-", "");
+
+      // Check if this button is already active
+      if (this.classList.contains("active")) {
+        // Button is already active, remove the toast
+        const toastContainer = document.querySelector(
+          ".preview-toast-container"
+        );
+        if (toastContainer) {
+          toastContainer.remove();
+        }
+        this.classList.remove("active");
+      } else {
+        // Show the toast when button is clicked
+        updateToastPreview(type, this);
+      }
+    });
+  });
+
+  // Clear toasts when switching away from toast notifications tab
+  const allTabButtons = document.querySelectorAll(
+    ".avatar_studio-tab-buttons .tab-btn[data-tab]"
+  );
+  allTabButtons.forEach((tab) => {
+    tab.addEventListener("click", function () {
+      if (!this.dataset.tab.startsWith("toast-")) {
+        // Remove toast container when switching away from toast notifications
+        const toastContainer = document.querySelector(
+          ".preview-toast-container"
+        );
+        if (toastContainer) {
+          toastContainer.remove();
+        }
+        // Remove active class from all toast buttons
+        toastTabButtons.forEach((btn) => btn.classList.remove("active"));
+      }
+    });
+  });
+
+  // Clear toasts when switching preview modes
+  const previewModeButtons = document.querySelectorAll(".preview-mode-btn");
+  previewModeButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      // Remove toast container when switching preview modes
+      const toastContainer = document.querySelector(".preview-toast-container");
+      if (toastContainer) {
+        toastContainer.remove();
+      }
+      // Remove active class from all toast buttons
+      toastTabButtons.forEach((btn) => btn.classList.remove("active"));
+    });
+  });
+
+  // Clear toasts when clicking outside
+  document.addEventListener("click", function (e) {
+    // Check if click is on a toast button or inside toast container
+    const isToastButton = e.target.closest('.tab-btn[data-tab^="toast-"]');
+    const isToastContainer = e.target.closest(".preview-toast-container");
+
+    if (!isToastButton && !isToastContainer) {
+      // Remove active class from all toast buttons
+      toastTabButtons.forEach((btn) => btn.classList.remove("active"));
+
+      // Remove toast container if it exists
+      const toastContainer = document.querySelector(".preview-toast-container");
+      if (toastContainer) {
+        toastContainer.remove();
+      }
+    }
+  });
+});
+// Initialize toast preview when page loads
+document.addEventListener("DOMContentLoaded", function () {
+  // Wait for everything to load
+  setTimeout(() => {
+    const activeToastTab = document.querySelector(
+      '.avatar_studio-tab-buttons .tab-btn.active[data-tab^="toast-"]'
+    );
+    if (
+      activeToastTab &&
+      document
+        .querySelector("#avatar_studio-tab-toast-notifications")
+        .classList.contains("active")
+    ) {
+      const type = activeToastTab.dataset.tab.replace("toast-", "");
+      showToastPreview(type);
+    }
+  }, 500);
+});

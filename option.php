@@ -1435,62 +1435,47 @@
         // Set font
         $pdf->SetFont('helvetica', '', 11);
 
+        // Load CSS from external file
+        $css_file_path = plugin_dir_path(__FILE__) . 'assets/css/transcript-pdf-styles.css';
+        $css_styles = '';
+        
+        if (file_exists($css_file_path)) {
+            $css_styles = file_get_contents($css_file_path);
+        } else {
+            avatar_studio_log_error('Transcript CSS file not found', ['path' => $css_file_path]);
+            // Fallback to minimal styles
+            $css_styles = get_minimal_transcript_styles();
+        }
+        
         // Build HTML content
-        $html = '<style>
-            .header { 
-                text-align: center; 
-                border-bottom: 2px solid #333; 
-                padding-bottom: 15px; 
-                margin-bottom: 20px; 
-            }
-            .header h1 { 
-                margin: 0 0 10px 0; 
-                color: #333; 
-                font-size: 20px;
-                font-weight: bold;
-            }
-            .header p { 
-                margin: 3px 0; 
-                color: #666; 
-                font-size: 11px;
-            }
-            .message-container {
-                margin-bottom: 15px;
-                page-break-inside: avoid;
-            }
-            .message-bubble {
-                padding: 10px;
-                border-radius: 8px;
-                margin: 5px 0;
-                display: inline-block;
-                max-width: 85%;
-            }
-            .user-message {
-                background-color: #dcf8c6;
-                margin-left: 15%;
-            }
-            .assistant-message {
-                background-color: #f1f0f0;
-                margin-right: 15%;
-            }
-            .role {
-                font-weight: bold;
-                margin-bottom: 5px;
-                font-size: 10px;
-            }
-            .user-role {
-                color: #008000;
-            }
-            .assistant-role {
-                color: #0064c8;
-            }
-            .content {
-                font-size: 11px;
-                line-height: 1.5;
-                word-wrap: break-word;
-            }
-        </style>';
+        $html = '<div class="header">
+            <h1>Avatar Studio</h1>
+            <p><strong>Session Transcript</strong></p>
+            <p>Session ID: ' . htmlspecialchars($session->session_id) . '</p>
+            <p>Generated: ' . date_i18n('F j, Y \a\t g:i A') . '</p>
+        </div>';
 
+        // Messages
+        foreach ($transcript_text as $message) {
+            $role = $message['role'] ?? 'unknown';
+            $content = $message['content'] ?? '';
+
+            if (empty(trim($content)) || !in_array($role, ['assistant', 'user'])) {
+                continue;
+            }
+
+            $role_label = ucfirst($role);
+            $message_class = ($role === 'user') ? 'user-message' : 'assistant-message';
+            $role_class = ($role === 'user') ? 'user-role' : 'assistant-role';
+
+            $html .= '<div class="message-container">';
+            $html .= '<div class="message-bubble ' . $message_class . '">';
+            $html .= '<div class="role ' . $role_class . '">' . htmlspecialchars($role_label) . ':</div>';
+            $html .= '<div class="content">' . nl2br(htmlspecialchars($content)) . '</div>';
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+        
         // Header
         $html .= '<div class="header">
             <h1>Avatar Studio</h1>
@@ -1561,7 +1546,7 @@
         $pdf->SetHeaderMargin(5);
         $pdf->SetFooterMargin(10);
 
-        // Set auto page breaks - CRITICAL for multi-page support
+        // Set auto page breaks
         $pdf->SetAutoPageBreak(TRUE, 15);
 
         // Add a page
@@ -1577,84 +1562,35 @@
             $analysis_content = $analysis_text;
         }
 
-        // Build HTML content
-        $html = '<style>
-            .header { 
-                text-align: center; 
-                border-bottom: 2px solid #4A90E2; 
-                padding-bottom: 15px; 
-                margin-bottom: 20px; 
-            }
-            .header h1 { 
-                margin: 0 0 10px 0; 
-                color: #4A90E2; 
-                font-size: 20px;
-                font-weight: bold;
-            }
-            .header h2 {
-                margin: 10px 0;
-                color: #2c3e50;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            .header p { 
-                margin: 3px 0; 
-                color: #666; 
-                font-size: 11px;
-            }
-            .content-section {
-                margin-top: 20px;
-            }
-            .content-section h3 {
-                color: #2c3e50;
-                border-bottom: 1px solid #4A90E2;
-                padding-bottom: 5px;
-                margin-bottom: 10px;
-                font-size: 14px;
-            }
-            .analysis-content {
-                font-size: 11px;
-                line-height: 1.6;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-                font-family: monospace;
-                background-color: #f8f9fa;
-                padding: 10px;
-                border: 1px solid #e0e0e0;
-                border-radius: 4px;
-            }
-            .footer { 
-                text-align: center; 
-                color: #888; 
-                font-size: 9px; 
-                margin-top: 30px; 
-                padding-top: 15px;
-                border-top: 1px solid #ddd;
-            }
-        </style>';
-
-        // Header
-        $html .= '<div class="header">
+        // Build HTML content WITHOUT inline styles
+        $html = '<div class="header">
             <h1>Avatar Studio</h1>
             <h2>Perception Analysis Report</h2>
             <p><strong>Session ID:</strong> ' . htmlspecialchars($session->session_id) . '</p>
             <p><strong>Generated:</strong> ' . date_i18n('F j, Y \a\t g:i A') . '</p>
-        </div>';
+        </div>
 
-        // Content section
-        $html .= '<div class="content-section">';
-        $html .= '<h3>Analysis Details</h3>';
-        $html .= '<div class="analysis-content">' . htmlspecialchars($analysis_content) . '</div>';
-        $html .= '</div>';
+        <div class="content-section">
+            <h3>Analysis Details</h3>
+            <div class="analysis-content">' . htmlspecialchars($analysis_content) . '</div>
+        </div>
 
-        // Footer
-        $html .= '<div class="footer">
+        <div class="footer">
             This report was automatically generated by Avatar Studio.<br>
             All analysis data is confidential and should be handled according to your privacy policy.
         </div>';
 
-        // Write HTML content
-        $pdf->writeHTML($html, true, false, true, false, '');
+        // Apply styles from external CSS file
+        $css_file_path = plugin_dir_path(__FILE__) . 'assets/css/perception-pdf-styles.css';
+        if (file_exists($css_file_path)) {
+            $css = file_get_contents($css_file_path);
+            // TCPDF's writeHTML method can handle CSS
+            $pdf->writeHTML('<style>' . $css . '</style>' . $html, true, false, true, false, '');
+        } else {
+            // Write HTML without styles if CSS file doesn't exist
+            avatar_studio_log_error('PDF CSS file not found', ['path' => $css_file_path]);
+            $pdf->writeHTML($html, true, false, true, false, '');
+        }
 
         // Output PDF as string
         return $pdf->Output('', 'S');
@@ -2283,7 +2219,7 @@
         $selected_log = isset($_GET['logfile']) ? $_GET['logfile'] : basename($log_files[0]);
         
         echo '<form method="get">';
-        $page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+        $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
         echo '<input type="hidden" name="page" value="' . esc_attr($page) . '">';
         echo '<select name="logfile" onchange="this.form.submit()">';
         foreach ($log_files as $log_file) {

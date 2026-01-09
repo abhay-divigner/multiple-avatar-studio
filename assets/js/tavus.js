@@ -1409,7 +1409,7 @@ class $e extends ue {
     }
     if (ft()) {
       qe(async () => {
-        const { default: o } = await import("./browser-3Vfwz0uM.js").then(
+        const { default: o } = await import("./browser-CJzJFKHo.js").then(
           (c) => c.b
         );
         return { default: o };
@@ -1431,7 +1431,7 @@ class $e extends ue {
       },
     })),
       qe(async () => {
-        const { default: o } = await import("./browser-3Vfwz0uM.js").then(
+        const { default: o } = await import("./browser-CJzJFKHo.js").then(
           (c) => c.b
         );
         return { default: o };
@@ -3349,7 +3349,7 @@ class yr {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
-            action: "insert_avatar_studio_user",
+            action: "avanew_as_insert_avatar_studio_user",
             provider: "tavus",
             token: t.conversation_id,
           }),
@@ -3800,7 +3800,7 @@ async function gr() {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
-          action: "avatar_studio_tavusConversation",
+          action: "avanew_as_avatar_studio_tavusConversation",
           language: Ve(),
           page_id: pageId ? pageId.value : 0,
           avatar_studio_id: avatarStudioId ? avatarStudioId.value : 0,
@@ -4021,7 +4021,7 @@ const mr = async (i, e = "") => {
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
               body: new URLSearchParams({
                 query: i,
-                action: "askQuestion",
+                action: "avanew_as_askQuestion",
                 language: Ve(),
                 nonce: Be,
                 sessionID: e.conversationId,

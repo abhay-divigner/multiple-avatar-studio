@@ -1,118 +1,143 @@
-=== Avatar Studio ===
-Contributors: InteractiveAvatarStudio
-Tags: avatars, ai, google drive, automation, user management
+=== Interactive Avatar Studio by Avanew ===
+Contributors: avanew
+Tags: avatars, ai, automation, user management, pdf export
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.0.3
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-
-AI-powered multi-avatar management with Google Drive integration, automated exports, and advanced user insights.
-
+ 
+Interactive Avatar Studio by Avanew helps site administrators manage avatar-based interactions, export session data, and organize reports using local processing and connected services.
+ 
 == Description ==
-
-**Avatar Studio** is a powerful WordPress plugin designed to automate, organize, and enhance your avatar-based interactions.  
-It integrates with Google Drive for secure data backup, automatically exports conversation transcripts, tracks perception analyses via Tavus API, and provides an admin dashboard for managing user and session information.  
-
-Built for creators, educators, and developers who use AI-driven avatars, Avatar Studio simplifies workflow management and provides deep visibility into all avatar conversations.
-
-### ✨ Key Features
-
-#### 1. Google Drive Integration
-- Secure OAuth 2.0 authentication with Google.
-- Automatic folder hierarchy: *Website → Avatar Name → Transcripts / Perceptions*.
-- One-click connect/disconnect functionality.
-- Persistent token refresh mechanism.
-- Visual connection status indicator on the Sessions page.
-- Automatic folder organization by avatar name.
-
-#### 2. Automated Transcript Export
-- Automatically exports conversation transcripts to Google Drive.
-- Supports bulk export for all transcripts.
-- Retry mechanism for failed exports.
-- Configurable export intervals (5 mins, 15 mins, hourly, twice daily, daily).
-- Professionally formatted PDF generation.
-- Export status tracking: *Exported, Failed, Not Exported*.
-- One-hour cooldown period before new exports are available.
-
-#### 3. Perception Analysis Tracking
-- Retrieve and export perception analysis data from the Tavus API.
-- Dedicated “Perceptions” folder in Google Drive.
-- Professionally designed perception reports (PDF).
-- Status tracking: *Processed, Unavailable, Failed, Not Processed*.
-- Automatic retry for failed exports.
-
-#### 4. User Information Management
-- Centralized dashboard for managing all user information.
-- Search and filter by name, email, mobile, or country code.
-- Sortable columns and pagination (10 items per page).
-- Stats cards for total users and page overview.
-- Responsive and clean interface.
-- Displays: Full Name, Email, Mobile, Country Code, Conversation ID, Created At.
-
-#### 5. Enhanced Sessions Management
-- Dual status tracking for transcripts and perceptions.
-- Color-coded indicators: **Green (success)**, **Red (failure)**, **Gray (pending)**.
-- Retry buttons for individual exports.
-- Cooldown countdown tooltips.
-- Displays: Session ID, Avatar ID, User ID, Duration, and Status.
-- Quick action buttons for managing sessions efficiently.
-
-### 🐞 Bug Fixes (v1.0.3)
-- Fixed Google token expiration handling.
-- Resolved folder creation issues with special characters.
-- Corrected timezone handling in exports.
-- Fixed pagination errors in the user information table.
-- Improved error handling for unavailable Tavus data.
-- Resolved race conditions during concurrent export tasks.
-
+ 
+**Interactive Avatar Studio by Avanew** is a WordPress plugin designed to manage and organize avatar-based interactions within the WordPress admin area.
+ 
+The plugin provides tools for managing users and sessions, exporting conversation data, generating PDF reports, and optionally connecting external services when explicitly configured by an administrator.
+ 
+It is intended for site owners, educators, and developers who work with AI-driven or interactive avatar systems and require structured session management and reporting.
+ 
+== Key Features ==
+ 
+= User and Session Management =
+- Admin dashboard for managing users and avatar sessions.
+- Search, filter, and paginate user records.
+- View session metadata including IDs, timestamps, and status.
+ 
+= Transcript and Report Export =
+- Export conversation transcripts as PDF files.
+- Bulk export support.
+- Status indicators for completed, pending, or failed exports.
+- Retry support for failed export actions.
+ 
+= PDF Generation =
+- Server-side PDF generation for transcripts and reports.
+- PDF files are generated locally within the WordPress environment.
+ 
+= Administrative Controls =
+- Configurable export intervals.
+- Clear status indicators for actions and processes.
+- Access restricted to authorized users only.
+ 
 == Installation ==
-
-1. Upload the plugin files to the `/wp-content/plugins/avatar-studio` directory, or install the plugin through the WordPress plugins screen directly.  
-2. Activate the plugin through the ‘Plugins’ screen in WordPress.  
-3. Navigate to **Avatar Studio → Settings** to connect your Google Drive account.  
-4. Configure your export intervals, enable automated transcripts, and manage perception tracking from the dashboard.
-
+ 
+1. Upload the plugin files to the `/wp-content/plugins/interactive-avatar-studio` directory, or install the plugin through the WordPress Plugins screen.
+2. Activate the plugin through the “Plugins” screen in WordPress.
+3. Access the plugin from the WordPress admin menu.
+4. Configure settings as needed from the plugin settings screens.
+ 
 == Frequently Asked Questions ==
-
-= Does Avatar Studio require a Google account? =
-Yes. You’ll need to connect a Google account to enable Drive integration and automatic transcript storage.
-
-= Can I manually export transcripts? =
-Yes. Along with automated exports, you can manually trigger exports for specific sessions from the admin panel.
-
-= What happens if my Google token expires? =
-The plugin includes a built-in token refresh system to ensure continuous connectivity.
-
-= Is this plugin compatible with other AI or avatar plugins? =
-Yes. Avatar Studio is designed to work independently and can integrate seamlessly into most AI/virtual avatar workflows.
-
+ 
+= Does this plugin work without external services? =
+Yes. Core management features work within WordPress. External services are used only when explicitly configured by an administrator.
+ 
+= Who can access the plugin features? =
+Only administrators or users with appropriate capabilities can access and manage plugin features.
+ 
+= Are PDFs generated externally? =
+No. PDF files are generated locally on the server using a bundled library.
+ 
+= Does the plugin track users? =
+No tracking or analytics are performed unless an administrator explicitly initiates an action that requires data processing.
+ 
 == Screenshots ==
-
-1. Avatar Studio Dashboard – Overview of users and sessions  
-2. Google Drive Connection Panel  
-3. Transcript Export Settings  
-4. Perception Analysis Reports  
-5. User Information Management Table  
-
+ 
+1. Admin dashboard overview
+2. User management table
+3. Session management screen
+4. Export status indicators
+5. PDF export results
+ 
+== External Services ==
+ 
+This plugin connects to the Tavus API (https://tavus.io).
+ 
+Purpose:
+Used to retrieve avatar-related perception or messaging data when enabled by an administrator.
+ 
+Data Sent:
+User name and message content required for avatar-related processing.
+ 
+When:
+Only when an administrator or authorized user initiates avatar-related actions.
+ 
+Privacy Policy:
+https://tavus.io/privacy
+ 
+This plugin may also connect to Google APIs (https://developers.google.com/drive).
+ 
+Purpose:
+Used to authenticate and store exported files in the site owner’s Google Drive when explicitly enabled.
+ 
+Data Sent:
+Authentication tokens and file metadata required for file storage operations.
+ 
+When:
+Only when an administrator connects a Google account or triggers an export action.
+ 
+Privacy Policy:
+https://policies.google.com/privacy
+ 
+== Third-Party Libraries ==
+ 
+This plugin bundles the TCPDF library for PDF generation.
+ 
+Library Name: TCPDF  
+Library Website: https://tcpdf.org/  
+License: GNU LGPL v3 or later  
+License URL: https://www.gnu.org/licenses/lgpl-3.0.html  
+ 
+Purpose:
+TCPDF is used exclusively to generate PDF files for transcripts and reports.
+ 
+Data Handling:
+- TCPDF runs entirely on the server.
+- No user data is transmitted to external servers by TCPDF.
+- No tracking, analytics, or telemetry is performed.
+ 
 == Changelog ==
-
-= 1.0.3 =
-* Added Google Drive integration with OAuth 2.0.
-* Introduced automated transcript exports.
-* Added perception analysis tracking with Tavus API.
-* New user information management dashboard.
-* Enhanced session visibility and control.
-* Fixed token expiration, timezone, and pagination issues.
-* Improved stability and error handling.
-
+ 
+= 1.0.6 =
+- Security hardening and sanitization improvements.
+- Replaced external requests with WordPress HTTP API.
+- Removed remote CDN dependencies.
+- Improved export stability and error handling.
+- Documentation and compliance updates.
+ 
+= 1.0.6 =
+- Initial release.
+- User and session management.
+- PDF export functionality.
+ 
 == Upgrade Notice ==
-
-= 1.0.3 =
-This version introduces Google Drive integration, perception tracking, and a full user management dashboard. Please reconnect your Google Drive account after updating.
-
+ 
+= 1.0.6 =
+This release includes security improvements and compliance updates. No user action is required after upgrading.
+ 
 == License ==
-
+ 
 This plugin is licensed under the GPLv2 or later.  
-You can redistribute it and/or modify it under the same license terms.
+You are free to redistribute and modify it under the same license terms.
+ 
+This plugin does not track users or collect analytics data unless explicitly initiated by an administrator.

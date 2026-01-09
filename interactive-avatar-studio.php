@@ -4,7 +4,7 @@
  * Plugin Name: Interactive Avatar Studio by Avanew
  * Plugin URI: https://avanew.ai/interactivestudio/
  * Description: Interactive Avatar Studio allows users to create, manage, and interact with AI-powered avatars directly within WordPress.  
- * Version: 1.0.0
+ * Version: 1.0.6
  * Author: Avanew
  * Author URI: https://avanew.ai/
  * Text Domain: interactive-avatar-studio
@@ -546,7 +546,7 @@ add_filter('cron_schedules', function($schedules) {
     if (!isset($schedules['every_2_minutes'])) {
         $schedules['every_2_minutes'] = [
             'interval' => 2 * 60,
-            'display'  => __('Every 2 Minutes', 'InteractiveAvatarStudio')
+            'display'  => __('Every 2 Minutes', 'interactive-avatar-studio')
         ];
     }
     return $schedules;
@@ -556,23 +556,23 @@ add_filter('cron_schedules', function($schedules) {
 add_filter('cron_schedules', function($schedules) {
     $schedules['every_5_minutes'] = [
         'interval' => 5 * 60,
-        'display'  => __('Every 5 Minutes', 'InteractiveAvatarStudio')
+        'display'  => __('Every 5 Minutes', 'interactive-avatar-studio')
     ];
     $schedules['every_15_minutes'] = [
         'interval' => 15 * 60,
-        'display'  => __('Every 15 Minutes', 'InteractiveAvatarStudio')
+        'display'  => __('Every 15 Minutes', 'interactive-avatar-studio')
     ];
     $schedules['hourly'] = [
         'interval' => 60 * 60,
-        'display'  => __('Every Hour', 'InteractiveAvatarStudio')
+        'display'  => __('Every Hour', 'interactive-avatar-studio')
     ];
     $schedules['twicedaily'] = [
         'interval' => 12 * 60 * 60,
-        'display'  => __('Twice Daily', 'InteractiveAvatarStudio')
+        'display'  => __('Twice Daily', 'interactive-avatar-studio')
     ];
     $schedules['daily'] = [
         'interval' => 24 * 60 * 60,
-        'display'  => __('Daily', 'InteractiveAvatarStudio')
+        'display'  => __('Daily', 'interactive-avatar-studio')
     ];
     return $schedules;
 });
@@ -611,12 +611,12 @@ function avatar_studio_run_export_cron() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_sessions';
 
-    error_log('🔄 Running avatar_studio_export_cron at ' . current_time('mysql'));
+    error_log('Running avatar_studio_export_cron at ' . current_time('mysql'));
 
     $sessions = $wpdb->get_results("SELECT * FROM $table_name WHERE export_status IS NULL OR export_status != 'exported'");
 
     if (!$sessions) {
-        error_log('✅ No pending sessions to export.');
+        error_log('No pending sessions to export.');
         return;
     }
 
@@ -624,7 +624,7 @@ function avatar_studio_run_export_cron() {
         avatar_studio_export_transcript($session);
     }
 
-    error_log('✅ Exported ' . count($sessions) . ' sessions.');
+    error_log('Exported ' . count($sessions) . ' sessions.');
 }
 
 

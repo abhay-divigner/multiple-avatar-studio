@@ -151,7 +151,7 @@ function exportSelectedUsers() {
     const actionInput = document.createElement("input");
     actionInput.type = "hidden";
     actionInput.name = "action";
-    actionInput.value = "avatar_studio_export_csv";
+    actionInput.value = "avanew_as_avatar_studio_export_csv";
     form.appendChild(actionInput);
 
     // Add nonce
@@ -204,7 +204,7 @@ function exportAllUsers() {
     const actionInput = document.createElement("input");
     actionInput.type = "hidden";
     actionInput.name = "action";
-    actionInput.value = "avatar_studio_export_csv";
+    actionInput.value = "avanew_as_avatar_studio_export_csv";
     form.appendChild(actionInput);
 
     // Add nonce

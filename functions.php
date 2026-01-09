@@ -21,11 +21,28 @@ function enqueue_avatar_settings_scripts() {
         'avatar-settings',
         plugin_dir_url(__FILE__) . 'assets/js/avatar-settings.js',
         array('jquery'),
-        '1.0.0',
+        '1.0.6',
         true
     );
 }
 add_action('admin_enqueue_scripts', 'enqueue_avatar_settings_scripts');
+
+function avatar_studio_enqueue_dynamic_styles() {
+    global $styles;
+    
+    // Only enqueue if we have styles to add
+    if ($styles && is_array($styles)) {
+        // Generate the CSS
+        require_once(plugin_dir_path(__FILE__) . 'dynamic-styles.php');
+        $dynamic_css = avatar_studio_generate_dynamic_css();
+        
+        // Add inline styles to WordPress
+        wp_register_style('avatar-studio-dynamic', false);
+        wp_enqueue_style('avatar-studio-dynamic');
+        wp_add_inline_style('avatar-studio-dynamic', $dynamic_css);
+    }
+}
+add_action('wp_enqueue_scripts', 'avatar_studio_enqueue_dynamic_styles');
 
 function avatar_studio_admin_styles() {
     // Only load on our plugin's admin pages
@@ -42,7 +59,7 @@ function avatar_studio_admin_styles() {
             'avatar-studio-admin-css',
             plugin_dir_url(__FILE__) . 'assets/css/option.css',
             [], // No dependencies
-            '1.0.0' // Version for cache busting
+            '1.0.6' // Version for cache busting
         );
     }
 }
@@ -77,11 +94,11 @@ function avatar_studio_enqueue_admin_scripts($hook) {
     // Enqueue based on page
     switch ($hook) {
         case 'toplevel_page_avatar_studio_main':
-            wp_enqueue_script('avatar-studio-main-settings', $plugin_url . 'assets/js/admin-main-settings.js', ['jquery'], '1.0.0', true);
+            wp_enqueue_script('avatar-studio-main-settings', $plugin_url . 'assets/js/admin-main-settings.js', ['jquery'], '1.0.6', true);
             break;
             
         case 'avatar-studio_page_avatar_studio_sessions':
-            wp_enqueue_script('avatar-studio-sessions', $plugin_url . 'assets/js/admin-sessions.js', ['jquery'], '1.0.0', true);
+            wp_enqueue_script('avatar-studio-sessions', $plugin_url . 'assets/js/admin-sessions.js', ['jquery'], '1.0.6', true);
             
             // Pass PHP variables to JavaScript
             wp_localize_script('avatar-studio-sessions', 'avatarStudioSessionsVars', [
@@ -91,7 +108,7 @@ function avatar_studio_enqueue_admin_scripts($hook) {
             break;
             
         case 'avatar-studio_page_avatar_studio_user_info':
-            wp_enqueue_script('avatar-studio-user-info', $plugin_url . 'assets/js/admin-user-info.js', ['jquery'], '1.0.0', true);
+            wp_enqueue_script('avatar-studio-user-info', $plugin_url . 'assets/js/admin-user-info.js', ['jquery'], '1.0.6', true);
             
             // Pass PHP variables to JavaScript
             wp_localize_script('avatar-studio-user-info', 'avatarStudioUserInfoVars', [
@@ -102,12 +119,12 @@ function avatar_studio_enqueue_admin_scripts($hook) {
             break;
 
         case 'avatar-studio_page_avatar_studio-avatars':
-            wp_enqueue_script('avatar-studio-avatars', $plugin_url . 'assets/js/admin-avatars.js', ['jquery'], '1.0.0', true);
+            wp_enqueue_script('avatar-studio-avatars', $plugin_url . 'assets/js/admin-avatars.js', ['jquery'], '1.0.6', true);
             break;
             
         case 'admin_page_avatar_studio-add-avatar':
         case 'admin_page_avatar_studio-edit-avatar':
-            wp_enqueue_script('avatar-studio-avatar-form', $plugin_url . 'assets/js/admin-avatar-form.js', ['jquery'], '1.0.0', true);
+            wp_enqueue_script('avatar-studio-avatar-form', $plugin_url . 'assets/js/admin-avatar-form.js', ['jquery'], '1.0.6', true);
             break;
     }
 }
@@ -120,7 +137,7 @@ function avatar_studio_frontend_styles() {
             'avatar-studio-frontend-css',
             plugin_dir_url(__FILE__) . 'assets/css/avatarContainer.css',
             [], // No dependencies
-            '1.0.0'
+            '1.0.6'
         );
         
         // Also load fontawesome
@@ -128,7 +145,7 @@ function avatar_studio_frontend_styles() {
             'avatar-studio-fontawesome',
             plugin_dir_url(__FILE__) . 'assets/css/fontawesome/css/all.min.css',
             [],
-            '1.0.0'
+            '1.0.6'
         );
     }
 }
@@ -144,7 +161,7 @@ function avatar_form_enqueue_styles($hook) {
             'avatar-form-styles',
             plugin_dir_url(__FILE__) . 'assets/css/avatar-form.css',
             array(),
-            '1.0.0'
+            '1.0.6'
         );
     }
 }
@@ -272,6 +289,148 @@ function scaleStyles($styles, $scale = 0.8)
     return $scaled;
 }
 
+/**
+ * Generate dynamic CSS for avatar shortcode
+ * This function is called when styles need to be generated
+ */
+function avatar_studio_generate_shortcode_css($styles) {
+    if (!$styles || !is_array($styles)) {
+        return '';
+    }
+    
+    $css = '';
+    
+    foreach ($styles as $key => $style) {
+        if ($key == 'chatBox') {
+            $css .= arrayToCss('#chatBox', $style, true);
+        } else if ($key == 'thumbnail') {
+            $css .= arrayToCss('#avatarThumbnail', $style, true);
+        } else if ($key == 'heading') {
+            $css .= arrayToCss('#chatBox-heading', $style, true);
+        } else if ($key == 'chat-start-button') {
+            $css .= arrayToCss('#startSession', $style, true);
+            $css .= arrayToCss('button.disclaimer', $style, true);
+            $css .= arrayToCss('button.instruction', $style, true);
+        } else if ($key == 'chat-end-button') {
+            $css .= arrayToCss('#endSession', $style, true);
+        } else if ($key == 'mic-button') {
+            $css .= arrayToCss('#micToggler', $style, true);
+        } else if ($key == 'camera-button') {
+            $css .= arrayToCss('#cameraToggler', $style, true);
+        } else if ($key == 'switch-button') {
+            $css .= arrayToCss('#switchInteractionMode', $style, true);
+        } else if ($key == 'transcript-button') {
+            $css .= arrayToCss('.transcriptToggleButton', $style, true);
+        } else if ($key == 'fullscreen-button') {
+            $css .= arrayToCss('.action-fullscreen', $style, true);
+            $css .= arrayToCss('#fullscreen', $style, true);
+        } else if ($key == 'close-button') {
+            $css .= arrayToCss('#chatBox-close', $style, true);
+            if (isset($style['hover-background']) && $style['hover-background']) {
+                $css .= '#chatBox-close:hover { background: ' . $style['hover-background'] . ' !important; }' . "\n";
+            }
+        } else if ($key == 'toast-success') {
+            $css .= generateToastShortcodeCss('.notification.success', $style);
+        } else if ($key == 'toast-error') {
+            $css .= generateToastShortcodeCss('.notification.error', $style);
+        } else if ($key == 'toast-warning') {
+            $css .= generateToastShortcodeCss('.notification.warning', $style);
+        } else if ($key == 'toast-info') {
+            $css .= generateToastShortcodeCss('.notification.info', $style);
+        }
+    }
+    
+    return $css;
+}
+
+// Helper function to generate toast notification CSS for shortcode
+function generateToastShortcodeCss($selector, $style) {
+    $css = '';
+    
+    if (!empty($style)) {
+        $css .= $selector . " {\n";
+        
+        if (isset($style['background']) && $style['background']) {
+            $css .= '    background: ' . $style['background'] . " !important;\n";
+        }
+        
+        if (isset($style['color']) && $style['color']) {
+            $css .= '    color: ' . $style['color'] . " !important;\n";
+        }
+        
+        if (isset($style['border-color']) && $style['border-color']) {
+            $borderWidth = isset($style['border-width']) && $style['border-width'] ? $style['border-width'] . 'px' : '1px';
+            $css .= '    border: ' . $borderWidth . ' solid ' . $style['border-color'] . " !important;\n";
+        }
+        
+        if (isset($style['border-radius']) && $style['border-radius']) {
+            $css .= '    border-radius: ' . $style['border-radius'] . "px !important;\n";
+        }
+        
+        if (isset($style['padding']) && $style['padding']) {
+            $css .= '    padding: ' . $style['padding'] . "px 16px !important;\n";
+        }
+        
+        if (isset($style['font-size']) && $style['font-size']) {
+            $css .= '    font-size: ' . $style['font-size'] . "px !important;\n";
+        }
+        
+        if (isset($style['box-shadow']) && $style['box-shadow']) {
+            $css .= '    box-shadow: ' . $style['box-shadow'] . " !important;\n";
+        }
+        
+        $css .= "}\n\n";
+        
+        // Add gradient border effect for toasts if border-color is set
+        if (isset($style['border-color']) && $style['border-color']) {
+            $css .= $selector . "::after {\n";
+            $css .= '    content: "" !important;' . "\n";
+            $css .= '    position: absolute !important;' . "\n";
+            $css .= '    inset: 0 !important;' . "\n";
+            
+            if (isset($style['border-radius']) && $style['border-radius']) {
+                $css .= '    border-radius: ' . $style['border-radius'] . "px !important;\n";
+            }
+            
+            $css .= '    padding: 1px !important;' . "\n";
+            $css .= '    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1)) !important;' . "\n";
+            $css .= '    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;' . "\n";
+            $css .= '    -webkit-mask-composite: xor !important;' . "\n";
+            $css .= '    mask-composite: exclude !important;' . "\n";
+            $css .= '    pointer-events: none !important;' . "\n";
+            $css .= "}\n\n";
+        }
+        
+        // Add hover effect for toasts
+        $css .= $selector . ":hover {\n";
+        $css .= '    transform: translateY(-2px) scale(1.02) !important;' . "\n";
+        if (isset($style['box-shadow']) && $style['box-shadow']) {
+            // Enhance the existing box shadow on hover
+            $enhancedShadow = str_replace('0.25', '0.35', $style['box-shadow']);
+            $enhancedShadow = str_replace('0.1', '0.2', $enhancedShadow);
+            $css .= '    box-shadow: ' . $enhancedShadow . " !important;\n";
+        }
+        $css .= "}\n\n";
+    }
+    
+    return $css;
+}
+
+/**
+ * Enqueue dynamic shortcode styles
+ * This ensures styles are loaded properly when shortcode is used
+ */
+function avatar_studio_enqueue_shortcode_styles() {
+    global $avatar_studio_shortcode_styles;
+    
+    if (!empty($avatar_studio_shortcode_styles)) {
+        wp_register_style('avatar-studio-shortcode-dynamic', false);
+        wp_enqueue_style('avatar-studio-shortcode-dynamic');
+        wp_add_inline_style('avatar-studio-shortcode-dynamic', $avatar_studio_shortcode_styles);
+    }
+}
+add_action('wp_footer', 'avatar_studio_enqueue_shortcode_styles');
+
 // shortcode
 function avatar_studio_shortcode($atts)
 {
@@ -381,6 +540,15 @@ function avatar_studio_shortcode($atts)
     wp_enqueue_script('avatar_studio-script', plugins_url('assets/js/avatar_studio-script.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
     wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
 
+    // Generate and store CSS for this shortcode instance
+    if ($styles && is_array($styles)) {
+        $generated_css = avatar_studio_generate_shortcode_css($styles);
+        if (!isset($avatar_studio_shortcode_styles)) {
+            $avatar_studio_shortcode_styles = '';
+        }
+        $avatar_studio_shortcode_styles .= $generated_css;
+    }
+
     ob_start();
 
     // if (!$livekit_enable) {
@@ -393,43 +561,6 @@ function avatar_studio_shortcode($atts)
     // }
 
     ?>
-    <style>
-        <?php
-        if ($styles && is_array($styles)) {
-            foreach ($styles as $key => $style) {
-                if ($key == 'chatBox') {
-                    echo esc_html(arrayToCss('#chatBox', $style, true));
-                } else if ($key == 'thumbnail') {
-                    echo esc_html(arrayToCss('#avatarThumbnail', $style, true));
-                } else if ($key == 'heading') {
-                    echo esc_html(arrayToCss('#chatBox-heading', $style, true));
-                } else if ($key == 'chat-start-button') {
-                    echo esc_html(arrayToCss('#startSession', $style, true));
-                    echo esc_html(arrayToCss('button.disclaimer', $style, true));
-                    echo esc_html(arrayToCss('button.instruction', $style, true));
-                } else if ($key == 'chat-end-button') {
-                    echo esc_html(arrayToCss('#endSession', $style, true));
-                } else if ($key == 'mic-button') {
-                    echo esc_html(arrayToCss('#micToggler', $style, true));
-                } else if ($key == 'camera-button') {
-                    echo esc_html(arrayToCss('#cameraToggler', $style, true));
-                } else if ($key == 'switch-button') {
-                    echo esc_html(arrayToCss('#switchInteractionMode', $style, true));
-                } else if ($key == 'transcript-button') {
-                    echo esc_html(arrayToCss('.transcriptToggleButton', $style, true));
-                } else if ($key == 'fullscreen-button') {
-                    echo esc_html(arrayToCss('.action-fullscreen', $style, true));
-                    echo esc_html(arrayToCss('#fullscreen', $style, true));
-                } else if ($key == 'close-button') {
-                    echo esc_html(arrayToCss('#chatBox-close', $style, true));
-                    if (isset($style['hover-background']) && $style['hover-background']) {
-                        echo esc_html('#chatBox-close:hover { background: ' . $style['hover-background'] . ' !important; }' . "\n");
-                    }
-                }
-            }
-        }
-        ?>
-    </style>
     <?php
     // Output hidden inputs and HTML structure
     ?>

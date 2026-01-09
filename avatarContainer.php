@@ -30,6 +30,7 @@ global $instruction;
 global $instruction_title;
 global $start_button_label;
 global $selected_form_id;
+
 if (!isset($selected_form_id) && isset($avatar) && isset($avatar->selected_form_id)) {
     $selected_form_id = $avatar->selected_form_id;
 }
@@ -47,34 +48,46 @@ $required_fields_complete = (!empty($previewImage));
 
 global $wp_embed;
 
-// Pass PHP variables to JavaScript
-wp_localize_script('avatar-custom-scripts', 'avatarSettings', [
-    'ajaxUrl' => admin_url('admin-ajax.php'),
-    'formId' => isset($form_id_to_use) ? $form_id_to_use : 0,
-    'instructionEnabled' => $instruction_enable,
-    'avatarVendor' => $avatar_vendor,
-    'videoEnable' => $video_enable,
-    'chatOnly' => $chat_only,
-    'disclaimerEnable' => $disclaimer_enable,
-    'userFormEnable' => $user_form_enable,
-    'customRagEnable' => $livekit_enable ? 'true' : 'false',
-    'aid' => $aID,
-    'kid' => $kID,
-    'openingText' => isset($opening_text['en']) ? $opening_text['en'] : '',
-    'timeLimit' => $time_limit,
-    'startButtonLabel' => $start_button_label,
+// Prepare JavaScript configuration
+$js_config = array(
+    'avatar_vendor' => $avatar_vendor,
+    'chat_only' => $chat_only,
+    'video_enable' => $video_enable,
+    'livekit_enable' => $livekit_enable,
     'avatarContainerID' => $avatarContainerID,
-    'previewImage' => $previewImage,
-    'requiredFieldsComplete' => $required_fields_complete,
-    'nonce' => wp_create_nonce('avatar_form_nonce')
-]);
+    'avatar_id' => $aID,
+    'knowledge_id' => $kID,
+    'opening_text' => $opening_text['en'] ?? '',
+    'time_limit' => $time_limit,
+    'required_fields_complete' => $required_fields_complete,
+    'disclaimer_enable' => $disclaimer_enable,
+    'instruction_enable' => $instruction_enable,
+    'user_form_enable' => $user_form_enable,
+    'form_id' => 0,
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'instruction_section_exists' => false
+);
 
-// Enqueue external JavaScript file
-wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js/avatarContainer.js', ['jquery'], '1.0.0', true);
+// Get form ID
+$form_id_to_use = 0;
+if (isset($avatar) && isset($avatar->selected_form_id) && $avatar->selected_form_id > 0) {
+    $form_id_to_use = intval($avatar->selected_form_id);
+} elseif (isset($selected_form_id) && $selected_form_id > 0) {
+    $form_id_to_use = $selected_form_id;
+} elseif (isset($atts['form_id']) && $atts['form_id'] > 0) {
+    $form_id_to_use = intval($atts['form_id']);
+}
+$js_config['form_id'] = $form_id_to_use;
 ?>
 
 <link rel="stylesheet" href="<?php echo esc_url(plugin_dir_url(__FILE__) . 'assets/css/fontawesome/css/all.min.css'); ?>">
 <input type="hidden" name="CURRENT_TIMESTAMP" value="<?php echo esc_attr(time()); ?>">
+
+<!-- Pass PHP variables to JavaScript -->
+<script type="text/javascript">
+    var avatarStudioConfig = <?php echo wp_json_encode($js_config); ?>;
+</script>
+
 <div class="avatarAndTranscriptWrapper">
 
     <div id="avatarContainer-<?php echo esc_attr($avatarContainerID); ?>" class="avatarContainer">
@@ -203,9 +216,6 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
 
         </div>
         <?php if ($video_enable) { ?>
-            <?php
-            $has_camera = true;
-            ?>
             <div class="videoContainer userVideoContainer" id="userVideoContainer" style="display: none;">
                 <video id="userVideo" class="hide" autoplay="" playsinline="" muted="">
                     <track kind="captions">
@@ -263,7 +273,7 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
         </div>
         <div class="actionContainer">
             <div class="textInput-wrapper">
-                <input type="text" id="userInput" class="textInput" placeholder="Let’s chat!" />
+                <input type="text" id="userInput" class="textInput" placeholder="Let's chat!" />
                 <div id="<?php echo $avatar_vendor == 'tavus' ? 'send-btn' : 'speakButton' ?>" class="speakButton">
                     <i class="fa fa-arrow-up"></i>
                 </div>
@@ -297,27 +307,12 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
         </div>
     </div>
 <?php } ?>
+
 <?php if ($user_form_enable) { ?>
     <div class="instruction-container" id="userform">
         <form id="userDetailsForm" novalidate>
             
             <?php
-            // Get the selected form ID from global or avatar object
-            $form_id_to_use = 0;
-            
-            // First check if $avatar object exists and has selected_form_id
-            if (isset($avatar) && isset($avatar->selected_form_id) && $avatar->selected_form_id > 0) {
-                $form_id_to_use = intval($avatar->selected_form_id);
-            } 
-            // Then check the global $selected_form_id variable
-            elseif (isset($selected_form_id) && $selected_form_id > 0) {
-                $form_id_to_use = $selected_form_id;
-            }
-            // Also check if it's passed via shortcode attributes
-            elseif (isset($atts['form_id']) && $atts['form_id'] > 0) {
-                $form_id_to_use = intval($atts['form_id']);
-            }
-            
             if ($form_id_to_use > 0) {
                 $form_builder = Avatar_Form_Builder::get_instance();
                 $form = $form_builder->get_form_by_id($form_id_to_use);
@@ -325,10 +320,8 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
                 if ($form && !empty($form->form_data)) {
                     $form_data = json_decode($form->form_data, true);
                     
-                    // Check if form_data is valid and has fields
                     if ($form_data && is_array($form_data) && isset($form_data['fields']) && !empty($form_data['fields'])) {
                         
-                        // Display form title and description
                         if (!empty($form_data['title'])) {
                             echo '<h3>' . esc_html($form_data['title']) . '</h3>';
                         }
@@ -337,7 +330,6 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
                             echo '<p class="form-description">' . esc_html($form_data['description']) . '</p>';
                         }
                         
-                        // Generate form fields
                         echo '<div class="user-form-fields">';
                         
                         foreach ($form_data['fields'] as $field) {
@@ -418,9 +410,8 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
                             echo '</div>';
                         }
                         
-                        echo '</div>'; // Close .user-form-fields
+                        echo '</div>';
                         
-                        // Add hidden inputs
                         echo '<input type="hidden" name="form_id" value="' . esc_attr($form_id_to_use) . '">';
                         echo '<input type="hidden" name="session_id" value="' . esc_attr(session_id()) . '">';
                         if (isset($avatar) && isset($avatar->id)) {
@@ -445,6 +436,7 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
         </form>
     </div>
 <?php } ?>
+
 <?php if ($instruction_enable) { ?>
     <div class="instruction-container" id="instruction">
         <div class="instruction-content">
@@ -465,3 +457,5 @@ wp_enqueue_script('avatar-custom-scripts', plugin_dir_url(__FILE__) . 'assets/js
         </div>
     </div>
 <?php } ?>
+
+<script src="<?php echo esc_url(plugin_dir_url(__FILE__) . 'assets/js/avatarContainer.js'); ?>"></script>

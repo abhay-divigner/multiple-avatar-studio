@@ -1428,3 +1428,67 @@ input[type="checkbox"] {
     flex-direction: column;
   }
 }
+/* Toast notification preview styles */
+.preview-toast-container {
+  position: absolute !important;
+  z-index: 10000 !important;
+  top: 60px !important;
+  right: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.preview-toast-container .notification {
+  position: relative !important;
+  opacity: 1 !important;
+  animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  min-width: fit-content !important;
+  max-width: 400px !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+
+/* Remove progress bar from preview */
+.preview-toast-container .notification-progress {
+  display: none !important;
+}
+
+/* Ensure toast stays visible */
+.preview-toast-container .notification.removing {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Animation for slide in */
+@keyframes slideIn {
+  from {
+    transform: translateX(450px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Hide toast when not in during session mode or not on toast notifications tab */
+.preview-mode.session-before .preview-toast-container,
+.preview-mode.session-before ~ .preview-toast-container {
+  display: none !important;
+}
+div#notification-container {
+  position: absolute;
+  top: 60px;
+  right: 10px;
+  margin: 0;
+  z-index: 99999;
+}

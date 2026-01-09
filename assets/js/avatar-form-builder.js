@@ -67,7 +67,7 @@
         url: avatarFormBuilder.ajax_url,
         type: "GET",
         data: {
-          action: "get_avatar_form",
+          action: "avanew_as_get_avatar_form",
           form_id: formId,
           nonce: avatarFormBuilder.get_form_nonce,
         },
@@ -135,7 +135,7 @@
           url: avatarFormBuilder.ajax_url,
           type: "POST",
           data: {
-            action: "delete_avatar_form",
+            action: "avanew_as_delete_avatar_form",
             form_id: formId,
             nonce: avatarFormBuilder.delete_form_nonce,
           },
@@ -584,7 +584,7 @@
       url: avatarFormBuilder.ajax_url,
       type: "POST",
       data: {
-        action: "save_avatar_form",
+        action: "avanew_as_save_avatar_form",
         form_id: currentFormId,
         form_data: JSON.stringify(formData),
         nonce: avatarFormBuilder.save_form_nonce,

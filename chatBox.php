@@ -33,56 +33,11 @@ if ($previewThumbnail == '') {
     $previewThumbnail = plugin_dir_url(__FILE__) . '/assets/images/preview.webp';
 }
 
+// Enqueue dynamic styles
+avatar_studio_enqueue_dynamic_styles();
+
 ?>
 
-<style>
-    <?php
-    if ($styles && is_array($styles)) {
-        foreach ($styles as $key => $style) {
-            if ($key == 'chatBox') {
-                echo arrayToCss('#chatBox', $style, true);
-            } else if ($key == 'thumbnail') {
-                echo arrayToCss('#avatarThumbnail', $style, true);
-            } else if ($key == 'heading') {
-                echo arrayToCss('#chatBox-heading', $style, true);
-            } else if ($key == 'chat-start-button') {
-                echo arrayToCss('#startSession', $style, true);
-                echo arrayToCss('button.disclaimer', $style, true);
-                echo arrayToCss('button.instruction', $style, true);
-            } else if ($key == 'chat-end-button') {
-                echo arrayToCss('#endSession', $style, true);
-            } else if ($key == 'mic-button') {
-                echo arrayToCss('#micToggler', $style, true);
-            } else if ($key == 'camera-button') {
-                echo arrayToCss('#cameraToggler', $style, true);
-            } else if ($key == 'switch-button') {
-                echo arrayToCss('#switchInteractionMode', $style, true);
-            } else if ($key == 'transcript-button') {
-                echo arrayToCss('.transcriptToggleButton', $style, true);
-            } else if ($key == 'fullscreen-button') {
-                echo arrayToCss('.action-fullscreen', $style, true);
-                echo arrayToCss('#fullscreen', $style, true);
-            } else if ($key == 'close-button') {
-                echo arrayToCss('#chatBox-close', $style, true);
-                if (isset($style['hover-background']) && $style['hover-background']) {
-                    echo '#chatBox-close:hover { background: ' . esc_attr($style['hover-background']) . ' !important; }' . "\n";
-                }
-            }
-        }
-    }
-    ?>
-
-
-    /* #chat-widget .avatarContainer {
-        <?php
-        if ($avatar_studio_chat_box_border_color != '') {
-            echo 'border-color: ' . $avatar_studio_chat_box_border_color . ' !important;';
-        }
-        ?>
-    }
-
-    */
-</style>
 <div id="chat-icon">
     <img src="<?php echo $previewThumbnail; ?>" alt="avatar_thumb" id="avatarThumbnail"
         class="<?php echo 'thumbnail-' . $active_thumbnail ?>" />
