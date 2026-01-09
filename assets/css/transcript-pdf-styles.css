@@ -1,0 +1,64 @@
+/* File: assets/css/transcript-pdf-styles.css */
+
+.header {
+  text-align: center;
+  border-bottom: 2px solid #333;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.header p {
+  margin: 3px 0;
+  color: #666;
+  font-size: 11px;
+}
+
+.message-container {
+  margin-bottom: 15px;
+  page-break-inside: avoid;
+}
+
+.message-bubble {
+  padding: 10px;
+  border-radius: 8px;
+  margin: 5px 0;
+  display: inline-block;
+  max-width: 85%;
+}
+
+.user-message {
+  background-color: #dcf8c6;
+  margin-left: 15%;
+}
+
+.assistant-message {
+  background-color: #f1f0f0;
+  margin-right: 15%;
+}
+
+.role {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 10px;
+}
+
+.user-role {
+  color: #008000;
+}
+
+.assistant-role {
+  color: #0064c8;
+}
+
+.content {
+  font-size: 11px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}

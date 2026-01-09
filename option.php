@@ -1,4 +1,9 @@
     <?php
+
+    if (!defined('ABSPATH')) {
+        exit;
+    }
+
     // Hook into the admin_menu action to add the submenu page
     function avatar_studio_plugin_menu()
     {
@@ -12,14 +17,14 @@
             'dashicons-admin-generic',  // Icon for the menu
             6                           // Position in the menu
         );
-        add_submenu_page(
-            'avatar_studio_main', 
-            'User Info',
-            'User Info',
-            'manage_options',
-            'avatar_studio_user_info',
-            'avatar_studio_user_info_page'
-        );
+        // add_submenu_page(
+        //     'avatar_studio_main', 
+        //     'User Info',
+        //     'User Info',
+        //     'manage_options',
+        //     'avatar_studio_user_info',
+        //     'avatar_studio_user_info_page'
+        // );
 
         // Add Sessions submenu only if Google Drive is enabled
         if (get_option('avatar_studio_enable_google_drive') == '1') {
@@ -70,809 +75,6 @@
     // Get current Google Drive enable status
     $google_drive_enabled = get_option('avatar_studio_enable_google_drive', 0);
     ?>
-    <style>
-    /* Add these new styles for the conditional sections */
-    .conditional-section {
-        transition: all 0.3s ease;
-    }
-    
-    .conditional-section.disabled {
-        opacity: 0.6;
-        pointer-events: none;
-    }
-    
-    .section-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        margin-left: 10px;
-        background: #f1f5f9;
-        color: #64748b;
-    }
-    
-    .section-status.active {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
-        color: #38b1c5;
-    }
-    
-    .section-status.inactive {
-        background: #f1f5f9;
-        color: #94a3b8;
-    }
-    
-    .section-status::before {
-        content: '';
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-    
-    .section-status.active::before {
-        background: #10b981;
-        box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
-    }
-    
-    .section-status.inactive::before {
-        background: #94a3b8;
-    }
-    
-    /* Existing styles remain the same */
-    .avatar-studio-wrap {
-        max-width: 1400px;
-        margin: 20px auto;
-        padding: 0 20px;
-    }
-
-    .avatar-studio-header {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
-        padding: 32px 40px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 20px rgba(56, 177, 197, 0.3);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .avatar-studio-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-        pointer-events: none;
-    }
-
-    .avatar-studio-header h1 {
-        font-size: 32px;
-        font-weight: 700;
-        margin: 0 0 8px 0;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .avatar-studio-header p {
-        margin: 0;
-        opacity: 0.9;
-        font-size: 15px;
-    }
-
-    .avatar-studio-card {
-        background: white;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 12px;
-        padding: 0;
-        margin: 20px 0;
-        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-        transition: all 0.3s ease;
-    }
-
-    .avatar-studio-card:hover {
-        box-shadow: 0 8px 25px rgba(56, 177, 197, 0.2);
-        transform: translateY(-2px);
-    }
-
-    .card-header {
-        padding: 20px 30px;
-        border-bottom: 2px solid transparent;
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-        border-radius: 10px 10px 0 0;
-        position: relative;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .card-header.collapsible {
-        cursor: pointer;
-        display: flex;
-    }
-
-    .card-header.collapsible:hover {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.12) 0%, rgba(218, 146, 44, 0.12) 100%);
-    }
-
-    .card-header::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-    }
-
-    .card-header h2 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-        color: #1e293b;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .card-header h2::before {
-        content: '';
-        width: 5px;
-        height: 24px;
-        background: linear-gradient(180deg, #38b1c5 0%, #da922c 100%);
-        border-radius: 3px;
-        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.4);
-    }
-
-    /* Collapse Toggle Icon */
-    .collapse-toggle {
-        margin-left: auto;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        border-radius: 50%;
-        color: white;
-        font-size: 14px;
-        font-weight: bold;
-        transition: transform 0.3s ease;
-        flex-shrink: 0;
-    }
-
-    .collapse-toggle.collapsed {
-        transform: rotate(180deg);
-    }
-
-    .card-body.collapsed + .card-header::after,
-    .card-header.collapsible:has(+ .card-body.collapsed)::after {
-        opacity: 0;
-        height: 0;
-    }
-
-    /* Fix for all card header borders */
-    .card-header {
-        position: relative;
-        padding: 20px 30px;
-        border-bottom: 2px solid transparent;
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-        border-radius: 10px 10px 0 0;
-        position: relative;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .card-header::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-        transition: all 0.3s ease;
-    }
-
-    /* Show border when NOT collapsed */
-    .card-body:not(.collapsed) + .card-header::after,
-    .card-header.collapsible:not(.collapsed-state)::after {
-        opacity: 1;
-        height: 2px;
-    }
-
-    /* Hide border when collapsed */
-    .card-body.collapsed + .card-header::after,
-    .card-header.collapsible.collapsed-state::after {
-        opacity: 0;
-        height: 0;
-    }
-
-    /* Remove the old conflicting rules */
-    .card-header.collapsible:has(+ .card-body.collapsed)::after {
-        /* Remove this rule entirely */
-    }
-
-    /* Alternative approach - add a class-based solution */
-    .card-header.collapsed-state::after {
-        opacity: 0;
-        height: 0;
-        transition: all 0.3s ease;
-    }
-
-    .card-body {
-        padding: 30px;
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .card-body.collapsed {
-        max-height: 0;
-        padding: 0 30px;
-        opacity: 0;
-    }
-
-    .form-table {
-        margin: 0;
-        width: 100%;
-    }
-
-    .form-table th {
-        padding: 15px 0;
-        width: 180px;
-        font-weight: 600;
-        color: #333;
-        vertical-align: top;
-    }
-
-    #api-key-config {
-        width: 80px;
-    }
-
-    .form-table td {
-        padding: 15px 0;
-        width: auto;
-    }
-
-    .form-table tr {
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .form-table tr:last-child {
-        border-bottom: none;
-    }
-
-    .plugin-input[type="text"],
-    .plugin-input[type="password"],
-    .plugin-input select {
-        width: 100%;
-        max-width: 600px;
-        padding: 10px 14px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        background: white;
-        box-sizing: border-box;
-    }
-
-    .plugin-input[type="text"]:focus,
-    .plugin-input[type="password"]:focus,
-    .plugin-input select:focus {
-        outline: none;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
-    }
-
-    .input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        max-width: 600px;
-    }
-
-    .input-wrapper input {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .toggle-visibility {
-        padding: 10px 20px !important;
-        background: #f8fafc !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 6px !important;
-        color: #475569 !important;
-        font-size: 13px !important;
-        font-weight: 500 !important;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        height: auto !important;
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-
-    .toggle-visibility:hover {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%) !important;
-        border: 1px solid transparent !important;
-        background-image: 
-            linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
-        background-origin: border-box !important;
-        background-clip: padding-box, border-box !important;
-        color: #fff !important;
-    }
-
-    .description {
-        margin: 8px 0 0 0 !important;
-        color: #64748b !important;
-        font-size: 13px !important;
-        line-height: 1.5 !important;
-    }
-
-    .description a {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-decoration: none;
-        font-weight: 600;
-        position: relative;
-    }
-
-    .description a::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: -2px;
-        width: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-        transition: width 0.3s ease;
-    }
-
-    .description a:hover::after {
-        width: 100%;
-    }
-
-    /* Toggle Switch */
-    .toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 48px;
-        height: 26px;
-        margin-right: 10px;
-    }
-
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #cbd5e1;
-        transition: 0.3s;
-        border-radius: 34px;
-    }
-
-    .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 20px;
-        width: 20px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.3s;
-        border-radius: 50%;
-    }
-
-    input:checked + .toggle-slider {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.4);
-    }
-
-    input:checked + .toggle-slider:before {
-        transform: translateX(22px);
-    }
-
-    .toggle-label {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-    }
-
-    .toggle-label span {
-        font-weight: 500;
-        color: #334155;
-    }
-
-    /* api-integration */
-
-    .tavus-heygen-api {
-        /* display: flex; */
-        gap: 20px;
-    }
-
-    .tavus-heygen-api .avatar-studio-card {
-        flex: 1;
-        min-width: 0;
-    }
-
-    /* Code Display */
-    .code-display {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        color: #e2e8f0;
-        padding: 16px 20px;
-        border-radius: 8px;
-        font-family: 'Monaco', 'Courier New', monospace;
-        font-size: 13px;
-        display: inline-block;
-        max-width: 100%;
-        overflow-x: auto;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(135deg, #1e293b 0%, #0f172a 100%),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        word-break: break-all;
-    }
-
-    /* Setup Instructions */
-    .setup-instructions {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 12px;
-        padding: 25px 30px;
-        margin-top: 30px;
-    }
-
-    .setup-instructions h3 {
-        font-size: 16px;
-        margin: 0 0 20px 0;
-        font-weight: 600;
-        background-clip: text;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #fff;
-    }
-
-    .setup-instructions h3::before {
-        content: '📋';
-        font-size: 20px;
-    }
-
-    .setup-instructions ol {
-        counter-reset: step-counter;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .setup-instructions li {
-        counter-increment: step-counter;
-        /* margin: 12px 0; */
-        background: white;
-        border: 1px solid #d9f2f6;
-        border-radius: 6px;
-        padding: 14px 18px 14px 60px;
-        position: relative;
-        transition: all 0.2s ease;
-        color: #334155;
-        line-height: 1.6;
-    }
-
-    .setup-instructions li::before {
-        content: counter(step-counter);
-        position: absolute;
-        left: 18px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
-        border-radius: 50%;
-                font-size: 14px;
-        font-weight: 700;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(56, 177, 197, 0.3);
-    }
-
-    .setup-instructions li:hover {
-        background: #f8fafc;
-        transform: translateX(4px);
-        border-color: #38b1c5;
-    }
-
-    .setup-instructions a {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-decoration: none;
-        font-weight: 600;
-        position: relative;
-    }
-
-    .setup-instructions a::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: -2px;
-        width: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-        transition: width 0.3s ease;
-    }
-
-    .setup-instructions a:hover::after {
-        width: 100%;
-    }
-
-    .setup-instructions strong {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .two-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-
-    .two-col li {
-        margin-bottom: 20px;
-    }
-
-    #second-col ol[start="5"] {
-        counter-reset: my-counter 4;
-    }
-
-    #second-col ol[start="5"] > li {
-        counter-increment: my-counter;
-    }
-
-    #second-col ol[start="5"] > li::before {
-        content: counter(my-counter);
-    }
-
-    /* Dropdown-styling */
-    .wp-core-ui select {
-        font-size: 14px;
-        line-height: 2;
-        color: #2c3338;
-        border-color: #c5c5c5;
-        box-shadow: none;
-        border-radius: 6px;
-        padding: 6px 12px;
-        min-height: 30px;
-        max-width: 16rem;
-        -webkit-appearance: none;
-        background: #fff url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23555%22%2F%3E%3C%2Fsvg%3E) no-repeat right 10px top 52%;
-        background-size: 16px 16px;
-        cursor: pointer;
-        vertical-align: middle;
-        }
-
-    /* Submit Button */
-    .button-primary {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
-        border: none !important;
-        padding: 12px 30px !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        border-radius: 8px !important;
-        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4) !important;
-        transition: all 0.3s ease !important;
-        height: auto !important;
-        text-shadow: none !important;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .button-primary::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .button-primary:hover::before {
-        left: 100%;
-    }
-
-    .button-primary:hover {
-        background: linear-gradient(135deg, #2a8b9a 0%, #c17d23 100%) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5) !important;
-    }
-
-    /* Section Divider */
-    .section-divider {
-        margin: 40px 0;
-        border: none;
-        height: 2px;
-        background: linear-gradient(90deg, transparent 0%, #38b1c5 25%, #da922c 75%, transparent 100%);
-    }
-
-    /* Alert Box */
-    .alert-box {
-        background: linear-gradient(135deg, rgba(218, 146, 44, 0.08) 0%, rgba(56, 177, 197, 0.08) 100%);
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(135deg, rgba(218, 146, 44, 0.08) 0%, rgba(56, 177, 197, 0.08) 100%),
-            linear-gradient(135deg, #da922c 0%, #38b1c5 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        padding: 16px 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .alert-box::before {
-        content: '⚠️';
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .alert-box p {
-        margin: 0;
-        color: #fff;
-        line-height: 1.5;
-    }
-
-    .alert-box strong {
-        background-clip: text;
-        color: #fff;
-    }
-
-    /* Grey Background Section */
-    #google-drive-settings {
-        margin-top: 20px;
-        padding: 25px;
-        background: #f9f9f9;
-        border: 1px solid #ddd;
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 4px;
-    }
-
-    /* Auto Export Settings within Google Drive */
-    .auto-export-section {
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(56, 177, 197, 0.2);
-    }
-
-    .auto-export-section h3 {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1e293b;
-        margin: 0 0 20px 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .auto-export-section h3::before {
-        content: '⚡';
-        font-size: 18px;
-    }
-
-
-    .masked {
-        -webkit-text-security: disc; /* Chrome, Edge */
-        text-security: disc;         /* Firefox (partial support) */
-    }
-
-    /* Responsive */
-    @media (max-width: 782px) {
-        .avatar-studio-wrap {
-            padding: 0 10px;
-        }
-
-        .avatar-studio-header {
-            padding: 20px;
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        .form-table th,
-        .form-table td {
-            display: block;
-            width: 100% !important;
-            padding: 10px 0;
-        }
-
-        .form-table th {
-            padding-bottom: 5px;
-        }
-
-        .input-wrapper {
-            max-width: 100%;
-        }
-
-        .plugin-input[type="text"],
-        .plugin-input[type="password"],
-        .plugin-input select {
-            max-width: 100%;
-        }
-
-        .tavus-heygen-api {
-            flex-direction: column;
-        }
-    }
-    /* Responsive adjustments */
-    @media screen and (max-width: 1200px) {
-        td > div[style*="grid-template-columns"] {
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
-        }
-    }
-    
-    @media screen and (max-width: 782px) {
-        .form-table th {
-            display: block;
-            width: 100% !important;
-            padding-bottom: 0;
-        }
-        
-        .form-table td {
-            display: block;
-            width: 100%;
-            padding-top: 8px;
-        }
-        
-        td > div[style*="grid-template-columns"] {
-            grid-template-columns: 1fr !important;
-        }
-    }
-</style>
 
 <div class="avatar-studio-wrap">
 <!-- Header -->
@@ -934,7 +136,7 @@
                             <td>
                                 <div class="input-wrapper">
                                     <input 
-                                        type="text" 
+                                        type="password" 
                                         id="avatar_studio_tavus_api_key" 
                                         name="avatar_studio_tavus_api_key" 
                                         value="<?php echo esc_attr($tavus_api_key); ?>" 
@@ -996,7 +198,7 @@
         <div class="avatar-studio-card conditional-section <?php echo !$has_tavus_key ? 'disabled' : ''; ?>" id="google-drive-section">
             <div class="card-header collapsible" data-target="google-drive-body">
                 <h2>
-                    Google Drive Integration (User Transcripts – Tavus Only)
+                    Google Drive Integration (User Transcript - Tavus Only | Heygen Coming Soon!)
                     <span class="section-status <?php echo $has_tavus_key ? 'active' : 'inactive'; ?>">
                         <?php echo $has_tavus_key ? 'Tavus API Available' : 'Tavus API Required'; ?>
                     </span>
@@ -1013,15 +215,29 @@
                 </div>
                 <?php endif; ?>
                 
+
+                <div style="display: flex; flex-direction: row; gap: 20px;">
+  
                 <!-- Purpose Description -->
-                <div class="alert-box" style="background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
+                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
                     <p style="color: #1e293b;">
-                        <strong style="color: #333;">Export User Conversation Transcripts</strong><br>
-                        This integration automatically exports user conversation transcripts from Tavus to Google Drive. 
-                        Perfect for backup, analysis, or compliance purposes. Transcripts contain full conversation logs 
-                        between users and your AI avatars.
+                    <strong style="color: #333;">Export Conversation Transcripts</strong><br>
+                    This integration automatically exports user conversation transcripts from Tavus to Google Drive. 
+                    Perfect for backup, analysis, or compliance purposes. Transcripts contain full conversation logs 
+                    between users and your AI avatars.
                     </p>
                 </div>
+
+                <!-- Perception Analysis Note -->
+                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
+                    <p style="color: #1e293b;">
+                    <strong style="color: #333;">Export Perception Analysis Data</strong><br>
+                    Perception analysis reveals insights into user interactions with AI avatars by capturing emotions, engagement, and behavior. It helps understand user sentiment, improve avatar performance, and optimize conversations using emotion detection, engagement scores, attention metrics, and interaction quality indicators.
+                    </p>
+                </div>
+
+                </div>
+
                 
                 <table class="form-table">
                     <tr valign="top">
@@ -1088,7 +304,7 @@
                                                 style="flex: 1;"
                                                 <?php echo !$has_tavus_key ? 'disabled' : ''; ?>
                                             />
-                                            <button type="button" class="button toggle-visibility google-drive-toggle" data-target="avatar_studio_google_client_secret" style="white-space: nowrap;" <?php echo !$has_tavus_key ? 'disabled' : ''; ?>>Show</button>
+                                            <button type="button" class="button toggle-visibility" data-target="avatar_studio_google_client_secret" style="white-space: nowrap;" <?php echo !$has_tavus_key ? 'disabled' : ''; ?>>Show</button>
                                         </div>
                                         <p class="description" style="margin-top: 6px;">OAuth 2.0 Client Secret from Google Cloud Console</p>
                                     </div>
@@ -1100,7 +316,7 @@
                             <th style="line-height: 3;" scope="row">Redirect URI</th>
                             <td>
                                 <div class="code-display">
-                                    <?php echo admin_url('admin.php?page=avatar_studio_sessions'); ?>
+                                    <?php echo esc_url(admin_url('admin.php?page=avatar_studio_sessions')); ?>
                                 </div>
                                 <div class="alert-box" style="margin-top: 12px;">
                                     <p>
@@ -1192,14 +408,14 @@
                         </table>
                         
                         <!-- Transcript Information -->
-                        <div class="alert-box" style="margin-top: 20px; background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);">
+                        <!-- <div class="alert-box" style="margin-top: 20px; background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);">
                             <p style="color: #1e293b;">
                                 <strong style="color: #333;">What gets exported?</strong><br>
                                 Each exported transcript includes the complete conversation log between a user and your AI avatar, 
                                 including timestamps, user messages, avatar responses, and metadata. Files are organized by date 
                                 and session ID for easy reference.
                             </p>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -1207,186 +423,20 @@
 
         <?php submit_button('Save All Settings', 'primary', 'submit', false); ?>
     </form>
+
+    <!-- Footer Links -->
+    <div class="footer-links">
+        <div class="footer-links-container">
+            <a href="https://avanew.ai/privacy-policy/" target="_blank" class="footer-link">
+                <span class="link-text">Privacy Policy</span>
+            </a>
+            
+            <a href="https://avanew.ai/interactivestudio/terms-and-conditions/" target="_blank" class="footer-link">
+                <span class="link-text">Terms of Service</span>
+            </a>
+        </div>
+    </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Get Tavus API key input and Google Drive section
-    const tavusApiKeyInput = document.getElementById('avatar_studio_tavus_api_key');
-    const googleDriveSection = document.getElementById('google-drive-section');
-    const googleDriveCheckbox = document.getElementById('avatar_studio_enable_google_drive');
-    const googleDriveSettings = document.getElementById('google-drive-settings');
-    
-    // Function to check Tavus API key and toggle Google Drive section
-    function toggleGoogleDriveSection() {
-        const hasTavusKey = tavusApiKeyInput.value.trim() !== '';
-        
-        if (googleDriveSection) {
-            if (hasTavusKey) {
-                googleDriveSection.classList.remove('disabled');
-                // Enable all inputs within Google Drive section
-                document.querySelectorAll('#google-drive-section input, #google-drive-section select, #google-drive-section button').forEach(input => {
-                    input.disabled = false;
-                });
-                // Auto-enable Google Drive if it was previously enabled
-                
-            } else {
-                googleDriveSection.classList.add('disabled');
-                // Disable all inputs within Google Drive section
-                document.querySelectorAll('#google-drive-section input, #google-drive-section select, #google-drive-section button').forEach(input => {
-                    input.disabled = true;
-                });
-                // Auto-disable Google Drive
-                if (googleDriveCheckbox) {
-                    googleDriveCheckbox.checked = false;
-                    toggleGoogleDriveSettings();
-                }
-            }
-        }
-    }
-    
-    // Function to toggle Google Drive settings visibility
-    function toggleGoogleDriveSettings() {
-        if (googleDriveSettings && googleDriveCheckbox) {
-            googleDriveSettings.style.display = googleDriveCheckbox.checked ? 'block' : 'none';
-        }
-    }
-    
-    // Initialize on page load
-    toggleGoogleDriveSection();
-    toggleGoogleDriveSettings();
-    
-    // Listen for changes in Tavus API key
-    if (tavusApiKeyInput) {
-        tavusApiKeyInput.addEventListener('input', toggleGoogleDriveSection);
-        tavusApiKeyInput.addEventListener('change', toggleGoogleDriveSection);
-    }
-    
-    // Listen for changes in Google Drive checkbox
-    if (googleDriveCheckbox) {
-        googleDriveCheckbox.addEventListener('change', toggleGoogleDriveSettings);
-    }
-
-    // Initialize collapsed states on page load
-    document.querySelectorAll('.card-header.collapsible').forEach(function(header) {
-        const targetId = header.getAttribute('data-target');
-        const body = document.getElementById(targetId);
-        const toggle = header.querySelector('.collapse-toggle');
-        
-        if (body && body.classList.contains('collapsed')) {
-            header.classList.add('collapsed-state');
-            if (toggle) {
-                toggle.classList.add('collapsed');
-            }
-        }
-    });
-
-    // Handle expand/collapse functionality
-    document.querySelectorAll('.card-header.collapsible').forEach(function(header) {
-        header.addEventListener('click', function(e) {
-            // Prevent collapse when clicking on child elements like toggles
-            if (e.target.closest('.toggle-switch') || e.target.closest('.toggle-label')) {
-                return;
-            }
-            
-            // Don't allow collapsing if section is disabled
-            if (this.closest('.conditional-section.disabled')) {
-                return;
-            }
-            
-            const targetId = this.getAttribute('data-target');
-            const body = document.getElementById(targetId);
-            const toggle = this.querySelector('.collapse-toggle');
-            
-            if (body && toggle) {
-                body.classList.toggle('collapsed');
-                toggle.classList.toggle('collapsed');
-                this.classList.toggle('collapsed-state');
-            }
-        });
-    });
-
-    // Handle password visibility toggles
-    document.querySelectorAll('.toggle-visibility').forEach(function (button) {
-        button.addEventListener('click', function () {
-            if (this.disabled) return;
-            
-            const targetId = this.getAttribute('data-target');
-            const input = document.getElementById(targetId);
-
-            if (!input) return;
-
-            // Toggle masked class
-            if (input.classList.contains('masked')) {
-                input.classList.remove('masked');
-                this.textContent = 'Hide';
-            } else {
-                input.classList.add('masked');
-                this.textContent = 'Show';
-            }
-        });
-    });
-
-    // Handle main plugin enable/disable
-    const enableCheckbox = document.getElementById('avatar_studio_enable');
-    const allInputs = document.querySelectorAll('.plugin-input');
-    const allToggleButtons = document.querySelectorAll('.toggle-visibility');
-
-    function toggleAllInputs() {
-        const enabled = enableCheckbox.checked;
-        
-        allInputs.forEach(input => {
-            if (input.id !== 'avatar_studio_enable') {
-                input.disabled = !enabled;
-            }
-        });
-        
-        allToggleButtons.forEach(btn => {
-            btn.disabled = !enabled;
-        });
-        
-        // Collapse/Expand API sections based on plugin state
-        const apiSections = [
-            { body: 'tavus-api-body', header: '[data-target="tavus-api-body"]' },
-            { body: 'heygen-api-body', header: '[data-target="heygen-api-body"]' }
-        ];
-        
-        apiSections.forEach(section => {
-            const body = document.getElementById(section.body);
-            const header = document.querySelector(section.header);
-            
-            if (body && header) {
-                if (enabled) {
-                    // Plugin enabled - expand API sections
-                    body.classList.remove('collapsed');
-                    header.classList.remove('collapsed-state');
-                    header.querySelector('.collapse-toggle')?.classList.remove('collapsed');
-                } else {
-                    // Plugin disabled - collapse API sections
-                    body.classList.add('collapsed');
-                    header.classList.add('collapsed-state');
-                    header.querySelector('.collapse-toggle')?.classList.add('collapsed');
-                }
-            }
-        });
-        
-        // Re-check Google Drive settings
-        if (enabled) {
-            toggleGoogleDriveSection();
-            toggleGoogleDriveSettings();
-        } else {
-            if (googleDriveSettings) {
-                googleDriveSettings.style.display = 'none';
-            }
-        }
-    }
-
-    if (enableCheckbox) {
-        toggleAllInputs(); // Initialize on page load
-        enableCheckbox.addEventListener('change', toggleAllInputs);
-}
-});
-</script>
 <?php
 }
 
@@ -1430,1011 +480,6 @@ document.addEventListener('DOMContentLoaded', function () {
     
     $google_connected = get_option('avatar_studio_google_access_token') ? true : false;
     ?>
-    <style>
-    /* Add these new styles for pagination */
-    .pagination-wrapper {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 24px;
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
-        border-top: 2px solid transparent;
-        background-image: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%), linear-gradient(90deg, transparent 0%, #38b1c5 0%, #da922c 100%, transparent 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        gap: 20px;
-    }
-
-    .pagination-info {
-        color: #fff;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .pagination-info strong {
-        color: #fff;
-        font-weight: 700;
-    }
-
-    .pagination-links {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-    .page-btn {
-        padding: 8px 14px;
-        border-radius: 6px;
-        background: #fff;
-        color: #374151;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        font-weight: 600;
-        font-size: 13px;
-        white-space: nowrap;
-    }
-
-    .page-btn:hover {
-        color: #333;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.3);
-    }
-
-    .page-current {
-        font-weight: 600;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-size: 13px;
-        background: transparent;
-        color: #fff;
-        border: 2px solid transparent;
-    }
-
-    .page-jump-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 16px;
-        background: #fff;
-        border-radius: 8px;
-        border: 2px solid transparent;
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-    }
-
-    .page-jump-label {
-        font-size: 13px;
-        color: #6b7280;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .page-jump-input {
-        width: 60px;
-        padding: 6px 10px;
-        border: 2px solid #e5e7eb;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-        text-align: center;
-        transition: all 0.2s ease;
-        background: white;
-    }
-
-    .page-jump-input:focus {
-        outline: none;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        box-shadow: 0 0 0 3px rgba(56, 177, 197, 0.1);
-    }
-
-    .page-jump-btn {
-        padding: 6px 14px;
-        border-radius: 6px;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
-        border: none;
-        font-weight: 600;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-    }
-
-    .page-jump-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
-    }
-
-    /* Update responsive styles */
-    @media (max-width: 768px) {
-        .pagination-wrapper {
-            flex-direction: column;
-            gap: 16px;
-            padding: 16px;
-        }
-
-        .pagination-links {
-            width: 100%;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .page-jump-wrapper {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-
-    /* Rest of your existing CSS remains the same */
-    /* Main Wrapper */
-    .avatar-sessions-wrapper {
-        max-width: 98%;
-        margin: 20px 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
-    }
-
-    /* Header */
-    .avatar-sessions-header {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
-        padding: 32px 40px;
-        border-radius: 12px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 20px rgba(56, 177, 197, 0.3);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .avatar-sessions-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-        pointer-events: none;
-    }
-
-    .avatar-sessions-header h1 {
-        font-size: 32px;
-        font-weight: 700;
-        margin: 0 0 8px 0;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .avatar-sessions-header p {
-        margin: 0;
-        font-size: 15px;
-        opacity: 0.95;
-        color: white;
-        position: relative;
-        z-index: 1;
-    }
-
-    /* Google Drive Card */
-    .google-drive-card {
-        background: white;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 12px;
-        padding: 32px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-        transition: all 0.3s ease;
-    }
-
-    .google-drive-card:hover {
-        box-shadow: 0 8px 25px rgba(56, 177, 197, 0.15);
-        transform: translateY(-2px);
-    }
-
-    .drive-header {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 24px;
-        padding-bottom: 20px;
-        border-bottom: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        background-size: 100% 2px;
-        background-position: 0 100%;
-        background-repeat: no-repeat;
-    }
-
-    .drive-header h2 {
-        margin: 0;
-        font-size: 22px;
-        line-height: 28px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    /* Connected State */
-    .drive-row {
-        display: flex;
-        gap: 20px;
-        align-items: stretch;
-    }
-
-    .drive-connected-state,
-    .drive-actions {
-        flex: 1;
-    }
-
-    .drive-actions {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-    }
-
-    @media (max-width: 1024px) {
-        .drive-row {
-            flex-direction: column;
-        }
-
-        .drive-actions {
-            align-items: flex-start;
-            justify-content: flex-start;
-            text-align: left;
-        }
-    }
-
-    .drive-connected-state {
-        background: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 24px;
-    }
-
-    .drive-status-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 10px;
-    }
-
-    .status-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .drive-status-header strong {
-        -webkit-background-clip: text;
-        background-clip: text;
-        font-size: 16px;
-        font-weight: 700;
-        color: #1e293b;
-    }
-
-    .drive-connected-state p {
-        margin: 0;
-        color: #1e293b;
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-    .drive-info-box {
-        margin-top: 16px;
-        display: flex;
-        align-items: start;
-        gap: 10px;
-    }
-
-    .drive-info-box svg {
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .drive-info-box p {
-        margin: 0;
-        color: #1e5dd1ff;
-        font-size: 13px;
-    }
-
-    /* Disconnected State */
-    .drive-disconnected-state {
-        text-align: center;
-        padding: 40px 20px;
-    }
-
-    .drive-icon-wrapper {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
-        border: 3px solid transparent;
-        background-image: 
-            linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 50%;
-        width: 96px;
-        height: 96px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 24px;
-        box-shadow: 0 4px 20px rgba(56, 177, 197, 0.2);
-    }
-
-    .drive-disconnected-state h3 {
-        margin: 0 0 12px 0;
-        font-size: 20px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .drive-disconnected-state p {
-        margin: 0 0 28px 0;
-        color: #6b7280;
-        font-size: 15px;
-        max-width: 480px;
-        margin-left: auto;
-        margin-right: auto;
-        line-height: 1.6;
-    }
-
-    /* Buttons */
-    .drive-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 24px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.4);
-        text-decoration: none;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-primary::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .btn-primary:hover::before {
-        left: 100%;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5);
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-google {
-        background: linear-gradient(135deg, #4285f4 0%, #357ae8 100%);
-        border: none;
-        padding: 14px 28px;
-        font-size: 15px;
-        box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
-    }
-
-    .btn-google:hover {
-        background: linear-gradient(135deg, #357ae8 0%, #2a63c8 100%);
-        box-shadow: 0 6px 20px rgba(66, 133, 244, 0.5);
-    }
-
-    .btn-disconnect {
-        background: white;
-        color: #dc2626;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        text-decoration: none;
-    }
-
-    .btn-disconnect:hover {
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-        text-decoration: none;
-    }
-
-    .drive-security-note {
-        margin: 24px 0 0 0;
-        color: #9ca3af;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    }
-
-    /* Sessions Section */
-    .sessions-section {
-        background: white;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-    }
-
-    .sessions-header {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-        padding: 20px 28px;
-        position: relative;
-    }
-
-    .sessions-header::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-    }
-
-    .sessions-header h2 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    /* Table */
-    .sessions-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .sessions-table thead {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
-    }
-
-    .sessions-table th {
-        padding: 16px 20px;
-        text-align: center;
-        font-size: 12px;
-        font-weight: 700;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-bottom: 2px solid transparent;
-        background-image: 
-            linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%),
-            linear-gradient(90deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        background-size: 100% 100%, 100% 2px;
-        background-position: 0 0, 0 100%;
-        background-repeat: no-repeat;
-        white-space: nowrap;
-    }
-
-    .sessions-table tbody tr {
-        transition: all 0.3s ease;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .sessions-table tbody tr:hover {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
-        transform: scale(1.001);
-    }
-
-    .sessions-table tbody tr:last-child {
-        border-bottom: none;
-    }
-
-    .sessions-table td {
-        padding: 16px 20px;
-        color: #374151;
-        font-size: 14px;
-        vertical-align: middle;
-        text-align: center;
-    }
-
-    .sessions-table code {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-            linear-gradient(135deg, rgba(56, 177, 197, 0.4) 0%, rgba(218, 146, 44, 0.4) 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        -webkit-background-clip: text;
-        background-clip: text;
-        font-weight: 600;
-        font-family: 'Monaco', 'Courier New', monospace;
-        color: royalblue;
-    }
-
-    /* Copy Button Styles */
-    .copy-id-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .copy-btn {
-        background: white;
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 4px;
-        padding: 4px 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .copy-btn:hover {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        transform: scale(1.05);
-        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-    }
-
-    .copy-btn:hover svg {
-        stroke: white;
-    }
-
-    .copy-btn.copied {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
-
-    .copy-btn.copied svg {
-        stroke: white;
-    }
-
-    /* Status Badges */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
-        white-space: nowrap;
-    }
-
-    .status-completed {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .status-pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-exported,
-    .status-processed {
-        background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
-        border: 2px solid transparent;
-        background-image: 
-            linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: green;
-    }
-
-    .status-failed {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .status-not-exported,
-    .status-not-processed {
-        background: #f3f4f6;
-        color: #6b7280;
-    }
-
-    .status-unavailable {
-        background: #fef3c7;
-        color: #991b1b;
-    }
-
-    /* Action Button */
-    .btn-export {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        padding: 6px 12px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-    }
-
-    .btn-export:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-export.disabled {
-        background: #e5e7eb;
-        color: #9ca3af;
-        cursor: not-allowed;
-        opacity: 0.5;
-        pointer-events: none;
-        box-shadow: none;
-    }
-
-    .btn-user-details {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 6px 12px;
-        font-size: 10px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-left: 2px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        height: 38px;
-        box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-    }
-
-    .btn-user-details svg {
-        transition: transform 0.3s ease, stroke 0.3s ease;
-    }
-
-    .btn-user-details:hover {
-        background: linear-gradient(135deg, #2a8b9a 0%, #c17d23 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
-    }
-
-    .btn-user-details:hover svg {
-        transform: scale(1.1);
-    }
-
-    .btn-user-details:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(56, 177, 197, 0.3);
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 999999;
-        animation: fadeIn 0.2s ease;
-    }
-
-    .modal-overlay.active {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    .modal-content {
-        background: white;
-        border: 3px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        border-radius: 12px;
-        max-width: 600px;
-        width: 90%;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(56, 177, 197, 0.3);
-        animation: slideUp 0.3s ease;
-        position: relative;
-    }
-
-    @keyframes slideUp {
-        from {
-            transform: translateY(30px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .modal-header {
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        color: white;
-        padding: 24px 32px;
-        border-radius: 10px 10px 0 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .modal-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-        pointer-events: none;
-    }
-
-    .modal-header h2 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #fff;
-        position: relative;
-        z-index: 1;
-    }
-
-    .modal-close {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: white;
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        position: relative;
-        z-index: 1;
-    }
-
-    .modal-close:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(1.05);
-    }
-
-    .modal-body {
-        padding: 32px;
-    }
-
-    .user-detail-row {
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid transparent;
-        background-image: 
-            linear-gradient(white, white),
-            linear-gradient(90deg, rgba(56, 177, 197, 0.2) 0%, rgba(218, 146, 44, 0.2) 100%);
-        background-origin: border-box;
-        background-clip: padding-box, border-box;
-        background-size: 100% 100%, 100% 2px;
-        background-position: 0 0, 0 100%;
-        background-repeat: no-repeat;
-    }
-
-    .user-detail-row:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-
-    .user-detail-label {
-        font-size: 12px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-    }
-
-    .user-detail-value {
-        font-size: 15px;
-        color: #1f2937;
-        font-weight: 500;
-    }
-
-    .user-detail-value.empty {
-        color: #9ca3af;
-        font-style: italic;
-    }
-
-    .no-user-data {
-        text-align: center;
-        padding: 40px 20px;
-        color: #9ca3af;
-    }
-
-    .no-user-data svg {
-        width: 64px;
-        height: 64px;
-        margin-bottom: 16px;
-        opacity: 0.5;
-    }
-
-    .no-user-data p {
-        margin: 0;
-        font-size: 15px;
-        font-weight: 500;
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #9ca3af;
-    }
-
-    .empty-state-icon {
-        font-size: 64px;
-        margin-bottom: 16px;
-        opacity: 0.5;
-    }
-
-    .empty-state p {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 500;
-        color: #6b7280;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .avatar-sessions-wrapper {
-            margin: 10px;
-        }
-
-        .avatar-sessions-header {
-            padding: 24px;
-        }
-
-        .avatar-sessions-header h1 {
-            font-size: 24px;
-        }
-
-        .google-drive-card {
-            padding: 24px;
-        }
-
-        .drive-actions {
-            flex-direction: column;
-        }
-
-        .drive-actions button,
-        .drive-actions a {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .sessions-section {
-            overflow-x: auto;
-        }
-
-        .sessions-table {
-            min-width: 1200px;
-        }
-
-        .modal-content {
-            width: 95%;
-            margin: 10px;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-    }
-    </style>
 
     <div class="avatar-sessions-wrapper">
         <!-- Header -->
@@ -2499,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </button>
                         </form>
 
-                        <a href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=avatar_studio_disconnect_google'), 'avatar_studio_disconnect_google'); ?>" 
+                        <a href="<?php echo esc_url(admin_url('admin-post.php?action=avatar_studio_disconnect_google'), 'avatar_studio_disconnect_google'); ?>" 
                         class="btn-disconnect" 
                         onclick="return confirm('Are you sure you want to disconnect Google Drive? You will need to reconnect to export transcripts again.');">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2527,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h3>Connect Your Google Drive</h3>
                     <p>Connect your Google Drive account to automatically export and securely backup conversation transcripts and perception analysis to your drive.</p>
 
-                    <a href="<?php echo avatar_studio_get_google_auth_url(); ?>" class="btn-primary btn-google">
+                    <a href="<?php echo esc_url(avatar_studio_get_google_auth_url()); ?>" class="btn-primary btn-google">
                         <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="white"/>
                             <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="white" opacity="0.9"/>
@@ -2589,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 </td>
                                 <td><?php echo esc_html($session->avatar_id); ?></td>
                                 <td><?php echo esc_html($session->user_id); ?></td>
-                                <td><?php echo esc_html(date('M j, Y g:i A', strtotime($session->created_at))); ?></td>
+                                <td><?php echo esc_html(gmdate('M j, Y g:i A', strtotime($session->created_at))); ?></td>
                                 <td><?php echo esc_html($session->duration ?? 'N/A'); ?></td>
                                 
                                 <!-- Session Status -->
@@ -2600,8 +645,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                         ? '<svg class="status-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="currentColor" opacity="0.2"/><path d="M6 10l2.5 2.5L14 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
                                         : '';
                                     ?>
-                                    <span class="status-badge <?php echo $status_class; ?>">
-                                        <?php echo $status_icon; ?>
+                                    <span class="status-badge <?php echo esc_attr($status_class); ?>">
+                                        <?php echo esc_attr($status_icon); ?>
                                         <?php echo esc_html(ucfirst($session->status)); ?>
                                     </span>
                                 </td>
@@ -2612,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     $export_status = $session->export_status ?? 'not_exported';
                                     $export_class = 'status-' . str_replace('_', '-', $export_status);
                                     ?>
-                                    <span class="status-badge <?php echo $export_class; ?>">
+                                    <span class="status-badge <?php echo esc_attr($export_class); ?>">
                                         <?php echo esc_html(ucfirst(str_replace('_', ' ', $export_status))); ?>
                                     </span>
                                 </td>
@@ -2623,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     $perception_status = $session->perception_status ?? 'not_processed';
                                     $perception_class = 'status-' . str_replace('_', '-', $perception_status);
                                     ?>
-                                    <span class="status-badge <?php echo $perception_class; ?>">
+                                    <span class="status-badge <?php echo esc_attr($perception_class); ?>">
                                         <?php echo esc_html(ucfirst(str_replace('_', ' ', $perception_status))); ?>
                                     </span>
                                 </td>
@@ -2635,8 +680,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                                         <path d="M3 3v5h5"></path>
-                                    </svg>
-                                    ' : 'Export';
+                                    </svg>' : 'Export';
                                     
                                     // Check if one hour has passed
                                     $created_timestamp = strtotime($session->created_at);
@@ -2645,18 +689,32 @@ document.addEventListener('DOMContentLoaded', function () {
                                     $is_disabled = $time_elapsed < 3600;
                                     $remaining_minutes = $is_disabled ? ceil((3600 - $time_elapsed) / 60) : 0;
                                     
-                                    // Show button for all cases except 'exported'
-                                    if ($google_connected && $export_status !== 'exported'): 
+                                    // Determine if button should be enabled
+                                    $is_export_enabled = $google_connected && $export_status !== 'exported';
+                                    $is_fully_disabled = !$google_connected || $is_disabled || $export_status === 'exported';
+                                    
+                                    // Create appropriate title/tooltip
+                                    if (!$google_connected) {
+                                        $tooltip = 'Connect Google Drive to enable export';
+                                    } elseif ($export_status === 'exported') {
+                                        $tooltip = 'Already exported to Google Drive';
+                                    } elseif ($is_disabled) {
+                                        $tooltip = 'Export available in ' . $remaining_minutes . ' min';
+                                    } else {
+                                        $tooltip = 'Export to Google Drive';
+                                    }
                                     ?>
-                                        <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
-                                        class="btn-export <?php echo $is_disabled ? 'disabled' : ''; ?>"
-                                        title="<?php echo $is_disabled ? 'Export available in ' . $remaining_minutes . ' min' : 'Export to Google Drive'; ?>"
-                                        <?php if ($is_disabled): ?>
-                                            onclick="return false;"
-                                        <?php endif; ?>>
-                                            <?php echo $btn_text; ?>
-                                        </a>
-                                    <?php endif; ?>
+                                    
+                                    <!-- Export Button - Always visible but with different states -->
+                                    <a href="<?php echo $is_export_enabled && !$is_disabled ? esc_url(wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce')) : '#'; ?>" 
+                                    class="btn-export <?php echo $is_fully_disabled ? 'disabled' : ''; ?>"
+                                    title="<?php echo esc_attr($tooltip); ?>"
+                                    <?php if ($is_fully_disabled): ?>
+                                        onclick="return false;"
+                                        style="opacity: 0.5; filter: blur(0.5px); cursor: not-allowed;"
+                                    <?php endif; ?>>
+                                        <?php echo $btn_text; ?>
+                                    </a>
                                     
                                     <!-- User Details Button -->
                                     <?php
@@ -2676,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     
                                     <!-- Hidden user data for JavaScript -->
                                     <script type="application/json" id="user-data-<?php echo esc_attr($session->id); ?>">
-                                        <?php echo json_encode($user_data); ?>
+                                        <?php echo wp_json_encode($user_data); ?>
                                     </script>
                                 </td>
                             </tr>
@@ -2687,25 +745,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 <!-- Pagination -->
                 <div class="pagination-wrapper">
                     <div class="pagination-info">
-                        Showing <strong><?php echo ($current_page - 1) * $per_page + 1; ?>-<?php echo min($current_page * $per_page, $total_sessions); ?></strong> of <strong><?php echo $total_sessions; ?></strong> records
+                        Showing <strong><?php echo esc_html(($current_page - 1) * $per_page + 1); ?>-<?php echo esc_html(min($current_page * $per_page, $total_sessions)); ?></strong> of <strong><?php echo esc_html($total_sessions); ?></strong> records
                     </div>
                     
                     <div class="pagination-links">
                         <?php if ($current_page > 1): ?>
-                            <a href="<?php echo add_query_arg('paged', 1); ?>" class="page-btn">« First</a>
-                            <a href="<?php echo add_query_arg('paged', $current_page - 1); ?>" class="page-btn">‹ Previous</a>
+                            <a href="<?php echo esc_url(add_query_arg('paged', 1)); ?>" class="page-btn">« First</a>
+                            <a href="<?php echo esc_url(add_query_arg('paged', $current_page - 1)); ?>" class="page-btn">‹ Previous</a>
                         <?php endif; ?>
 
-                        <span class="page-current">Page <?php echo $current_page; ?> of <?php echo $total_pages; ?></span>
+                        <span class="page-current">Page <?php echo esc_html($current_page); ?> of <?php echo esc_html($total_pages); ?></span>
 
                         <?php if ($current_page < $total_pages): ?>
-                            <a href="<?php echo add_query_arg('paged', $current_page + 1); ?>" class="page-btn">Next ›</a>
-                            <a href="<?php echo add_query_arg('paged', $total_pages); ?>" class="page-btn">Last »</a>
+                            <a href="<?php echo esc_url(add_query_arg('paged', $current_page + 1)); ?>" class="page-btn">Next ›</a>
+                            <a href="<?php echo esc_url(add_query_arg('paged', $total_pages)); ?>" class="page-btn">Last »</a>
                         <?php endif; ?>
                     </div>
                     <div class="page-jump-wrapper">
                             <span class="page-jump-label">Go to page:</span>
-                            <input type="number" class="page-jump-input" id="pageJumpInput" min="1" max="<?php echo $total_pages; ?>" value="<?php echo $current_page; ?>">
+                            <input type="number" class="page-jump-input" id="pageJumpInput" min="1" max="<?php echo esc_attr($total_pages); ?>" value="<?php echo esc_attr($current_page); ?>">
                             <button class="page-jump-btn" onclick="jumpToPage()">Go</button>
                     </div>
                 </div>
@@ -2736,125 +794,6 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         </div>
     </div>
-
-    <script>
-    function copyToClipboard(text, button) {
-        // Create temporary textarea
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        
-        // Select and copy
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        
-        // Visual feedback
-        button.classList.add('copied');
-        
-        // Reset after 2 seconds
-        setTimeout(() => {
-            button.classList.remove('copied');
-        }, 2000);
-    }
-
-    function showUserDetails(sessionId) {
-        const userData = document.getElementById('user-data-' + sessionId);
-        const modal = document.getElementById('userDetailsModal');
-        const content = document.getElementById('userDetailsContent');
-        
-        if (!userData) {
-            content.innerHTML = '<div class="no-user-data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>No user data available for this session</p></div>';
-            modal.classList.add('active');
-            return;
-        }
-        
-        const data = JSON.parse(userData.textContent);
-        
-        if (!data) {
-            content.innerHTML = '<div class="no-user-data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>No user information found for this session</p></div>';
-        } else {
-            content.innerHTML = `
-                <div class="user-detail-row">
-                    <div class="user-detail-label">Full Name</div>
-                    <div class="user-detail-value ${!data.full_name ? 'empty' : ''}">${data.full_name || 'Not provided'}</div>
-                </div>
-                <div class="user-detail-row">
-                    <div class="user-detail-label">Email Address</div>
-                    <div class="user-detail-value ${!data.email ? 'empty' : ''}">${data.email || 'Not provided'}</div>
-                </div>
-                <div class="user-detail-row">
-                    <div class="user-detail-label">Mobile Number</div>
-                    <div class="user-detail-value ${!data.mobile ? 'empty' : ''}">${data.mobile || 'Not provided'}</div>
-                </div>
-                <div class="user-detail-row">
-                    <div class="user-detail-label">Country Code</div>
-                    <div class="user-detail-value ${!data.country_code ? 'empty' : ''}">${data.country_code || 'Not provided'}</div>
-                </div>
-                <div class="user-detail-row">
-                    <div class="user-detail-label">Conversation ID</div>
-                    <div class="user-detail-value" style="display: flex; align-items: center; gap: 10px;">
-                        <code style="flex: 1;">${data.conversation_id || 'N/A'}</code>
-                        ${data.conversation_id ? `<button class="copy-btn" onclick="copyToClipboard('${data.conversation_id}', this)" title="Copy Conversation ID">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>` : ''}
-                    </div>
-                </div>
-                <div class="user-detail-row">
-                    <div class="user-detail-label">Created At</div>
-                    <div class="user-detail-value">${data.created_at || 'N/A'}</div>
-                </div>
-            `;
-        }
-        
-        modal.classList.add('active');
-    }
-
-    function closeUserDetails() {
-        const modal = document.getElementById('userDetailsModal');
-        modal.classList.remove('active');
-    }
-
-    function jumpToPage() {
-        const pageInput = document.getElementById('pageJumpInput');
-        const page = parseInt(pageInput.value);
-        const totalPages = <?php echo $total_pages; ?>;
-        
-        if (page >= 1 && page <= totalPages) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('paged', page);
-            window.location.href = url.toString();
-        } else {
-            alert('Please enter a valid page number between 1 and ' + totalPages);
-        }
-    }
-
-    // Handle Enter key in page jump input
-    document.getElementById('pageJumpInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            jumpToPage();
-        }
-    });
-
-    // Close modal when clicking outside
-    document.getElementById('userDetailsModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeUserDetails();
-        }
-    });
-
-    // Close modal with Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeUserDetails();
-        }
-    });
-    </script>
     <?php
 }
 
@@ -3071,10 +1010,10 @@ document.addEventListener('DOMContentLoaded', function () {
             file_put_contents($log_dir . '/.htaccess', 'Deny from all');
         }
         
-        $log_file = $log_dir . '/error-log-' . date('Y-m-d') . '.log';
+        $log_file = $log_dir . '/error-log-' . gmdate('Y-m-d') . '.log';
         
-        $timestamp = date('Y-m-d H:i:s');
-        $context_str = !empty($context) ? json_encode($context, JSON_PRETTY_PRINT) : '';
+        $timestamp = gmdate('Y-m-d H:i:s');
+        $context_str = !empty($context) ? wp_json_encode($context, JSON_PRETTY_PRINT) : '';
         
         $log_entry = "[{$timestamp}] {$message}";
         if ($context_str) {
@@ -3417,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'available_keys' => array_keys($data),
             'status' => $status,
             'data_keys' => isset($data['data']) ? array_keys($data['data']) : [],
-            'full_response' => json_encode($data),
+            'full_response' => wp_json_encode($data),
             'function' => __FUNCTION__
         ]);
         return false;
@@ -3496,68 +1435,53 @@ document.addEventListener('DOMContentLoaded', function () {
         // Set font
         $pdf->SetFont('helvetica', '', 11);
 
+        // Load CSS from external file
+        $css_file_path = plugin_dir_path(__FILE__) . 'assets/css/transcript-pdf-styles.css';
+        $css_styles = '';
+        
+        if (file_exists($css_file_path)) {
+            $css_styles = file_get_contents($css_file_path);
+        } else {
+            avatar_studio_log_error('Transcript CSS file not found', ['path' => $css_file_path]);
+            // Fallback to minimal styles
+            $css_styles = get_minimal_transcript_styles();
+        }
+        
         // Build HTML content
-        $html = '<style>
-            .header { 
-                text-align: center; 
-                border-bottom: 2px solid #333; 
-                padding-bottom: 15px; 
-                margin-bottom: 20px; 
-            }
-            .header h1 { 
-                margin: 0 0 10px 0; 
-                color: #333; 
-                font-size: 20px;
-                font-weight: bold;
-            }
-            .header p { 
-                margin: 3px 0; 
-                color: #666; 
-                font-size: 11px;
-            }
-            .message-container {
-                margin-bottom: 15px;
-                page-break-inside: avoid;
-            }
-            .message-bubble {
-                padding: 10px;
-                border-radius: 8px;
-                margin: 5px 0;
-                display: inline-block;
-                max-width: 85%;
-            }
-            .user-message {
-                background-color: #dcf8c6;
-                margin-left: 15%;
-            }
-            .assistant-message {
-                background-color: #f1f0f0;
-                margin-right: 15%;
-            }
-            .role {
-                font-weight: bold;
-                margin-bottom: 5px;
-                font-size: 10px;
-            }
-            .user-role {
-                color: #008000;
-            }
-            .assistant-role {
-                color: #0064c8;
-            }
-            .content {
-                font-size: 11px;
-                line-height: 1.5;
-                word-wrap: break-word;
-            }
-        </style>';
+        $html = '<div class="header">
+            <h1>Avatar Studio</h1>
+            <p><strong>Session Transcript</strong></p>
+            <p>Session ID: ' . htmlspecialchars($session->session_id) . '</p>
+            <p>Generated: ' . date_i18n('F j, Y \a\t g:i A') . '</p>
+        </div>';
 
+        // Messages
+        foreach ($transcript_text as $message) {
+            $role = $message['role'] ?? 'unknown';
+            $content = $message['content'] ?? '';
+
+            if (empty(trim($content)) || !in_array($role, ['assistant', 'user'])) {
+                continue;
+            }
+
+            $role_label = ucfirst($role);
+            $message_class = ($role === 'user') ? 'user-message' : 'assistant-message';
+            $role_class = ($role === 'user') ? 'user-role' : 'assistant-role';
+
+            $html .= '<div class="message-container">';
+            $html .= '<div class="message-bubble ' . $message_class . '">';
+            $html .= '<div class="role ' . $role_class . '">' . htmlspecialchars($role_label) . ':</div>';
+            $html .= '<div class="content">' . nl2br(htmlspecialchars($content)) . '</div>';
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+        
         // Header
         $html .= '<div class="header">
             <h1>Avatar Studio</h1>
             <p><strong>Session Transcript</strong></p>
             <p>Session ID: ' . htmlspecialchars($session->session_id) . '</p>
-            <p>Generated: ' . date('F j, Y \a\t g:i A') . '</p>
+            <p>Generated: ' . date_i18n('F j, Y \a\t g:i A') . '</p>
         </div>';
 
         // Messages
@@ -3622,7 +1546,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $pdf->SetHeaderMargin(5);
         $pdf->SetFooterMargin(10);
 
-        // Set auto page breaks - CRITICAL for multi-page support
+        // Set auto page breaks
         $pdf->SetAutoPageBreak(TRUE, 15);
 
         // Add a page
@@ -3633,89 +1557,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Prepare analysis content
         if (is_array($analysis_text) || is_object($analysis_text)) {
-            $analysis_content = json_encode($analysis_text, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            $analysis_content = wp_json_encode($analysis_text, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         } else {
             $analysis_content = $analysis_text;
         }
 
-        // Build HTML content
-        $html = '<style>
-            .header { 
-                text-align: center; 
-                border-bottom: 2px solid #4A90E2; 
-                padding-bottom: 15px; 
-                margin-bottom: 20px; 
-            }
-            .header h1 { 
-                margin: 0 0 10px 0; 
-                color: #4A90E2; 
-                font-size: 20px;
-                font-weight: bold;
-            }
-            .header h2 {
-                margin: 10px 0;
-                color: #2c3e50;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            .header p { 
-                margin: 3px 0; 
-                color: #666; 
-                font-size: 11px;
-            }
-            .content-section {
-                margin-top: 20px;
-            }
-            .content-section h3 {
-                color: #2c3e50;
-                border-bottom: 1px solid #4A90E2;
-                padding-bottom: 5px;
-                margin-bottom: 10px;
-                font-size: 14px;
-            }
-            .analysis-content {
-                font-size: 11px;
-                line-height: 1.6;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-                font-family: monospace;
-                background-color: #f8f9fa;
-                padding: 10px;
-                border: 1px solid #e0e0e0;
-                border-radius: 4px;
-            }
-            .footer { 
-                text-align: center; 
-                color: #888; 
-                font-size: 9px; 
-                margin-top: 30px; 
-                padding-top: 15px;
-                border-top: 1px solid #ddd;
-            }
-        </style>';
-
-        // Header
-        $html .= '<div class="header">
+        // Build HTML content WITHOUT inline styles
+        $html = '<div class="header">
             <h1>Avatar Studio</h1>
             <h2>Perception Analysis Report</h2>
             <p><strong>Session ID:</strong> ' . htmlspecialchars($session->session_id) . '</p>
-            <p><strong>Generated:</strong> ' . date('F j, Y \a\t g:i A') . '</p>
-        </div>';
+            <p><strong>Generated:</strong> ' . date_i18n('F j, Y \a\t g:i A') . '</p>
+        </div>
 
-        // Content section
-        $html .= '<div class="content-section">';
-        $html .= '<h3>Analysis Details</h3>';
-        $html .= '<div class="analysis-content">' . htmlspecialchars($analysis_content) . '</div>';
-        $html .= '</div>';
+        <div class="content-section">
+            <h3>Analysis Details</h3>
+            <div class="analysis-content">' . htmlspecialchars($analysis_content) . '</div>
+        </div>
 
-        // Footer
-        $html .= '<div class="footer">
+        <div class="footer">
             This report was automatically generated by Avatar Studio.<br>
             All analysis data is confidential and should be handled according to your privacy policy.
         </div>';
 
-        // Write HTML content
-        $pdf->writeHTML($html, true, false, true, false, '');
+        // Apply styles from external CSS file
+        $css_file_path = plugin_dir_path(__FILE__) . 'assets/css/perception-pdf-styles.css';
+        if (file_exists($css_file_path)) {
+            $css = file_get_contents($css_file_path);
+            // TCPDF's writeHTML method can handle CSS
+            $pdf->writeHTML('<style>' . $css . '</style>' . $html, true, false, true, false, '');
+        } else {
+            // Write HTML without styles if CSS file doesn't exist
+            avatar_studio_log_error('PDF CSS file not found', ['path' => $css_file_path]);
+            $pdf->writeHTML($html, true, false, true, false, '');
+        }
 
         // Output PDF as string
         return $pdf->Output('', 'S');
@@ -3789,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 'Authorization' => 'Bearer ' . $access_token,
                 'Content-Type' => 'application/json'
             ],
-            'body' => json_encode($folder_metadata),
+            'body' => wp_json_encode($folder_metadata),
             'timeout' => 30
         ]);
 
@@ -3824,7 +1699,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function avatar_studio_create_folder_hierarchy($avatar_name, $access_token, $vendor = 'tavus') {
     // Get base URL for root folder name
     $site_url = get_site_url();
-    $parsed_url = parse_url($site_url);
+    $parsed_url = wp_parse_url($site_url);
     $root_folder_name = $parsed_url['host'] ?? 'avatar-studio';
     
     // 1. Get or create root folder (website name)
@@ -3979,12 +1854,12 @@ document.addEventListener('DOMContentLoaded', function () {
     $transcripts_folder_id = $folders['transcripts_folder_id'];
     
     // Prepare filename with vendor prefix
-    $filename = "{$avatar_vendor}_transcript_{$session->session_id}_" . date('Y-m-d_H-i-s') . ".pdf";
+    $filename = "{$avatar_vendor}_transcript_{$session->session_id}_" . gmdate('Y-m-d_H-i-s') . ".pdf";
     
     // Prepare multipart upload
     $boundary = wp_generate_password(24, false);
     
-    $metadata = json_encode([
+    $metadata = wp_json_encode([
         'name' => $filename,
         'mimeType' => 'application/pdf',
         'parents' => [$transcripts_folder_id]
@@ -4148,12 +2023,12 @@ document.addEventListener('DOMContentLoaded', function () {
     $perceptions_folder_id = $folders['perceptions_folder_id'];
     
     // Prepare filename with vendor prefix
-    $filename = "{$avatar_vendor}_perception_analysis_{$session->session_id}_" . date('Y-m-d_H-i-s') . ".pdf";
+    $filename = "{$avatar_vendor}_perception_analysis_{$session->session_id}_" . gmdate('Y-m-d_H-i-s') . ".pdf";
     
     // Prepare multipart upload
     $boundary = wp_generate_password(24, false);
     
-    $metadata = json_encode([
+    $metadata = wp_json_encode([
         'name' => $filename,
         'mimeType' => 'application/pdf',
         'parents' => [$perceptions_folder_id]
@@ -4227,74 +2102,6 @@ document.addEventListener('DOMContentLoaded', function () {
     
     return true;
 }
-
-    foreach ($sessions as $session) {
-        ?>
-        <tr>
-            <td><?php echo esc_html($session->session_id); ?></td>
-            <td><?php echo esc_html($session->avatar_id); ?></td>
-
-            <!-- ✅ Paste your action buttons block here -->
-            <td>
-                <?php 
-                // Transcript Export Button
-                if ($google_connected && in_array($export_status, ['failed', 'not_exported'])): 
-                    $btn_text = [
-                        'exported' => '',
-                        'failed' => 'Retry Export',
-                        'not_exported' => 'Export'
-                    ];
-                    
-                    $created_timestamp = strtotime($session->created_at);
-                    $current_timestamp = current_time('timestamp');
-                    $one_hour_in_seconds = 3600;
-                    $time_elapsed = $current_timestamp - $created_timestamp;
-                    $is_disabled = $time_elapsed < $one_hour_in_seconds;
-                    
-                    $remaining_seconds = $one_hour_in_seconds - $time_elapsed;
-                    $remaining_minutes = ceil($remaining_seconds / 60);
-                ?>
-                    <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
-                    class="button button-small <?php echo $is_disabled ? 'disabled' : ''; ?>"
-                    <?php if ($is_disabled): ?>
-                        style="pointer-events: none; opacity: 0.5; cursor: not-allowed;"
-                        title="Export will be available in <?php echo $remaining_minutes; ?> minute<?php echo $remaining_minutes > 1 ? 's' : ''; ?>"
-                        onclick="return false;"
-                    <?php endif; ?>>
-                        <?php echo $btn_text[$export_status] ?? 'Export'; ?>
-                    </a>
-                <?php endif; ?>
-                
-                <?php 
-                // Perception Export Button
-                $perception_status = $session->perception_status ?? 'not_processed';
-                if ($google_connected && in_array($perception_status, ['failed', 'not_processed', 'unavailable'])): 
-                    $perception_btn_text = [
-                        'processed' => '',
-                        'failed' => 'Retry Perception',
-                        'not_processed' => 'Export Perception',
-                        'unavailable' => 'Retry Perception'
-                    ];
-                    
-                    $is_disabled = $time_elapsed < $one_hour_in_seconds;
-                ?>
-                    <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=avatar_studio_sessions&retry_export=' . $session->id), 'avatar_studio_retry_export_' . $session->id, 'nonce'); ?>" 
-                    class="button button-small <?php echo $is_disabled ? 'disabled' : ''; ?>"
-                    <?php if ($is_disabled): ?>
-                        style="pointer-events: none; opacity: 0.5; cursor: not-allowed; margin-left: 5px;"
-                        title="Perception export will be available in <?php echo $remaining_minutes; ?> minute<?php echo $remaining_minutes > 1 ? 's' : ''; ?>"
-                        onclick="return false;"
-                    <?php else: ?>
-                        style="margin-left: 5px;"
-                    <?php endif; ?>>
-                        <?php echo $perception_btn_text[$perception_status] ?? 'Export Perception'; ?>
-                    </a>
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php
-    }
-
 
     /**
      * Helper function to refresh Google OAuth token
@@ -4412,12 +2219,13 @@ document.addEventListener('DOMContentLoaded', function () {
         $selected_log = isset($_GET['logfile']) ? $_GET['logfile'] : basename($log_files[0]);
         
         echo '<form method="get">';
-        echo '<input type="hidden" name="page" value="' . esc_attr($_GET['page']) . '">';
+        $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+        echo '<input type="hidden" name="page" value="' . esc_attr($page) . '">';
         echo '<select name="logfile" onchange="this.form.submit()">';
         foreach ($log_files as $log_file) {
             $basename = basename($log_file);
             $selected = $basename === $selected_log ? 'selected' : '';
-            echo '<option value="' . esc_attr($basename) . '" ' . $selected . '>' . esc_html($basename) . '</option>';
+            echo '<option value="' . esc_attr($basename) . '" ' . esc_attr($selected) . '>' . esc_html($basename) . '</option>';
         }
         echo '</select>';
         echo '</form>';
@@ -4449,16 +2257,78 @@ document.addEventListener('DOMContentLoaded', function () {
     function avatar_studio_register_settings()
 {
     // Register all settings for the main settings group
-    register_setting('avatar_studio_main_settings_group', 'avatar_studio_enable');
-    register_setting('avatar_studio_main_settings_group', 'avatar_studio_tavus_api_key');
-    register_setting('avatar_studio_main_settings_group', 'avatar_studio_heygen_api_key');
-    register_setting('avatar_studio_main_settings_group', 'avatar_studio_enable_google_drive');
-    register_setting('avatar_studio_main_settings_group', 'avatar_studio_google_client_id');
-    register_setting('avatar_studio_main_settings_group', 'avatar_studio_google_client_secret');
-    
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_studio_enable', 
+        [
+            'type' => 'integer',
+            'sanitize_callback' => 'absint'
+        ]
+    );
+
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_studio_tavus_api_key', 
+        [
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]
+    );
+
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_studio_heygen_api_key', 
+        [
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]
+    );
+
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_studio_enable_google_drive', 
+        [
+            'type' => 'integer',
+            'sanitize_callback' => 'absint'
+        ]
+    );
+
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_studio_google_client_id', 
+        [
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]
+    );
+
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_studio_google_client_secret', 
+        [
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]
+    );
+
     // Register the auto export settings
-    register_setting('avatar_studio_main_settings_group', 'avatar_auto_export_enabled');
-    register_setting('avatar_studio_main_settings_group', 'avatar_auto_export_interval');
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_auto_export_enabled', 
+        [
+            'type' => 'integer',
+            'sanitize_callback' => 'absint'
+        ]
+    );
+
+    register_setting(
+        'avatar_studio_main_settings_group', 
+        'avatar_auto_export_interval', 
+        [
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]
+    );
 
     register_setting('avatar_studio_main_settings_group', 'avatar_studio_tavus_api_key', array(
         'sanitize_callback' => 'sanitize_text_field'
@@ -4526,79 +2396,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
                 
                 if ($deleted) {
-                    echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> ' . $deleted . ' users deleted successfully.</p></div>';
+                    echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> ' . esc_html($deleted) . ' users deleted successfully.</p></div>';
                 } else {
                     echo '<div class="notice notice-error is-dismissible"><p><strong>Error!</strong> Failed to delete selected users.</p></div>';
                 }
             }
         }
     }
-
-    // Handle export CSV action
-    // if (isset($_POST['export_csv']) && isset($_POST['export_csv_nonce'])) {
-    //     if (wp_verify_nonce($_POST['export_csv_nonce'], 'export_csv_action')) {
-    //         if (!empty($_POST['selected_users'])) {
-    //             $selected_users = array_map('intval', $_POST['selected_users']);
-    //             $placeholders = implode(',', array_fill(0, count($selected_users), '%d'));
-                
-    //             $export_query = $wpdb->prepare(
-    //                 "SELECT * FROM {$table_name} WHERE id IN ($placeholders) ORDER BY created_at DESC",
-    //                 $selected_users
-    //             );
-    //             $export_results = $wpdb->get_results($export_query);
-                
-    //             // Set headers for CSV download
-    //             header('Content-Type: text/csv; charset=utf-8');
-    //             header('Content-Disposition: attachment; filename=avatar-studio-users-' . date('Y-m-d-H-i-s') . '.csv');
-                
-    //             // Create output stream
-    //             $output = fopen('php://output', 'w');
-                
-    //             // Add BOM for UTF-8
-    //             fputs($output, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
-                
-    //             // CSV headers
-    //             fputcsv($output, [
-    //                 'ID',
-    //                 'Full Name', 
-    //                 'Email Address',
-    //                 'Phone Number',
-    //                 'Conversation ID',
-    //                 'Created At'
-    //             ]);
-                
-    //             // Add data rows
-    //             foreach ($export_results as $row) {
-    //             // Format the date for CSV export
-    //             $created_date = DateTime::createFromFormat('Y-m-d H:i:s', $row->created_at);
-    //             $formatted_date = $created_date ? $created_date->format('m-d-Y H:i:s') : $row->created_at;
-                
-    //             // Format phone number in US format with country code
-    //             $clean_phone = preg_replace('/[^0-9]/', '', $row->mobile);
-    //             if (substr($clean_phone, 0, 1) === '1' && strlen($clean_phone) === 11) {
-    //                 $clean_phone = substr($clean_phone, 1);
-    //             }
-    //             if (strlen($clean_phone) === 10) {
-    //                 $formatted_phone = '+1 (' . substr($clean_phone, 0, 3) . ') ' . substr($clean_phone, 3, 3) . '-' . substr($clean_phone, 6, 4);
-    //             } else {
-    //                 $formatted_phone = '+1 ' . $clean_phone;
-    //             }
-                
-    //             fputcsv($output, [
-    //                 'AS' . $row->id,
-    //                 $row->full_name,
-    //                 $row->email,
-    //                 $formatted_phone,
-    //                 $row->conversation_id,
-    //                 $formatted_date
-    //             ]);
-    //         }
-                
-    //             fclose($output);
-    //             exit;
-    //         }
-    //     }
-    // }
 
     $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
     $per_page = 10;
@@ -4643,1558 +2447,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     ?>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .avatar-user-info-wrapper {
-            max-width: 90%;
-            margin: 20px auto;
-        }
-
-        .avatar-user-info-header {
-            margin-bottom: 20px;
-        }
-
-        .avatar-user-info-header h1 {
-            margin: 0 0 5px;
-            font-size: 22px;
-        }
-
-        .avatar-table-section {
-            border: 1px solid #ddd;
-            background: #fff;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th a {
-            color: #333;
-            text-decoration: none;
-        }
-
-        th a:hover {
-            text-decoration: underline;
-        }
-
-        .table-empty {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .pagination-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-
-        .pagination-links a, 
-        .pagination-links .button {
-            padding: 6px 10px;
-            border: 1px solid #ccc;
-            background: #f5f5f5;
-            text-decoration: none;
-            color: #333;
-            font-size: 13px;
-        }
-
-        .pagination-links a:hover {
-            background: #f5f5f5;
-            color: #333;
-        }
-
-        .stats-grid {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .stat-card {
-            flex: 1;
-            border: 1px solid #ddd;
-            padding: 10px;
-            background: #f9f9f9;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .sort-icon {
-            font-size: 10px;
-        }
-    </style>
-
-    <style>
-        /* Main Wrapper */
-        .avatar-user-info-wrapper {
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 0 20px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
-        }
-
-        /* Header Section */
-        .avatar-user-info-header {
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            color: white;
-            padding: 32px 40px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(56, 177, 197, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .avatar-user-info-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-            pointer-events: none;
-        }
-
-        .avatar-user-info-header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin: 0 0 8px 0;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .avatar-user-info-header p {
-            margin: 0;
-            font-size: 15px;
-            opacity: 0.95;
-            color: white;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: white;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(56, 177, 197, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(56, 177, 197, 0.2);
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-
-        .stat-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            line-height: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Search & Bulk Actions Section */
-        .search-bulk-section {
-            margin-bottom: 24px;
-        }
-
-        .search-bulk-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 1024px) {
-            .search-bulk-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-        }
-
-        /* Bulk Actions Column */
-        .bulk-actions-column {
-            min-width: 0;
-        }
-
-        .bulk-actions-card {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-            height: -webkit-fill-available;
-        }
-
-        .bulk-actions-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #374151;
-            margin: 5px 0 16px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .bulk-actions-title::before {
-            content: '📁';
-            font-size: 18px;
-        }
-
-        .select-all-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
-            border-radius: 8px;
-            border: 1px solid rgba(56, 177, 197, 0.2);
-        }
-
-        .bulk-checkbox {
-            transform: scale(1.3);
-            cursor: pointer;
-            accent-color: #38b1c5;
-        }
-
-        .bulk-checkbox-label {
-            font-weight: 600;
-            color: #374151;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .bulk-buttons {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .selected-count {
-            background: #fff;
-            color: #da922c;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            border: 1px solid #da922c;
-            text-decoration: none;
-        }
-
-        .selected-count:hover {
-            background: #da922c;
-            color: #fff;
-        }
-
-        .button-bulk-delete {
-            background: #fff;
-            color: #dc2626;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            border: 1px solid #dc2626;
-            text-decoration: none;
-        }
-
-        .button-bulk-delete:hover {
-            background: #dc2626;
-            color: #fff;
-        }
-
-        .button-bulk-clear {
-            background: #fff;
-            color: #6b7280;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            white-space: nowrap;
-            border: 1px solid #6b7280;
-            text-decoration: none;
-        }
-
-        .button-bulk-clear:hover {
-            background: #6b7280;
-            color: #fff;
-        }
-
-        .button-bulk-export {
-            background: #fff;
-            color: #059669;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            border: 1px solid #059669;
-            text-decoration: none;
-        }
-
-        .button-bulk-export:hover {
-            background: #059669;
-            color: #fff;
-        }
-
-        .button-bulk-export svg,
-        .button-bulk-delete svg,
-        .button-bulk-clear svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-
-        .button-bulk-export-all {
-            background: #fff;
-            color: #3b82f6;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            border: 1px solid #3b82f6;
-            text-decoration: none;
-        }
-
-        .button-bulk-export-all:hover {
-            background: #3b82f6;
-            color: #fff;
-        }
-
-        .button-bulk-export-all svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-
-        /* Search Column */
-        .search-column {
-            min-width: 0;
-        }
-
-        .search-card {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-            height: -webkit-fill-available;
-        }
-
-        .search-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #374151;
-            margin: 0 0 16px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .search-title::before {
-            content: '🔍';
-            font-size: 16px;
-        }
-
-        .search-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-        }
-
-        .search-input-group input {
-            background: white;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-        }
-
-        .search-input-group input:active {
-            background: white;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-        }
-
-        .search-input-group input:focus {
-            background: white;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 2px solid #e5e7eb;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            background: #fafafa;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
-            background: white;
-        }
-
-        .search-button {
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .search-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(56, 177, 197, 0.5);
-        }
-
-        .search-clear {
-            background: white;
-            color: #6b7280;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-
-        .search-clear:hover {
-            background: #f9fafb;
-            border-color: #9ca3af;
-            text-decoration: none;
-            color: #374151;
-            transform: translateY(-1px);
-        }
-
-        /* Table Section */
-        .avatar-table-section {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
-        }
-
-        .avatar-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 14px;
-        }
-
-        .avatar-table thead {
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-            position: relative;
-        }
-
-        .avatar-table thead::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
-        }
-
-        .avatar-table th {
-            color: #374151;
-            padding: 16px 12px;
-            font-weight: 700;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-            z-index: 10;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .avatar-table th a {
-            color: #374151;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-            padding: 4px 0;
-            font-size: 12px;
-        }
-
-        .avatar-table th a:hover {
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .sort-icon {
-            font-size: 10px;
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: bold;
-        }
-
-        .avatar-table tbody tr {
-            transition: all 0.3s ease;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .avatar-table tbody tr:hover {
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
-            transform: scale(1.001);
-        }
-
-        .avatar-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .avatar-table td {
-            padding: 16px 12px;
-            color: #1f2937;
-            vertical-align: middle;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        /* Specific column alignments */
-        .avatar-table th:nth-child(1), /* Checkbox column */
-        .avatar-table td:nth-child(1) {
-            width: 50px;
-            text-align: center;
-            padding: 16px 8px;
-        }
-
-        .avatar-table th:nth-child(2), /* ID column */
-        .avatar-table td:nth-child(2) {
-            width: 80px;
-            text-align: center;
-            padding: 16px 8px;
-        }
-
-        .avatar-table th:nth-child(3), /* Full Name column */
-        .avatar-table td:nth-child(3) {
-            text-align: center;
-            min-width: 150px;
-        }
-
-        .avatar-table th:nth-child(4), /* Email column */
-        .avatar-table td:nth-child(4) {
-            text-align: center;
-            min-width: 200px;
-        }
-
-        .avatar-table th:nth-child(5), /* Phone Number column */
-        .avatar-table td:nth-child(5) {
-            text-align: center;
-            min-width: 140px;
-        }
-
-        .avatar-table th:nth-child(6), /* Conversation ID column */
-        .avatar-table td:nth-child(6) {
-            text-align: center;
-            min-width: 200px;
-            font-size: 12px;
-        }
-
-        .avatar-table th:nth-child(7), /* Created At column */
-        .avatar-table td:nth-child(7) {
-            width: 180px;
-            text-align: center;
-            padding: 16px 8px;
-        }
-
-        /* Center align checkbox cells */
-        .avatar-table td:first-child {
-            text-align: center;
-        }
-
-        /* ID column styling */
-        .avatar-table td:nth-child(2) {
-            font-weight: 600;
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-align: center;
-        }
-
-        /* Conversation ID wrapper alignment */
-        .conversation-id-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        /* Copy button alignment */
-        .copy-btn {
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: white;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            color: #6b7280;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            font-weight: 600;
-        }
-
-        .copy-btn:hover {
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            color: white;
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-        }
-
-        .copy-btn.copied {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-
-        /* Badge alignment */
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .badge-primary {
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Empty state alignment */
-        .table-empty {
-            text-align: center;
-            padding: 60px 20px !important;
-            color: #9ca3af;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .table-empty::before {
-            content: '📋';
-            display: block;
-            font-size: 48px;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        /* Pagination */
-        .pagination-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%);
-            border-top: 2px solid transparent;
-            background-image: 
-                linear-gradient(135deg, rgba(56, 177, 197, 0.03) 0%, rgba(218, 146, 44, 0.03) 100%),
-                linear-gradient(90deg, transparent 0%, #38b1c5 0%, #da922c 100%, transparent 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            gap: 20px;
-        }
-
-        .pagination-info {
-            color: #fff;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .pagination-info strong {
-            background-clip: text;
-            font-weight: 900;
-            color: #fff;
-        }
-
-        .pagination-links {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .page-btn {
-            padding: 8px 14px;
-            border-radius: 6px;
-            background: white;
-            color: #374151;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            font-weight: 600;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-
-        .page-btn:hover {
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(56, 177, 197, 0.3);
-        }
-
-        .page-current {
-            font-weight: 600;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%);
-            border-radius: 6px;
-            font-size: 13px;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            -webkit-background-clip: text;
-            color: #fff;
-        }
-
-        /* Page Jump Section */
-        .page-jump-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-        }
-
-        .page-jump-label {
-            font-size: 13px;
-            color: #6b7280;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .page-jump-input {
-            width: 60px;
-            padding: 6px 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-
-        .page-jump-input:focus {
-            outline: none;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            box-shadow: 0 0 0 3px rgba(56, 177, 197, 0.1);
-        }
-
-        .page-jump-btn {
-            padding: 6px 14px;
-            border-radius: 6px;
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            color: white;
-            border: none;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .page-jump-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(56, 177, 197, 0.4);
-        }
-
-        /* Copy Button for Conversation ID */
-        .conversation-id-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .copy-btn {
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: white;
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, rgba(56, 177, 197, 0.5) 0%, rgba(218, 146, 44, 0.5) 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            color: #6b7280;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            font-weight: 600;
-        }
-
-        .copy-btn:hover {
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            color: white;
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
-        }
-
-        .copy-btn.copied {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-
-        /* Delete Modal Styles */
-        .delete-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            animation: fadeIn 0.2s ease;
-        }
-
-        .delete-modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .delete-modal-content {
-            background: white;
-            padding: 32px;
-            border-radius: 16px;
-            max-width: 480px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(white, white),
-                linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            animation: slideUp 0.3s ease;
-            position: relative;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from { 
-                transform: translateY(30px);
-                opacity: 0;
-            }
-            to { 
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .delete-modal-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .delete-modal-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .delete-modal-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1f2937;
-            margin: 0;
-        }
-
-        .delete-modal-body {
-            margin-bottom: 24px;
-        }
-
-        .delete-modal-text {
-            color: #6b7280;
-            font-size: 15px;
-            line-height: 1.6;
-            margin: 0 0 16px 0;
-        }
-
-        .delete-user-details {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
-            padding: 16px;
-            border-radius: 8px;
-            border: 2px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .delete-user-details p {
-            margin: 8px 0;
-            font-size: 14px;
-            color: #374151;
-        }
-
-        .delete-user-details strong {
-            color: #1f2937;
-            font-weight: 600;
-        }
-
-        .delete-modal-footer {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .modal-btn-cancel {
-            padding: 12px 24px;
-            border-radius: 8px;
-            background: white;
-            border: 2px solid #e5e7eb;
-            color: #374151;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-btn-cancel:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-            transform: translateY(-1px);
-        }
-
-        .modal-btn-delete {
-            padding: 12px 24px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
-
-        .modal-btn-delete:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-        }
-
-        /* Checkbox styles */
-        .user-checkbox {
-            transform: scale(1.2);
-            cursor: pointer;
-            accent-color: #38b1c5;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .avatar-table {
-                font-size: 13px;
-            }
-
-            .avatar-table th,
-            .avatar-table td {
-                padding: 12px 8px;
-            }
-            
-            .avatar-table th:nth-child(1),
-            .avatar-table td:nth-child(1) {
-                padding: 12px 6px;
-            }
-            
-            .avatar-table th:nth-child(2),
-            .avatar-table td:nth-child(2) {
-                padding: 12px 6px;
-            }
-            
-            .avatar-table th:nth-child(7),
-            .avatar-table td:nth-child(7) {
-                padding: 12px 6px;
-            }
-        }
-
-        @media (max-width: 768px) {
-
-            .avatar-table-section {
-                overflow-x: auto;
-                border-radius: 8px;
-            }
-
-            .avatar-table {
-                min-width: 800px;
-            }
-            
-            .avatar-table th,
-            .avatar-table td {
-                padding: 12px 8px;
-            }
-            
-            .conversation-id-wrapper {
-                justify-content: flex-start;
-            }
-
-            .avatar-user-info-wrapper {
-                margin: 10px;
-            }
-
-            .avatar-user-info-header {
-                padding: 24px;
-            }
-
-            .avatar-user-info-header h1 {
-                font-size: 24px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .stat-card {
-                padding: 20px;
-            }
-
-            .search-bulk-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .search-input-group {
-                flex-direction: column;
-            }
-
-            .bulk-controls-row {
-                flex-direction: column;
-                gap: 12px;
-                text-align: center;
-            }
-            
-            .bulk-controls-row {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-                padding: 16px;
-                background: linear-gradient(135deg, rgba(56, 177, 197, 0.05) 0%, rgba(218, 146, 44, 0.05) 100%);
-                border-radius: 8px;
-                border: 1px solid rgba(56, 177, 197, 0.2);
-            }
-
-            .bulk-buttons {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 8px;
-            }
-            
-            .button-bulk-export,
-            .button-bulk-delete,
-            .button-bulk-clear {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-
-            .select-all-control {
-                justify-content: center;
-            }
-
-            .avatar-table-section {
-                overflow-x: auto;
-                border-radius: 8px;
-            }
-
-            .avatar-table {
-                min-width: 800px;
-            }
-
-            .pagination-wrapper {
-                flex-direction: column;
-                gap: 16px;
-                padding: 16px;
-            }
-
-            .pagination-links {
-                width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            .page-jump-wrapper {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        /* Loading State */
-        .avatar-table tbody tr.loading {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Badge Styles for Better Data Display */
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-primary {
-            background: linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%);
-            border: 2px solid transparent;
-            background-image: 
-                linear-gradient(135deg, rgba(56, 177, 197, 0.15) 0%, rgba(218, 146, 44, 0.15) 100%),
-                linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .badge-secondary {
-            background: #f3f4f6;
-            color: #4b5563;
-        }
-
-        /* Tooltip for long content */
-        .truncate {
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    </style>
-
-    <script>
-        function copyConversationId(id, button) {
-            navigator.clipboard.writeText(id).then(function() {
-                const originalText = button.innerHTML;
-                button.innerHTML = '✓ Copied';
-                button.classList.add('copied');
-                
-                setTimeout(function() {
-                    button.innerHTML = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch(function(err) {
-                console.error('Failed to copy: ', err);
-            });
-        }
-
-        function jumpToPage() {
-            const pageInput = document.getElementById('page-jump-input');
-            const pageNum = parseInt(pageInput.value);
-            const totalPages = <?php echo $total_pages; ?>;
-            
-            if (pageNum >= 1 && pageNum <= totalPages) {
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('paged', pageNum);
-                window.location.href = currentUrl.toString();
-            } else {
-                alert('Please enter a valid page number between 1 and ' + totalPages);
-            }
-        }
-
-        // Bulk selection functions
-        function toggleSelectAll(checkbox) {
-            const userCheckboxes = document.querySelectorAll('.user-checkbox');
-            userCheckboxes.forEach(cb => {
-                cb.checked = checkbox.checked;
-            });
-            updateBulkActions();
-        }
-
-        function updateBulkActions() {
-            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
-            const selectedCount = document.getElementById('selected-count');
-            
-            selectedCount.textContent = selectedCheckboxes.length + ' selected';
-            document.getElementById('select-all-checkbox').checked = selectedCheckboxes.length === document.querySelectorAll('.user-checkbox').length;
-        }
-
-        function clearSelection() {
-            document.querySelectorAll('.user-checkbox').forEach(cb => {
-                cb.checked = false;
-            });
-            document.getElementById('select-all-checkbox').checked = false;
-            updateBulkActions();
-        }
-
-        // Bulk delete functions
-        function showBulkDeleteModal() {
-            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
-            document.getElementById('bulk-selected-count').textContent = selectedCheckboxes.length + ' user(s)';
-            document.getElementById('bulk-delete-modal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeBulkDeleteModal() {
-            document.getElementById('bulk-delete-modal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function confirmBulkDelete() {
-            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
-            const container = document.getElementById('bulk-delete-users-container');
-            container.innerHTML = '';
-            
-            selectedCheckboxes.forEach(checkbox => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'selected_users[]';
-                input.value = checkbox.value;
-                container.appendChild(input);
-            });
-            
-            document.getElementById('bulk-delete-form').submit();
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const pageInput = document.getElementById('page-jump-input');
-            if (pageInput) {
-                pageInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        jumpToPage();
-                    }
-                });
-            }
-
-            // Close modal on escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeBulkDeleteModal();
-                }
-            });
-
-            // Close modal on backdrop click
-            document.addEventListener('click', function(e) {
-                if (e.target.id === 'bulk-delete-modal') {
-                    closeBulkDeleteModal();
-                }
-            });
-        });
-        // Export Selected CSV function
-        function exportSelectedUsers() {
-            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
-            
-            if (selectedCheckboxes.length === 0) {
-                alert('Please select at least one user to export.');
-                return false;
-            }
-            
-            // Get selected user IDs
-            const selectedUsers = Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
-            
-            // Show loading state
-            const exportBtn = document.querySelector('.button-bulk-export');
-            const originalText = exportBtn.innerHTML;
-            exportBtn.innerHTML = '⏳ Exporting...';
-            exportBtn.disabled = true;
-            
-            // Create a hidden form and submit it
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '<?php echo admin_url('admin-ajax.php'); ?>';
-            form.style.display = 'none';
-            
-            // Add action
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'avatar_studio_export_csv';
-            form.appendChild(actionInput);
-            
-            // Add nonce
-            const nonceInput = document.createElement('input');
-            nonceInput.type = 'hidden';
-            nonceInput.name = 'nonce';
-            nonceInput.value = '<?php echo wp_create_nonce('export_csv_action'); ?>';
-            form.appendChild(nonceInput);
-            
-            // Add selected user IDs
-            selectedUsers.forEach(userId => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'selected_users[]';
-                input.value = userId;
-                form.appendChild(input);
-            });
-            
-            // Add form to document and submit
-            document.body.appendChild(form);
-            form.submit();
-            
-            // Remove form after submission and reset button
-            setTimeout(() => {
-                document.body.removeChild(form);
-                exportBtn.innerHTML = originalText;
-                exportBtn.disabled = false;
-            }, 3000);
-            
-            return false;
-        }
-
-        // Export All CSV function
-        function exportAllUsers() {
-            // Show loading state
-            const exportAllBtn = document.querySelector('.button-bulk-export-all');
-            const originalText = exportAllBtn.innerHTML;
-            exportAllBtn.innerHTML = '⏳ Exporting All...';
-            exportAllBtn.disabled = true;
-            
-            // Create a hidden form and submit it
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '<?php echo admin_url('admin-ajax.php'); ?>';
-            form.style.display = 'none';
-            
-            // Add action
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'avatar_studio_export_csv';
-            form.appendChild(actionInput);
-            
-            // Add nonce
-            const nonceInput = document.createElement('input');
-            nonceInput.type = 'hidden';
-            nonceInput.name = 'nonce';
-            nonceInput.value = '<?php echo wp_create_nonce('export_csv_action'); ?>';
-            form.appendChild(nonceInput);
-            
-            // Add export_all flag
-            const exportAllInput = document.createElement('input');
-            exportAllInput.type = 'hidden';
-            exportAllInput.name = 'export_all';
-            exportAllInput.value = '1';
-            form.appendChild(exportAllInput);
-            
-            // Add form to document and submit
-            document.body.appendChild(form);
-            form.submit();
-            
-            // Remove form after submission and reset button
-            setTimeout(() => {
-                document.body.removeChild(form);
-                exportAllBtn.innerHTML = originalText;
-                exportAllBtn.disabled = false;
-            }, 3000);
-            
-            return false;
-        }
-    </script>
-
     <div class="avatar-user-info-wrapper">
         <!-- Header -->
         <div class="avatar-user-info-header">
@@ -6216,11 +2468,11 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
             <div class="stat-card">
                 <div class="stat-label">Current Page</div>
-                <div class="stat-value"><?php echo $paged; ?> / <?php echo max(1, $total_pages); ?></div>
+                <div class="stat-value"><?php echo esc_html($paged); ?> / <?php echo esc_html(max(1, $total_pages)); ?></div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Records Per Page</div>
-                <div class="stat-value"><?php echo $per_page; ?></div>
+                <div class="stat-value"><?php echo esc_html($per_page); ?></div>
             </div>
         </div>
 
@@ -6233,9 +2485,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="search-card">
                         <h3 class="search-title">Search Users</h3>
                         <form method="get" action="" class="search-form-wrapper">
-                            <?php if (isset($_GET['page'])) : ?>
-                                <input type="hidden" name="page" value="<?php echo esc_attr($_GET['page']); ?>">
-                            <?php endif; ?>
+                            <?php
+                            if ( isset( $_GET['page'] ) ) {
+                                $page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+                                ?>
+                                <input type="hidden" name="page" value="<?php echo esc_attr( $page ); ?>">
+                            <?php } ?>
                             
                             <?php if (isset($_GET['orderby'])) : ?>
                                 <input type="hidden" name="orderby" value="<?php echo esc_attr($_GET['orderby']); ?>">
@@ -6259,8 +2514,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </svg>
                                     Search
                                 </button>
-                                <?php if (!empty($search)) : ?>
-                                    <a href="?page=<?php echo esc_attr($_GET['page']); ?>" class="search-clear">
+                                <?php
+                                $page = '';
+                                if ( isset( $_GET['page'] ) ) {
+                                    $page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+                                }
+                                ?>
+                                <?php if ( ! empty( $search ) ) : ?>
+                                    <a href="<?php echo esc_url( add_query_arg( 'page', $page ) ); ?>" class="search-clear">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
                                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -6268,6 +2529,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         Clear
                                     </a>
                                 <?php endif; ?>
+
                             </div>
                         </form>
                     </div>
@@ -6330,43 +2592,43 @@ document.addEventListener('DOMContentLoaded', function () {
                             <input style="width: 1.2rem; height: 1.2rem;" type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)">
                         </th>
                         <th>
-                            <a href="<?php echo avatar_filter_url(['orderby'=>'id','order'=>$orderby==='id'?$new_order:'asc']); ?>">
+                            <a href="<?php echo esc_url(avatar_filter_url(['orderby'=>'id','order'=>$orderby==='id'?$new_order:'asc'])); ?>">
                                 ID
                                 <?php if($orderby==='id'): ?>
-                                    <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
+                                    <span class="sort-icon"><?php echo esc_html($order==='ASC'?'▲':'▼'); ?></span>
                                 <?php endif; ?>
                             </a>
                         </th>
                         <th>
-                            <a href="<?php echo avatar_filter_url(['orderby'=>'full_name','order'=>$orderby==='full_name'?$new_order:'asc']); ?>">
+                            <a href="<?php echo esc_url(avatar_filter_url(['orderby'=>'full_name','order'=>$orderby==='full_name'?$new_order:'asc'])); ?>">
                                 Full Name
                                 <?php if($orderby==='full_name'): ?>
-                                    <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
+                                    <span class="sort-icon"><?php echo esc_html($order==='ASC'?'▲':'▼'); ?></span>
                                 <?php endif; ?>
                             </a>
                         </th>
                         <th>
-                            <a href="<?php echo avatar_filter_url(['orderby'=>'email','order'=>$orderby==='email'?$new_order:'asc']); ?>">
+                            <a href="<?php echo esc_url(avatar_filter_url(['orderby'=>'email','order'=>$orderby==='email'?$new_order:'asc'])); ?>">
                                 Email Address
                                 <?php if($orderby==='email'): ?>
-                                    <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
+                                    <span class="sort-icon"><?php echo esc_html($order==='ASC'?'▲':'▼'); ?></span>
                                 <?php endif; ?>
                             </a>
                         </th>
                         <th>
-                            <a href="<?php echo avatar_filter_url(['orderby'=>'mobile','order'=>$orderby==='mobile'?$new_order:'asc']); ?>">
+                            <a href="<?php echo esc_url(avatar_filter_url(['orderby'=>'mobile','order'=>$orderby==='mobile'?$new_order:'asc'])); ?>">
                                 Phone Number (US)
                                 <?php if($orderby==='mobile'): ?>
-                                    <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
+                                    <span class="sort-icon"><?php echo esc_html($order==='ASC'?'▲':'▼'); ?></span>
                                 <?php endif; ?>
                             </a>
                         </th>
                         <th>Conversation ID</th>
                         <th>
-                            <a href="<?php echo avatar_filter_url(['orderby'=>'created_at','order'=>$orderby==='created_at'?$new_order:'desc']); ?>">
+                            <a href="<?php echo esc_url(avatar_filter_url(['orderby'=>'created_at','order'=>$orderby==='created_at'?$new_order:'desc'])); ?>">
                                 Created Date & Time
                                 <?php if($orderby==='created_at'): ?>
-                                    <span class="sort-icon"><?php echo $order==='ASC'?'▲':'▼'; ?></span>
+                                    <span class="sort-icon"><?php echo esc_html($order==='ASC'?'▲':'▼'); ?></span>
                                 <?php endif; ?>
                             </a>
                         </th>
@@ -6452,15 +2714,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     
                     <div class="pagination-links">
                         <?php if ($paged > 1): ?>
-                            <a href="<?php echo avatar_filter_url(['paged'=>1]); ?>" class="page-btn">« First</a>
-                            <a href="<?php echo avatar_filter_url(['paged'=>$paged-1]); ?>" class="page-btn">‹ Previous</a>
+                            <a href="<?php echo esc_url(avatar_filter_url(['paged'=>1])); ?>" class="page-btn">« First</a>
+                            <a href="<?php echo esc_url(avatar_filter_url(['paged'=>$paged-1])); ?>" class="page-btn">‹ Previous</a>
                         <?php endif; ?>
                         
-                        <span class="page-current">Page <?php echo $paged; ?> of <?php echo $total_pages; ?></span>
+                        <span class="page-current">Page <?php echo esc_html($paged); ?> of <?php echo esc_html($total_pages); ?></span>
                         
                         <?php if ($paged < $total_pages): ?>
-                            <a href="<?php echo avatar_filter_url(['paged'=>$paged+1]); ?>" class="page-btn">Next ›</a>
-                            <a href="<?php echo avatar_filter_url(['paged'=>$total_pages]); ?>" class="page-btn">Last »</a>
+                            <a href="<?php echo esc_url(avatar_filter_url(['paged'=>$paged+1])); ?>" class="page-btn">Next ›</a>
+                            <a href="<?php echo esc_url(avatar_filter_url(['paged'=>$total_pages])); ?>" class="page-btn">Last »</a>
                         <?php endif; ?>
                     </div>
 
@@ -6471,9 +2733,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             id="page-jump-input" 
                             class="page-jump-input" 
                             min="1" 
-                            max="<?php echo $total_pages; ?>" 
-                            value="<?php echo $paged; ?>"
-                            placeholder="<?php echo $paged; ?>"
+                            max="<?php echo esc_attr($total_pages); ?>" 
+                            value="<?php echo esc_attr($paged); ?>"
+                            placeholder="<?php echo esc_attr($paged); ?>"
                         >
                         <button class="page-jump-btn" onclick="jumpToPage()">Go</button>
                     </div>
@@ -6515,13 +2777,13 @@ document.addEventListener('DOMContentLoaded', function () {
     <!-- Bulk Delete Form -->
     <form id="bulk-delete-form" method="post" style="display: none;">
         <input type="hidden" name="bulk_delete" value="1">
-        <input type="hidden" name="bulk_delete_nonce" value="<?php echo wp_create_nonce('bulk_delete_action'); ?>">
+        <input type="hidden" name="bulk_delete_nonce" value="<?php echo esc_attr(wp_create_nonce('bulk_delete_action')); ?>">
         <div id="bulk-delete-users-container"></div>
     </form>
     <!-- Export CSV Form -->
     <form id="export-csv-form" method="post" style="display: none;">
         <input type="hidden" name="export_csv" value="1">
-        <input type="hidden" name="export_csv_nonce" value="<?php echo wp_create_nonce('export_csv_action'); ?>">
+        <input type="hidden" name="export_csv_nonce" value="<?php echo esc_attr(wp_create_nonce('export_csv_action')); ?>">
         <div id="export-users-container"></div>
     </form>
     <?php

@@ -45,6 +45,10 @@
 //     stream_wrapper_unregister('phar');
 // }
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // DOCUMENT_ROOT fix for IIS Webserver
 if ((!isset($_SERVER['DOCUMENT_ROOT'])) OR (empty($_SERVER['DOCUMENT_ROOT']))) {
 	if(isset($_SERVER['SCRIPT_FILENAME'])) {
