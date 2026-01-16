@@ -1,18 +1,18 @@
 <?php
 
 /**
- * Plugin Name: Avatar Studio
- * Plugin URI: https://divigner.com/avatar-studio
- * Description: Avatar Studio for your Interactive Avatar  
- * Version: 1.0.3
+ * Plugin Name: Interactive Avatar Studio by Avanew
+ * Plugin URI: https://avanew.ai/interactivestudio/
+ * Description: Interactive Avatar Studio allows users to create, manage, and interact with AI-powered avatars directly within WordPress.  
+ * Version: 1.0.6
  * Author: Avanew
- * Requires at least: 6.0
- * Tested up to: 6.8
- * Requires PHP: 8.0.3
- * Author URI: https://divigner.com
- * License: GPL-2.0-or-later
+ * Author URI: https://avanew.ai/
+ * Text Domain: interactive-avatar-studio
+ * Domain Path: /languages
+ * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * License: GPL2
+ * Company / Brand: Avanew
+ * Official Website: https://avanew.ai/
  */
 
 if (!defined('ABSPATH')) {
@@ -45,8 +45,9 @@ global $start_button_label;
 require_once 'option.php';
 require_once 'functions.php';
 require_once 'inc/avatar-manager.php';
-require_once 'inc/avatar-questionnaire-manager.php';
+require_once 'inc/avatar-form-builder.php';
 require_once 'action.php';
+require_once 'inc/script-handler.php';
 
 function enqueue_avatar_studio_script()
 {
@@ -79,6 +80,7 @@ function enqueue_avatar_studio_script()
     global $instruction;
     global $instruction_title;
     global $start_button_label;
+    global $selected_form_id;
 
 
     $dir = plugin_dir_url(__FILE__);
@@ -93,7 +95,6 @@ function enqueue_avatar_studio_script()
 
     if ($avatar_studio_enable) {
         wp_enqueue_style('avatar_studio-style', $dir . '/assets/css/style.css', array(), AvatarStudioVersion, 'all');
-        wp_enqueue_style('bootstrap-icon', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css', array(), AvatarStudioVersion, 'all');
     }
 
 
@@ -135,6 +136,10 @@ function enqueue_avatar_studio_script()
     $disclaimer_title = isset($avatar->disclaimer_title) ? stripslashes($avatar->disclaimer_title) : '';
     $disclaimer = isset($avatar->disclaimer) ? stripslashes($avatar->disclaimer) : '';
     $user_form_enable = isset($avatar->user_form_enable) ? $avatar->user_form_enable : 0;
+    $selected_form_id = isset($avatar->selected_form_id) ? $avatar->selected_form_id : 0;
+    $PLUGIN_OPTIONS['selected_form_id'] = $selected_form_id;
+    wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
+    $PLUGIN_OPTIONS['selected_form_id'] = $selected_form_id;
     $instruction_enable = isset($avatar->instruction_enable) ? $avatar->instruction_enable : 0;
     $skip_instruction_video = isset($avatar->skip_instruction_video) ? $avatar->skip_instruction_video : 0;
     $instruction_title = isset($avatar->instruction_title) ? stripslashes($avatar->instruction_title) : '';
@@ -160,36 +165,23 @@ function enqueue_avatar_studio_script()
     $PLUGIN_OPTIONS['user_form_enable'] = $user_form_enable;
 
     if ($avatar_studio_enable && $isAvatarStudioPage) {
-
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
         if (stripos($userAgent, 'Firefox') !== false && !$livekit_enable) {
             return '';
         }
-        if ($livekit_enable) {
-            // Define the variables to pass
-            $API_CONFIG = array(
-                'serverUrl' => 'https://api.heygen.com',
-            );
-            $API_CONFIG['RAG_API_URL'] = isset($avatar->RAG_API_URL) ? $avatar->RAG_API_URL : '';
-            $STT_CONFIG = array();
-            $STT_CONFIG['deepgramKEY'] = isset($avatar->deepgramKEY) ? $avatar->deepgramKEY : '';
 
-            // Pass them to the script
-
-            wp_enqueue_script('avatar_studio-livekit', 'https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js', array('jquery'), AvatarStudioVersion, true);
-            wp_enqueue_script('avatar_studio-audio-recorder', $dir . 'assets/js/audio-recorder.js', array('jquery'), AvatarStudioVersion, true);
-            wp_enqueue_script('avatar_studio-livekit-script', $dir . 'assets/js/livekit-script.js', array('jquery'), AvatarStudioVersion, true);
-
-            wp_localize_script('avatar_studio-livekit-script', 'API_CONFIG', $API_CONFIG);
-            wp_localize_script('avatar_studio-audio-recorder', 'STT_CONFIG', $STT_CONFIG);
-        }
-        wp_enqueue_script('avatar_studio-jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array('jquery'), AvatarStudioVersion, true);
+        wp_enqueue_script('avatar_studio-jspdf', $dir . 'assets/js/jspdf/jspdf.umd.min.js', array('jquery'), '2.5.1', true);    
         wp_enqueue_script('avatar_studio-script', $dir . 'assets/js/avatar_studio-script.js', array('jquery'), AvatarStudioVersion, true);
         wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
-
+        
+        // Clean vendor script enqueuing - no inline filters
+        if ($avatar_vendor == 'tavus') {
+            wp_enqueue_script('avatar_studio-tavus', $dir . 'assets/js/tavus.js', array(), AvatarStudioVersion, true);
+            wp_enqueue_script('avatar_studio-daily-co', $dir . 'assets/js/daily-co.js', array(), AvatarStudioVersion, true);
+        } else {
+            wp_enqueue_script('avatar_studio-heygen', $dir . 'assets/js/heygen.js', array(), AvatarStudioVersion, true);
+        }
     }
-
-
 }
 add_action('wp_enqueue_scripts', 'enqueue_avatar_studio_script');
 
@@ -201,18 +193,18 @@ function enqueue_avatar_studio_admin_script($hook)
     if ('avatar-studio_page_avatar_studio-avatars' === $hook || 'admin_page_avatar_studio-add-avatar' === $hook || 'admin_page_avatar_studio-edit-avatar' === $hook) {
         wp_enqueue_media();
 
-
-        wp_enqueue_style('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css');
-        wp_enqueue_script('select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array('jquery'), null, true);
+        $dir = plugin_dir_url(__FILE__);
+        wp_enqueue_style('select2', $dir . 'assets/css/select2/select2.min.css');
+        wp_enqueue_script('select2', $dir . 'assets/js/select2/select2.min.js', array('jquery'), '4.0.13', true);
         wp_add_inline_script('select2', '  jQuery(document).ready(function($) { $(".select2").select2();   }); ');
 
         wp_enqueue_style('wp-color-picker');
         wp_enqueue_script('wp-color-picker-alpha', plugins_url('assets/js/wp-color-picker-alpha.min.js', __FILE__), array('jquery', 'wp-color-picker'), AvatarStudioVersion, true);
         wp_enqueue_script('lc_color_picker', plugins_url('assets/js/lc_color_picker.min.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
 
-        wp_enqueue_script('admin-script', plugins_url('assets/js/admin-script.js', __FILE__), array('wp-color-picker'), AvatarStudioVersion, true);
+        wp_enqueue_script('avanew_as_admin_script', plugins_url('assets/js/admin-script.js', __FILE__), array('wp-color-picker'), AvatarStudioVersion, true);
         wp_enqueue_style('preview-style', plugins_url('assets/css/style.css', __FILE__));
-        wp_enqueue_style('admin-style', plugins_url('assets/css/admin-style.css', __FILE__));
+        wp_enqueue_style('avanew_as_admin_style', plugins_url('assets/css/admin-style.css', __FILE__));
 
         $id = intval($_GET['id'] ?? 0);
         global $wpdb;
@@ -242,8 +234,6 @@ function avatar_studio_chatBox()
 }
 
 add_action('wp_footer', function () {
-
-
     global $livekit_enable, $avatar_vendor, $isAvatarStudioPage;
     $avatar_studio_enable = get_option('avatar_studio_enable');
 
@@ -251,22 +241,14 @@ add_action('wp_footer', function () {
     if (stripos($userAgent, 'Firefox') !== false && !$livekit_enable) {
         return '';
     }
+    
     if ($avatar_studio_enable && $isAvatarStudioPage && !post_password_required()) {
-        if (!$livekit_enable) {
-
-            if ($avatar_vendor == 'tavus') {
-                echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion . '"></script>';
-                echo ' <script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script> ';
-
-            } else {
-                echo ' <script type="module" crossorigin src="' . plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion . '"></script>';
-            }
-
-
-        }
-        echo ' <input type="hidden" id="ajaxURL" value="' . admin_url('admin-ajax.php') . '" />';
-        echo ' <input type="hidden" id="avatar_studio_nonce" value="' . wp_create_nonce('avatar_studio_nonce_action') . '" />';
-        echo ' <input type="hidden" id="heygen_assets" value="' . plugin_dir_url(__FILE__) . 'assets " />';
+        // Scripts are now properly enqueued above
+        // We only need to output the hidden fields
+        
+        echo ' <input type="hidden" id="ajaxURL" value="' . esc_url(admin_url('admin-ajax.php')) . '" />';
+        echo ' <input type="hidden" id="avatar_studio_nonce" value="' . esc_url(wp_create_nonce('avatar_studio_nonce_action')) . '" />';
+        echo ' <input type="hidden" id="heygen_assets" value="' . esc_url(plugin_dir_url(__FILE__) . 'assets') . '" />';
 
         echo avatar_studio_chatBox();
     }
@@ -317,8 +299,9 @@ function create_avatar_studio_avaters_table()
     $table_name = $wpdb->prefix . 'avatar_studio_avatars';
 
     $charset_collate = $wpdb->get_charset_collate();
-    $sql = " CREATE TABLE  IF NOT EXISTS $table_name (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY, 
+
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
         vendor VARCHAR(30) NULL DEFAULT 'tavus',
         api_key VARCHAR(100) NULL,
         title VARCHAR(100) NULL,
@@ -331,35 +314,33 @@ function create_avatar_studio_avaters_table()
         thumbnail_medium VARCHAR(500) NULL,
         thumbnail_large VARCHAR(500) NULL,
         active_thumbnail VARCHAR(20) NULL DEFAULT 'medium',
-        time_limit VARCHAR(60) NULL DEFAULT '300',
-        open_on_desktop TINYINT NULL DEFAULT '0',
-        show_on_mobile TINYINT NULL DEFAULT '1',
-        livekit_enable TINYINT NULL DEFAULT '0',
-        video_enable TINYINT NULL DEFAULT '0',
-        chat_only TINYINT NULL DEFAULT '0',
+        time_limit INT NULL DEFAULT 300,
+        open_on_desktop TINYINT NULL DEFAULT 0,
+        show_on_mobile TINYINT NULL DEFAULT 1,
+        livekit_enable TINYINT NULL DEFAULT 0,
+        video_enable TINYINT NULL DEFAULT 0,
+        chat_only TINYINT NULL DEFAULT 0,
         disclaimer_title VARCHAR(255) NULL,
-        disclaimer TEXT NULL,
-        disclaimer_enable  TINYINT NULL DEFAULT '0',
-        user_form_enable TINYINT NULL DEFAULT '0',
+        disclaimer LONGTEXT NULL,
+        disclaimer_enable TINYINT NULL DEFAULT 0,
+        user_form_enable TINYINT NULL DEFAULT 0,
+        selected_form_id BIGINT NULL DEFAULT 0,
         instruction_title VARCHAR(255) NULL,
-        instruction TEXT NULL,
-        skip_instruction_video  TINYINT NULL DEFAULT '0',
-        instruction_enable  TINYINT NULL DEFAULT '0',
+        instruction LONGTEXT NULL,
+        skip_instruction_video TINYINT NULL DEFAULT 0,
+        instruction_enable TINYINT NULL DEFAULT 0,
         RAG_API_URL VARCHAR(300) NULL,
         deepgramKEY VARCHAR(300) NULL,
         voice_emotion TEXT NULL,
-        pages TEXT NULL,
-        styles TEXT NULL, 
-        welcome_message TEXT NULL, 
+        pages LONGTEXT NULL,
+        styles LONGTEXT NULL,
+        welcome_message LONGTEXT NULL,
         start_button_label VARCHAR(100) NULL DEFAULT 'Chat',
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     ) $charset_collate;";
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
-
-
-
 }
 
 
@@ -426,12 +407,11 @@ function deactivate_avatar_studio()
     $table_name = $wpdb->prefix . 'avatar_studio_questionnaires';
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
 
-
     $table_name = $wpdb->prefix . 'avatar_studio_avatars';
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
 
-    // avatar_studio_user_logs
-
+    // Clear cron jobs
+    wp_clear_scheduled_hook('avatar_studio_export_cron_job');
 }
 
 function avatarStudioUpdateCheck()
@@ -446,9 +426,23 @@ function avatarStudioUpdateCheck()
 add_action('plugins_loaded', 'avatarStudioUpdateCheck');
 function avatarStudioUpdateDatabase()
 {
-
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_avatars';
+    
+    // Check and add toast_messages column if it doesn't exist
+    $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'toast_messages'));
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN toast_messages LONGTEXT NULL DEFAULT NULL AFTER headers");
+        error_log('Added toast_messages column to avatar_studio_avatars table');
+    }
+    
+    // Check and add headers column if it doesn't exist
+    $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'headers'));
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN headers TEXT NULL DEFAULT NULL");
+    }
+    
+    // Existing column checks...
     $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'disclaimer_title'));
     if (empty($column_exists)) {
         $wpdb->query("ALTER TABLE $table_name ADD COLUMN disclaimer_title VARCHAR(255) DEFAULT ''");
@@ -472,7 +466,6 @@ function avatarStudioUpdateDatabase()
     if (empty($column_exists)) {
         $wpdb->query("ALTER TABLE $table_name ADD COLUMN user_form_enable TINYINT NULL DEFAULT '0'");
     }
-
 }
 
 // Register table creation on plugin activation
@@ -496,6 +489,13 @@ function avatar_studio_create_tables() {
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
+
+    $column_exists = $wpdb->get_var("SHOW COLUMNS FROM {$wpdb->prefix}avatar_studio_avatars LIKE 'selected_form_id'");
+    
+    if (!$column_exists) {
+        $wpdb->query("ALTER TABLE {$wpdb->prefix}avatar_studio_avatars 
+                     ADD COLUMN selected_form_id INT(11) DEFAULT 0 AFTER user_form_enable");
+    }
 }
 
 add_action('admin_enqueue_scripts', function($hook_suffix) {
@@ -541,7 +541,7 @@ add_filter('cron_schedules', function($schedules) {
     if (!isset($schedules['every_2_minutes'])) {
         $schedules['every_2_minutes'] = [
             'interval' => 2 * 60,
-            'display'  => __('Every 2 Minutes')
+            'display'  => __('Every 2 Minutes', 'interactive-avatar-studio')
         ];
     }
     return $schedules;
@@ -551,23 +551,23 @@ add_filter('cron_schedules', function($schedules) {
 add_filter('cron_schedules', function($schedules) {
     $schedules['every_5_minutes'] = [
         'interval' => 5 * 60,
-        'display'  => __('Every 5 Minutes')
+        'display'  => __('Every 5 Minutes', 'interactive-avatar-studio')
     ];
     $schedules['every_15_minutes'] = [
         'interval' => 15 * 60,
-        'display'  => __('Every 15 Minutes')
+        'display'  => __('Every 15 Minutes', 'interactive-avatar-studio')
     ];
     $schedules['hourly'] = [
         'interval' => 60 * 60,
-        'display'  => __('Every Hour')
+        'display'  => __('Every Hour', 'interactive-avatar-studio')
     ];
     $schedules['twicedaily'] = [
         'interval' => 12 * 60 * 60,
-        'display'  => __('Twice Daily')
+        'display'  => __('Twice Daily', 'interactive-avatar-studio')
     ];
     $schedules['daily'] = [
         'interval' => 24 * 60 * 60,
-        'display'  => __('Daily')
+        'display'  => __('Daily', 'interactive-avatar-studio')
     ];
     return $schedules;
 });
@@ -606,12 +606,12 @@ function avatar_studio_run_export_cron() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_sessions';
 
-    error_log('🔄 Running avatar_studio_export_cron at ' . current_time('mysql'));
+    error_log('Running avatar_studio_export_cron at ' . current_time('mysql'));
 
     $sessions = $wpdb->get_results("SELECT * FROM $table_name WHERE export_status IS NULL OR export_status != 'exported'");
 
     if (!$sessions) {
-        error_log('✅ No pending sessions to export.');
+        error_log('No pending sessions to export.');
         return;
     }
 
@@ -619,7 +619,7 @@ function avatar_studio_run_export_cron() {
         avatar_studio_export_transcript($session);
     }
 
-    error_log('✅ Exported ' . count($sessions) . ' sessions.');
+    error_log('Exported ' . count($sessions) . ' sessions.');
 }
 
 

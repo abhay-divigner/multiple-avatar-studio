@@ -45,6 +45,11 @@
  * @version 1.1.1
  * @author Nicola Asuni - info@tecnick.com
  */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 class TCPDF_FONTS {
 
 	/**
