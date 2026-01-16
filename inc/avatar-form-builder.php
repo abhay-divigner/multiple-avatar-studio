@@ -1463,7 +1463,7 @@ class Avatar_Form_Builder {
         fwrite($output, "\xEF\xBB\xBF");
         
         // Prepare headers
-        $headers = ['Submission ID', 'Session ID', 'Avatar Studio ID'];
+        $headers = ['Submission ID', 'Session ID'];
         foreach ($fields as $field) {
             $headers[] = $field['label'];
         }
@@ -1477,9 +1477,9 @@ class Avatar_Form_Builder {
             $data = json_decode($submission->submission_data, true);
             
             $row = [
-                'FS' . $submission->id,
+                'IAS' . $submission->id,
                 $submission->session_id,
-                $submission->avatar_studio_id ? 'AS' . $submission->avatar_studio_id : 'N/A'
+                // $submission->avatar_studio_id ? 'AS' . $submission->avatar_studio_id : 'N/A'
             ];
             
             foreach ($fields as $field) {

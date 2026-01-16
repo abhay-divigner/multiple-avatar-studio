@@ -539,13 +539,15 @@ class avatarManager
                 $message = isset($toast['message']) ? (string) $toast['message'] : '';
                 $type = isset($toast['type']) ? (string) $toast['type'] : '';
                 $time = isset($toast['time']) ? (string) $toast['time'] : 0;
+                $hideAfter = isset($toast['hideAfter']) ? (string) $toast['hideAfter'] : 5; // Default to 5 seconds
                 
                 // Only add if message is not empty and time is valid
                 if (!empty($message) && $time > 0) {
                     $toast_messages_array[] = [
                         'message' => sanitize_text_field($message),
                         'type' => sanitize_text_field($type),
-                        'time' => $time
+                        'time' => $time,
+                        'hideAfter' => $hideAfter
                     ];
                 }
             }
@@ -653,13 +655,15 @@ class avatarManager
                 $message = isset($toast['message']) ? (string) $toast['message'] : '';
                 $type = isset($toast['type']) ? (string) $toast['type'] : '';
                 $time = isset($toast['time']) ? (string) $toast['time'] : 0;
+                $hideAfter = isset($toast['hideAfter']) ? (string) $toast['hideAfter'] : 5; // Default to 5 seconds
                 
                 // Only add if message is not empty and time is valid
                 if (!empty($message) && $time > 0) {
                     $toast_messages_array[] = [
                         'message' => sanitize_text_field($message),
                         'type' => sanitize_text_field($type),
-                        'time' => $time
+                        'time' => $time,
+                        'hideAfter' => $hideAfter
                     ];
                 }
             }

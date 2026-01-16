@@ -1,64 +1,73 @@
 /* File: assets/css/transcript-pdf-styles.css */
 
+h1 {
+  color: #2c3e50;
+  font-size: 24pt;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 0 5px 0;
+  padding: 0;
+}
+h2 {
+  color: #34495e;
+  font-size: 16pt;
+  font-weight: normal;
+  text-align: center;
+  margin: 0 0 20px 0;
+  padding: 0;
+}
+h3 {
+  color: #2c3e50;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 20px 0 10px 0;
+  padding: 5px 0;
+  border-bottom: 2px solid #3498db;
+}
 .header {
   text-align: center;
-  border-bottom: 2px solid #333;
-  padding-bottom: 15px;
-  margin-bottom: 20px;
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 20px;
+  margin-bottom: 25px;
 }
-
-.header h1 {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 20px;
+.info-row {
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  margin: 10px 0;
+  border-left: 4px solid #3498db;
+}
+.info-label {
+  color: #2c3e50;
   font-weight: bold;
+  font-size: 10pt;
 }
-
-.header p {
-  margin: 3px 0;
-  color: #666;
-  font-size: 11px;
+.info-value {
+  color: #555;
+  font-size: 10pt;
 }
-
-.message-container {
-  margin-bottom: 15px;
-  page-break-inside: avoid;
+.content-section {
+  margin: 25px 0;
+  padding: 15px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
 }
-
-.message-bubble {
-  padding: 10px;
-  border-radius: 8px;
-  margin: 5px 0;
-  display: inline-block;
-  max-width: 85%;
-}
-
-.user-message {
-  background-color: #dcf8c6;
-  margin-left: 15%;
-}
-
-.assistant-message {
-  background-color: #f1f0f0;
-  margin-right: 15%;
-}
-
-.role {
-  font-weight: bold;
-  margin-bottom: 5px;
-  font-size: 10px;
-}
-
-.user-role {
-  color: #008000;
-}
-
-.assistant-role {
-  color: #0064c8;
-}
-
-.content {
-  font-size: 11px;
-  line-height: 1.5;
+.analysis-content {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 5px;
+  font-family: courier;
+  font-size: 9pt;
+  line-height: 1.6;
+  color: #2c3e50;
+  white-space: pre-wrap;
   word-wrap: break-word;
+}
+.footer {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 8pt;
+  margin-top: 30px;
+  padding-top: 15px;
+  border-top: 1px solid #bdc3c7;
+  font-style: italic;
 }

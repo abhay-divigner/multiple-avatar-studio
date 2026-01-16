@@ -1,68 +1,68 @@
-    <?php
+<?php
 
-    if (!defined('ABSPATH')) {
-        exit;
-    }
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-    // Hook into the admin_menu action to add the submenu page
-    function avatar_studio_plugin_menu()
-    {
-        // Add a main menu page (only if it's needed)
-        add_menu_page(
-            'Avatar Studio',                // Page title
-            'Avatar Studio',                // Menu title
-            'manage_options',           // Capability required to view this page
-            'avatar_studio_main',           // Menu slug
-            'avatar_studio_main_page',      // Function to display content
-            'dashicons-admin-generic',  // Icon for the menu
-            6                           // Position in the menu
-        );
-        // add_submenu_page(
-        //     'avatar_studio_main', 
-        //     'User Info',
-        //     'User Info',
-        //     'manage_options',
-        //     'avatar_studio_user_info',
-        //     'avatar_studio_user_info_page'
-        // );
+// Hook into the admin_menu action to add the submenu page
+function avatar_studio_plugin_menu()
+{
+    // Add a main menu page (only if it's needed)
+    add_menu_page(
+        'Avatar Studio',                // Page title
+        'Avatar Studio',                // Menu title
+        'manage_options',           // Capability required to view this page
+        'avatar_studio_main',           // Menu slug
+        'avatar_studio_main_page',      // Function to display content
+        'dashicons-admin-generic',  // Icon for the menu
+        6                           // Position in the menu
+    );
+    // add_submenu_page(
+    //     'avatar_studio_main', 
+    //     'User Info',
+    //     'User Info',
+    //     'manage_options',
+    //     'avatar_studio_user_info',
+    //     'avatar_studio_user_info_page'
+    // );
 
-        // Add Sessions submenu only if Google Drive is enabled
-        if (get_option('avatar_studio_enable_google_drive') == '1') {
-            add_submenu_page(
-                'avatar_studio_main', 
-                'Sessions',
-                'Sessions',
-                'manage_options',
-                'avatar_studio_sessions',
-                'avatar_studio_sessions_page'
-            );
-        }
-
-        // Add Error Logs submenu
-        // add_submenu_page(
-        //     'avatar_studio_main', 
-        //     'Error Logs',
-        //     'Error Logs',
-        //     'manage_options',
-        //     'avatar_studio_error_logs',
-        //     'avatar_studio_view_error_logs'
-        // );
-
-        // --- Add settings submenu ---
-    add_action('admin_menu', function() {
+    // Add Sessions submenu only if Google Drive is enabled
+    if (get_option('avatar_studio_enable_google_drive') == '1') {
         add_submenu_page(
-            'options-general.php',
-            'Avatar Export Settings',
-            'Avatar Export Settings',
+            'avatar_studio_main', 
+            'Sessions',
+            'Sessions',
             'manage_options',
-            'avatar-export-settings',
-            'avatar_studio_render_settings_page'
+            'avatar_studio_sessions',
+            'avatar_studio_sessions_page'
         );
-    });
     }
-    add_action('admin_menu', 'avatar_studio_plugin_menu');
 
-        function avatar_studio_main_page()
+    // Add Error Logs submenu
+    // add_submenu_page(
+    //     'avatar_studio_main', 
+    //     'Error Logs',
+    //     'Error Logs',
+    //     'manage_options',
+    //     'avatar_studio_error_logs',
+    //     'avatar_studio_view_error_logs'
+    // );
+
+    // --- Add settings submenu ---
+add_action('admin_menu', function() {
+    add_submenu_page(
+        'options-general.php',
+        'Avatar Export Settings',
+        'Avatar Export Settings',
+        'manage_options',
+        'avatar-export-settings',
+        'avatar_studio_render_settings_page'
+    );
+});
+}
+add_action('admin_menu', 'avatar_studio_plugin_menu');
+
+    function avatar_studio_main_page()
 {
     $pages = get_pages();
     $export_enabled = get_option('avatar_auto_export_enabled', 1);
@@ -479,6 +479,43 @@
     ));
     
     $google_connected = get_option('avatar_studio_google_access_token') ? true : false;
+    
+    // Prepare user data for JavaScript
+    $user_data_for_js = [];
+    foreach ($sessions as $session) {
+        $user_data = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$user_info_table} WHERE conversation_id = %s",
+            $session->session_id
+        ));
+        if ($user_data) {
+            $user_data_for_js[$session->id] = $user_data;
+        }
+    }
+    
+    // Enqueue admin scripts
+    add_action('admin_enqueue_scripts', function() use ($user_data_for_js) {
+        wp_enqueue_script('jquery');
+        
+        // Enqueue the main sessions script
+        wp_enqueue_script(
+            'avatar-studio-sessions-script',
+            plugin_dir_url(__FILE__) . 'assets/js/sessions-admin.js',
+            array('jquery'),
+            '1.0.0',
+            true
+        );
+        
+        // Localize the script with user data
+        wp_localize_script(
+            'avatar-studio-sessions-script',
+            'avatarStudioSessionsData',
+            array(
+                'user_data' => $user_data_for_js,
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('avatar_studio_sessions_nonce')
+            )
+        );
+    });
     ?>
 
     <div class="avatar-sessions-wrapper">
@@ -624,7 +661,7 @@
                                 <td>
                                     <div class="copy-id-wrapper">
                                         <code><?php echo esc_html(substr($session->session_id, 0, 12)); ?>...</code>
-                                        <button class="copy-btn" onclick="copyToClipboard('<?php echo esc_js($session->session_id); ?>', this)" title="Copy Session ID">
+                                        <button class="copy-btn" data-session-id="<?php echo esc_attr($session->session_id); ?>" title="Copy Session ID">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -686,8 +723,8 @@
                                     $created_timestamp = strtotime($session->created_at);
                                     $current_timestamp = current_time('timestamp');
                                     $time_elapsed = $current_timestamp - $created_timestamp;
-                                    $is_disabled = $time_elapsed < 3600;
-                                    $remaining_minutes = $is_disabled ? ceil((3600 - $time_elapsed) / 60) : 0;
+                                    $is_disabled = $time_elapsed < 1800;
+                                    $remaining_minutes = $is_disabled ? ceil((1800 - $time_elapsed) / 60) : 0;
                                     
                                     // Determine if button should be enabled
                                     $is_export_enabled = $google_connected && $export_status !== 'exported';
@@ -717,25 +754,13 @@
                                     </a>
                                     
                                     <!-- User Details Button -->
-                                    <?php
-                                    // Fetch user data based on session_id (conversation_id in user_info table)
-                                    $user_data = $wpdb->get_row($wpdb->prepare(
-                                        "SELECT * FROM {$user_info_table} WHERE conversation_id = %s",
-                                        $session->session_id
-                                    ));
-                                    ?>
-                                    <button class="btn-user-details" onclick="showUserDetails(<?php echo esc_attr($session->id); ?>)">
+                                    <button class="btn-user-details" data-session-id="<?php echo esc_attr($session->id); ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
                                     </button>
-                                    
-                                    <!-- Hidden user data for JavaScript -->
-                                    <script type="application/json" id="user-data-<?php echo esc_attr($session->id); ?>">
-                                        <?php echo wp_json_encode($user_data); ?>
-                                    </script>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -782,7 +807,7 @@
                     </svg>
                     User Details
                 </h2>
-                <button class="modal-close" onclick="closeUserDetails()">
+                <button class="modal-close" id="closeUserDetailsModal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -2788,6 +2813,3 @@
     </form>
     <?php
 }
-
-
-

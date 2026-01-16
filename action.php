@@ -8,12 +8,31 @@ if (!function_exists('wp_mail')) {
     require_once(ABSPATH . 'wp-includes/pluggable.php');
 }
 
+// Helper function to check AJAX nonce
+function avatar_studio_check_ajax_nonce() {
+    check_ajax_referer('avatar_studio_ajax_nonce', 'nonce');
+}
 
-add_action('wp_ajax_nopriv_avanew_as_avatar_studio_heygenToken', 'handle_avatar_studio_heygenToken');
-add_action('wp_ajax_avanew_as_avatar_studio_heygenToken', 'handle_avatar_studio_heygenToken');
+// Helper function to check admin AJAX nonce
+function avatar_studio_check_admin_ajax_nonce() {
+    check_ajax_referer('avatar_studio_admin_nonce', 'nonce');
+}
 
-function handle_avatar_studio_heygenToken()
+// Helper function for same origin validation
+function avatar_studio_validate_ajax_request() {
+    if (!avatar_studio_is_same_origin_request()) {
+        wp_send_json_error('Unauthorized');
+        wp_die();
+    }
+    avatar_studio_check_ajax_nonce();
+}
+
+add_action('wp_ajax_nopriv_avanew_as_avatar_studio_heygenToken', 'avanew_as_handle_avatar_studio_heygenToken');
+add_action('wp_ajax_avanew_as_avatar_studio_heygenToken', 'avanew_as_handle_avatar_studio_heygenToken');
+
+function avanew_as_handle_avatar_studio_heygenToken()
 {
+    
     if (!avatar_studio_is_same_origin_request()) {
         wp_send_json_error('Unauthorized');
         wp_die();
@@ -279,10 +298,10 @@ function handle_avatar_studio_heygenToken()
 }
 
 
-add_action('wp_ajax_nopriv_avanew_as_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
-add_action('wp_ajax_avanew_as_avatar_studio_tavusConversation', 'handle_avatar_studio_tavusConversation');
+add_action('wp_ajax_nopriv_avanew_as_avatar_studio_tavusConversation', 'avanew_as_handle_avatar_studio_tavusConversation');
+add_action('wp_ajax_avanew_as_avatar_studio_tavusConversation', 'avanew_as_handle_avatar_studio_tavusConversation');
 
-function handle_avatar_studio_tavusConversation()
+function avanew_as_handle_avatar_studio_tavusConversation()
 {
     if (!avatar_studio_is_same_origin_request()) {
         wp_send_json_error('Unauthorized');
@@ -618,11 +637,12 @@ function updateDeepgramToken($deepgramKEY, $RAG_API_URL) {
 
 
 
-add_action('wp_ajax_avanew_as_askQuestion', 'handle_ask_question');
-add_action('wp_ajax_nopriv_avanew_as_askQuestion', 'handle_ask_question');
+add_action('wp_ajax_avanew_as_askQuestion', 'avanew_as_handle_ask_question');
+add_action('wp_ajax_nopriv_avanew_as_askQuestion', 'avanew_as_handle_ask_question');
 
-function handle_ask_question() {
+function avanew_as_handle_ask_question() {
     try {
+        check_ajax_referer('avatar_studio_ajax_nonce', 'nonce');
         // Get and sanitize POST parameters
         $avatarID = isset($_POST['avatarID']) ? intval($_POST['avatarID']) : 0;
         $sessionID = isset($_POST['sessionID']) ? sanitize_text_field($_POST['sessionID']) : '';
@@ -780,10 +800,11 @@ function avatar_studio_is_same_origin_request()
 
     return $origin_host === $site_host;
 }
-add_action('wp_ajax_nopriv_avanew_as_insert_avatar_studio_user', 'insert_avatar_studio_user');
-add_action('wp_ajax_avanew_as_insert_avatar_studio_user', 'insert_avatar_studio_user');
-function insert_avatar_studio_user()
+add_action('wp_ajax_nopriv_avanew_as_insert_avatar_studio_user', 'avanew_as_insert_avatar_studio_user');
+add_action('wp_ajax_avanew_as_insert_avatar_studio_user', 'avanew_as_insert_avatar_studio_user');
+function avanew_as_insert_avatar_studio_user()
 {
+    check_ajax_referer('avatar_studio_ajax_nonce', 'nonce');
     if (!avatar_studio_is_same_origin_request()) {
         wp_send_json_error('Unauthorized');
         wp_die();
@@ -809,6 +830,8 @@ function insert_avatar_studio_user()
 
 function get_avatar_studio_user_ip_agent_info()
 {
+    check_ajax_referer('avatar_studio_admin_nonce', 'nonce');
+
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
     $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
     $timestamp = current_time('mysql');
@@ -853,10 +876,11 @@ function get_avatar_studio_user_ip_agent_info()
     ];
 }
 
-add_action('wp_ajax_avanew_as_send_pdf_email', 'handle_send_avatar_studio_pdf_email');
-add_action('wp_ajax_nopriv_avanew_as_send_pdf_email', 'handle_send_avatar_studio_pdf_email');
-function handle_send_avatar_studio_pdf_email() {
-    // Verify request origin
+add_action('wp_ajax_avanew_as_send_pdf_email', 'avanew_as_handle_send_avatar_studio_pdf_email');
+add_action('wp_ajax_nopriv_avanew_as_send_pdf_email', 'avanew_as_handle_send_avatar_studio_pdf_email');
+function avanew_as_handle_send_avatar_studio_pdf_email() {
+    
+    check_ajax_referer('avatar_studio_ajax_nonce', 'nonce');
     if (!avatar_studio_is_same_origin_request()) {
         wp_send_json_error(['message' => 'Unauthorized']);
         wp_die();
@@ -886,6 +910,7 @@ function handle_send_avatar_studio_pdf_email() {
 
     // Load TCPDF
     require_once plugin_dir_path(__FILE__) . 'lib/TCPDF/tcpdf.php';
+    // require_once plugin_dir_path(__FILE__) . 'vendor/tecnickcom/tcpdf/include/services/pdf-service.php';
     $pdf = new TCPDF();
     $pdf->AddPage();
     $pdf->SetFont('helvetica', '', 12);
@@ -941,11 +966,12 @@ function handle_send_avatar_studio_pdf_email() {
  * Tavus Start
  */
 
-add_action('wp_ajax_nopriv_avanew_as_send_tavus_text_message', 'handle_send_tavus_text_message');
-add_action('wp_ajax_avanew_as_send_tavus_text_message', 'handle_send_tavus_text_message');
+add_action('wp_ajax_nopriv_avanew_as_send_tavus_text_message', 'avanew_as_handle_send_tavus_text_message');
+add_action('wp_ajax_avanew_as_send_tavus_text_message', 'avanew_as_handle_send_tavus_text_message');
 
-function handle_send_tavus_text_message() {
-    // Verify request origin
+function avanew_as_handle_send_tavus_text_message() {
+    
+    check_ajax_referer('avatar_studio_ajax_nonce', 'nonce');
     if (!avatar_studio_is_same_origin_request()) {
         wp_send_json_error(['message' => 'Unauthorized']);
         wp_die();
@@ -992,7 +1018,7 @@ function handle_send_tavus_text_message() {
         'body' => wp_json_encode($body),
         'timeout' => 30,
         'redirection' => 5,
-        'sslverify' => false, // Consider true for production
+        'sslverify' => true,
     ]);
 
     // Handle WordPress HTTP errors
@@ -1053,10 +1079,46 @@ function getLanguageShortName($language)
 }
 
 // Add AJAX handler for CSV export
-add_action('wp_ajax_avanew_as_avatar_studio_export_csv', 'handle_avatar_studio_export_csv');
-add_action('wp_ajax_nopriv_avanew_as_avatar_studio_export_csv', 'handle_avatar_studio_export_csv');
+add_action('wp_ajax_avanew_as_avatar_studio_export_csv', 'avanew_as_handle_avatar_studio_export_csv');
+add_action('wp_ajax_nopriv_avanew_as_avatar_studio_export_csv', 'avanew_as_handle_avatar_studio_export_csv');
 
-function handle_avatar_studio_export_csv() {
+function avanew_as_handle_avatar_studio_export_csv() {
+    // Verify user is logged in
+    if (!is_user_logged_in()) {
+        wp_send_json_error('Authentication required');
+        wp_die();
+    }
+    
+    // Verify capabilities
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Insufficient permissions');
+        wp_die();
+    }
+
+    check_ajax_referer('avatar_studio_admin_nonce', 'nonce');
+    
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'avatar_studio_admin_nonce')) {
+        wp_send_json_error('Invalid security token');
+        wp_die();
+    }
+    // Verify user is logged in
+    if (!is_user_logged_in()) {
+        wp_send_json_error('Authentication required');
+        wp_die();
+    }
+    
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'avatar_studio_admin_nonce')) {
+        wp_send_json_error('Invalid security token');
+        wp_die();
+    }
+    
+    // Verify capabilities
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Insufficient permissions');
+        wp_die();
+    }
     // Verify nonce
     if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'export_csv_action')) {
         wp_die('Security check failed');
@@ -1149,14 +1211,15 @@ function handle_avatar_studio_export_csv() {
 }
 
 // Add AJAX handler for Form Submissions CSV export
-add_action('wp_ajax_avanew_as_avatar_studio_export_submissions_csv', 'handle_avatar_studio_export_submissions_csv');
-add_action('wp_ajax_nopriv_avanew_as_avatar_studio_export_submissions_csv', 'handle_avatar_studio_export_submissions_csv');
+add_action('wp_ajax_avanew_as_avatar_studio_export_submissions_csv', 'avanew_as_handle_avatar_studio_export_submissions_csv');
+add_action('wp_ajax_nopriv_avanew_as_avatar_studio_export_submissions_csv', 'avanew_as_handle_avatar_studio_export_submissions_csv');
 
-function handle_avatar_studio_export_submissions_csv() {
+function avanew_as_handle_avatar_studio_export_submissions_csv() {
     // Verify nonce
     if (empty($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'export_submissions_csv_action')) {
         wp_die('Security check failed');
     }
+    check_ajax_referer('avatar_studio_admin_nonce', 'nonce');
 
     global $wpdb;
 
@@ -1283,6 +1346,13 @@ function handle_avatar_studio_export_submissions_csv() {
 
 // In your save_avatar or update_avatar function, add:
 function save_avatar_callback() {
+
+    // Check admin capabilities
+    if (!current_user_can('manage_options')) {
+        wp_die('Insufficient permissions');
+    }
+    
+    check_ajax_referer('avatar_studio_admin_nonce', 'nonce');
     
     // Get form data
     $data = [
@@ -1355,18 +1425,27 @@ function save_avatar_callback() {
     exit;
 }
 
-add_action('admin_init', 'avatar_studio_force_check_database');
-function avatar_studio_force_check_database() {
+add_action('admin_init', 'avanew_as_avatar_studio_force_check_database');
+function avanew_as_avatar_studio_force_check_database() {
     // Run database update on every admin page load temporarily
     avatarStudioUpdateDatabase();
 }
-add_action('wp_head', function() {
-    global $avatar; // Your avatar object containing styles
+add_action('wp_enqueue_scripts', 'avanew_as_avatar_studio_enqueue_styles');
+
+function avanew_as_avatar_studio_enqueue_styles() {
+    global $avatar;
     
     if ($avatar && isset($avatar->styles)) {
         $styles = json_decode($avatar->styles, true);
         if ($styles) {
-            echo '<style>' . avatar_studio_generate_dynamic_css() . '</style>';
+            // Generate dynamic CSS
+            $dynamic_css = avatar_studio_generate_dynamic_css();
+            
+            // Create a file or use wp_add_inline_style
+            $handle = 'avatar-studio-dynamic-styles';
+            wp_register_style($handle, false);
+            wp_enqueue_style($handle);
+            wp_add_inline_style($handle, $dynamic_css);
         }
     }
-});
+}

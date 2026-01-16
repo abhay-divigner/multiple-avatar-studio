@@ -259,17 +259,21 @@ jQuery(document).ready(function ($) {
     const $messageInput = $row.find(".toast-message");
     const $typeSelect = $row.find(".toast-type");
     const $timeInput = $row.find(".toast-time");
+    const $hideAfterInput = $row.find(".toast-hideafter");
 
     const hasMessage = $messageInput.val().trim() !== "";
 
     if (hasMessage) {
       $typeSelect.attr("required", "required");
       $timeInput.attr("required", "required");
+      $hideAfterInput.attr("required", "required");
     } else {
       $typeSelect.removeAttr("required");
       $timeInput.removeAttr("required");
+      $hideAfterInput.removeAttr("required");
       $typeSelect.css("border-color", "#ddd");
       $timeInput.css("border-color", "#ddd");
+      $hideAfterInput.css("border-color", "#ddd");
     }
   }
 
@@ -289,21 +293,70 @@ jQuery(document).ready(function ($) {
     }
   }
 
-  // Validate toast time
+  // Validate hideAfter field
+  function validateHideAfter($input) {
+    const hideAfter = parseInt($input.val());
+    const $row = $input.closest(".toast-message-row");
+    const $validation = $row.find(".toast-hideafter-validation");
+    const $messageInput = $row.find(".toast-message");
+    const hasMessage = $messageInput.val().trim() !== "";
+
+    // Clear previous validation
+    $validation.hide().text("");
+    $input.css("border-color", "#ddd");
+
+    if (hasMessage) {
+      if (isNaN(hideAfter)) {
+        $validation.text("").show();
+        $input.css("border-color", "#dc3545");
+        return false;
+      }
+
+      if (hideAfter < 2) {
+        $validation.text("Minimum hide time is 2 seconds").show();
+        $input.css("border-color", "#dc3545");
+        return false;
+      }
+
+      if (hideAfter > 30) {
+        $validation.text("Maximum hide time is 30 seconds").show();
+        $input.css("border-color", "#dc3545");
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // Validate toast time with 2-second gap rule
   function validateToastTime($input) {
     const time = parseInt($input.val());
     const $row = $input.closest(".toast-message-row");
     const $validation = $row.find(".toast-time-validation");
-    const allTimes = [];
+    const allMessages = [];
     const $messageInput = $row.find(".toast-message");
     const $typeSelect = $row.find(".toast-type");
+    const $hideAfterInput = $row.find(".toast-hideafter");
     const hasMessage = $messageInput.val().trim() !== "";
     const hasType = $typeSelect.val() !== "";
+    const hideAfter = parseInt($hideAfterInput.val()) || 5;
 
-    // Collect all times
-    $(".toast-time").each(function () {
-      if (this !== $input[0] && $(this).val().trim() !== "") {
-        allTimes.push(parseInt($(this).val()));
+    // Collect all messages data
+    $(".toast-message-row").each(function () {
+      const $thisRow = $(this);
+      if (this !== $row[0]) {
+        const otherTime = parseInt($thisRow.find(".toast-time").val());
+        const otherHideAfter =
+          parseInt($thisRow.find(".toast-hideafter").val()) || 5;
+        const otherMessage = $thisRow.find(".toast-message").val().trim();
+
+        if (otherMessage !== "" && !isNaN(otherTime)) {
+          allMessages.push({
+            time: otherTime,
+            hideAfter: otherHideAfter,
+            endTime: otherTime + otherHideAfter,
+          });
+        }
       }
     });
 
@@ -315,7 +368,7 @@ jQuery(document).ready(function ($) {
       // Validate type if message exists
       if (!hasType) {
         $typeSelect.css("border-color", "#dc3545");
-        $validation.text("Type is required when message is entered").show();
+        $validation.text("").show();
         $input.css("border-color", "#dc3545");
         return false;
       } else {
@@ -324,7 +377,7 @@ jQuery(document).ready(function ($) {
 
       // Validate time if message exists
       if (isNaN(time)) {
-        $validation.text("Time is required when message is entered").show();
+        $validation.text("").show();
         $input.css("border-color", "#dc3545");
         return false;
       }
@@ -345,7 +398,52 @@ jQuery(document).ready(function ($) {
         return false;
       }
 
-      if (allTimes.includes(time)) {
+      // New validation: Check for overlapping messages with 2-second gap rule
+      const currentEndTime = time + hideAfter;
+
+      for (const msg of allMessages) {
+        // Check if messages overlap
+        const gapBefore = time - msg.endTime;
+        const gapAfter = msg.time - currentEndTime;
+
+        // Check for overlap
+        if (
+          (time >= msg.time && time <= msg.endTime) ||
+          (currentEndTime >= msg.time && currentEndTime <= msg.endTime) ||
+          (time <= msg.time && currentEndTime >= msg.endTime)
+        ) {
+          $validation
+            .text("Messages cannot overlap. Minimum 2-second gap required")
+            .show();
+          $input.css("border-color", "#dc3545");
+          return false;
+        }
+
+        // Check for 2-second gap rule
+        if (gapBefore >= 0 && gapBefore < 2) {
+          $validation
+            .text(
+              `Need at least 2-second gap after message ending at ${msg.endTime}s`
+            )
+            .show();
+          $input.css("border-color", "#dc3545");
+          return false;
+        }
+
+        if (gapAfter >= 0 && gapAfter < 2) {
+          $validation
+            .text(
+              `Need at least 2-second gap before message starting at ${msg.time}s`
+            )
+            .show();
+          $input.css("border-color", "#dc3545");
+          return false;
+        }
+      }
+
+      // Check for duplicate times (exact same time)
+      const duplicateTimes = allMessages.filter((msg) => msg.time === time);
+      if (duplicateTimes.length > 0) {
         $validation.text("This time is already used by another message").show();
         $input.css("border-color", "#dc3545");
         return false;
@@ -368,6 +466,7 @@ jQuery(document).ready(function ($) {
       const $messageInput = $row.find(".toast-message");
       const $typeSelect = $row.find(".toast-type");
       const $timeInput = $row.find(".toast-time");
+      const $hideAfterInput = $row.find(".toast-hideafter");
 
       const hasMessage = $messageInput.val().trim() !== "";
 
@@ -377,6 +476,10 @@ jQuery(document).ready(function ($) {
         }
 
         if (!validateToastTime($timeInput)) {
+          allValid = false;
+        }
+
+        if (!validateHideAfter($hideAfterInput)) {
           allValid = false;
         }
       }
@@ -410,7 +513,7 @@ jQuery(document).ready(function ($) {
                     </div>
                     
                     <div class="toast-input-group time-group">
-                        <span class="toast-label">Time (seconds)</span>
+                        <span class="toast-label">Show At (seconds)</span>
                         <div class="time-input-wrapper">
                             <input type="number" 
                                 name="toast_messages[${toastIndex}][time]" 
@@ -420,6 +523,21 @@ jQuery(document).ready(function ($) {
                                 class="toast-time">
                         </div>
                         <div class="toast-time-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
+                    </div>
+                    
+                    <div class="toast-input-group hideafter-group">
+                        <span class="toast-label">Display for (seconds)</span>
+                        <div class="time-input-wrapper">
+                            <input type="number" 
+                                name="toast_messages[${toastIndex}][hideAfter]" 
+                                placeholder="Sec"
+                                min="2"
+                                max="30"
+                                value=""
+                                class="toast-hideafter">
+                        </div>
+                        <div class="toast-hideafter-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
+                        <small style="display: block; color: #666; font-size: 11px; margin-top: 2px;">Min: 2s, Max: 30s</small>
                     </div>
                 </div>
                 <button style="margin-top: 24px;" type="button" class="button button-secondary remove-toast-message" title="Remove this toast message">
@@ -457,7 +575,7 @@ jQuery(document).ready(function ($) {
       });
     } else {
       // Clear the last row instead of removing it
-      $row.find(".toast-message, .toast-time").val("");
+      $row.find(".toast-message, .toast-time, .toast-hideafter").val("");
       $row.find(".toast-type").val("");
       $row.find(".toast-message").focus();
       toggleToastRequiredFields($row);
@@ -478,6 +596,9 @@ jQuery(document).ready(function ($) {
       $(this)
         .find(".toast-time")
         .attr("name", `toast_messages[${index}][time]`);
+      $(this)
+        .find(".toast-hideafter")
+        .attr("name", `toast_messages[${index}][hideAfter]`);
     });
     toastIndex = $(".toast-message-row").length;
   }
@@ -528,6 +649,20 @@ jQuery(document).ready(function ($) {
 
   $(document).on("blur", ".toast-time", function () {
     validateToastTime($(this));
+  });
+
+  // HideAfter field events
+  $(document).on("input", ".toast-hideafter", function () {
+    validateHideAfter($(this));
+    // Re-validate all times when hideAfter changes
+    $(".toast-time").each(function () {
+      validateToastTime($(this));
+    });
+  });
+
+  $(document).on("blur", ".toast-hideafter", function () {
+    validateHideAfter($(this));
+    validateAllToastTimesAndTypes();
   });
 
   // Time limit monitor
@@ -622,7 +757,7 @@ jQuery(document).ready(function ($) {
       e.preventDefault();
       alert("Please fix the toast message validation errors before saving.");
       $(
-        ".toast-message-row:has(.toast-message:not(:empty)) .toast-type:invalid, .toast-time:invalid"
+        ".toast-message-row:has(.toast-message:not(:empty)) .toast-type:invalid, .toast-time:invalid, .toast-hideafter:invalid"
       )
         .first()
         .focus();

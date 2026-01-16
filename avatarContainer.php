@@ -65,7 +65,8 @@ $js_config = array(
     'user_form_enable' => $user_form_enable,
     'form_id' => 0,
     'ajax_url' => admin_url('admin-ajax.php'),
-    'instruction_section_exists' => false
+    'instruction_section_exists' => false,
+    'nonce' => wp_create_nonce('avatar_studio_nonce')
 );
 
 // Get form ID
@@ -78,15 +79,51 @@ if (isset($avatar) && isset($avatar->selected_form_id) && $avatar->selected_form
     $form_id_to_use = intval($atts['form_id']);
 }
 $js_config['form_id'] = $form_id_to_use;
+
+// Enqueue scripts properly
+function enqueue_avatar_studio_scripts($js_config) {
+    // Enqueue Font Awesome
+    wp_enqueue_style(
+        'avatar-studio-fontawesome',
+        plugin_dir_url(__FILE__) . 'assets/css/fontawesome/css/all.min.css',
+        array(),
+        '6.4.0'
+    );
+    
+    // Enqueue configuration script
+    wp_register_script(
+        'avatar-studio-config',
+        plugin_dir_url(__FILE__) . 'assets/js/avatar-studio-config.js',
+        array(),
+        '1.0.0',
+        true
+    );
+    
+    // Localize script to pass PHP variables to JavaScript
+    wp_localize_script(
+        'avatar-studio-config',
+        'avatarStudioConfig',
+        $js_config
+    );
+    
+    // Enqueue the configuration script
+    wp_enqueue_script('avatar-studio-config');
+    
+    // Enqueue main avatar container script
+    wp_enqueue_script(
+        'avatar-studio-container',
+        plugin_dir_url(__FILE__) . 'assets/js/avatarContainer.js',
+        array('avatar-studio-config'), // Make it dependent on config script
+        '1.0.0',
+        true
+    );
+}
+
+// Call the function to enqueue scripts
+enqueue_avatar_studio_scripts($js_config);
 ?>
 
-<link rel="stylesheet" href="<?php echo esc_url(plugin_dir_url(__FILE__) . 'assets/css/fontawesome/css/all.min.css'); ?>">
 <input type="hidden" name="CURRENT_TIMESTAMP" value="<?php echo esc_attr(time()); ?>">
-
-<!-- Pass PHP variables to JavaScript -->
-<script type="text/javascript">
-    var avatarStudioConfig = <?php echo wp_json_encode($js_config); ?>;
-</script>
 
 <div class="avatarAndTranscriptWrapper">
 
@@ -245,10 +282,6 @@ $js_config['form_id'] = $form_id_to_use;
                 <a href="#" onclick="setLanguage('fr', 'fr', 'Français')">
                     <img draggable="false" class="emoji" alt="fr"
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1eb-1f1f7.svg"> Français
-                </a>
-                <a href="#" onclick="setLanguage('de', 'de', 'Deutsch')">
-                    <img draggable="false" class="emoji" alt="de"
-                        src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1e9-1f1ea.svg"> Deutsch
                 </a>
             </div>
         </div>
@@ -457,5 +490,3 @@ $js_config['form_id'] = $form_id_to_use;
         </div>
     </div>
 <?php } ?>
-
-<script src="<?php echo esc_url(plugin_dir_url(__FILE__) . 'assets/js/avatarContainer.js'); ?>"></script>

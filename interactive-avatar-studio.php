@@ -47,6 +47,7 @@ require_once 'functions.php';
 require_once 'inc/avatar-manager.php';
 require_once 'inc/avatar-form-builder.php';
 require_once 'action.php';
+require_once 'inc/script-handler.php';
 
 function enqueue_avatar_studio_script()
 {
@@ -164,7 +165,6 @@ function enqueue_avatar_studio_script()
     $PLUGIN_OPTIONS['user_form_enable'] = $user_form_enable;
 
     if ($avatar_studio_enable && $isAvatarStudioPage) {
-
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
         if (stripos($userAgent, 'Firefox') !== false && !$livekit_enable) {
             return '';
@@ -173,10 +173,15 @@ function enqueue_avatar_studio_script()
         wp_enqueue_script('avatar_studio-jspdf', $dir . 'assets/js/jspdf/jspdf.umd.min.js', array('jquery'), '2.5.1', true);    
         wp_enqueue_script('avatar_studio-script', $dir . 'assets/js/avatar_studio-script.js', array('jquery'), AvatarStudioVersion, true);
         wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
-
+        
+        // Clean vendor script enqueuing - no inline filters
+        if ($avatar_vendor == 'tavus') {
+            wp_enqueue_script('avatar_studio-tavus', $dir . 'assets/js/tavus.js', array(), AvatarStudioVersion, true);
+            wp_enqueue_script('avatar_studio-daily-co', $dir . 'assets/js/daily-co.js', array(), AvatarStudioVersion, true);
+        } else {
+            wp_enqueue_script('avatar_studio-heygen', $dir . 'assets/js/heygen.js', array(), AvatarStudioVersion, true);
+        }
     }
-
-
 }
 add_action('wp_enqueue_scripts', 'enqueue_avatar_studio_script');
 
@@ -229,8 +234,6 @@ function avatar_studio_chatBox()
 }
 
 add_action('wp_footer', function () {
-
-
     global $livekit_enable, $avatar_vendor, $isAvatarStudioPage;
     $avatar_studio_enable = get_option('avatar_studio_enable');
 
@@ -238,19 +241,11 @@ add_action('wp_footer', function () {
     if (stripos($userAgent, 'Firefox') !== false && !$livekit_enable) {
         return '';
     }
+    
     if ($avatar_studio_enable && $isAvatarStudioPage && !post_password_required()) {
-        // if (!$livekit_enable) {
-
-            if ($avatar_vendor == 'tavus') {
-                echo ' <script type="module" crossorigin src="' . esc_url(plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion) . '"></script>';
-                echo ' <script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script> ';
-
-            } else {
-                echo ' <script type="module" crossorigin src="' . esc_url(plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion) . '"></script>';
-            }
-
-
-        // }
+        // Scripts are now properly enqueued above
+        // We only need to output the hidden fields
+        
         echo ' <input type="hidden" id="ajaxURL" value="' . esc_url(admin_url('admin-ajax.php')) . '" />';
         echo ' <input type="hidden" id="avatar_studio_nonce" value="' . esc_url(wp_create_nonce('avatar_studio_nonce_action')) . '" />';
         echo ' <input type="hidden" id="heygen_assets" value="' . esc_url(plugin_dir_url(__FILE__) . 'assets') . '" />';

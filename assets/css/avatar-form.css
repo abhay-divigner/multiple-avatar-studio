@@ -580,6 +580,7 @@ input[type="checkbox"] {
   background: white;
 }
 
+/* Enhanced Avatar Studio Tabs - Design Preview Section */
 .avatar_studio-tabs {
   margin-top: 34px;
 }
@@ -590,45 +591,91 @@ input[type="checkbox"] {
   margin-bottom: 20px;
   border-bottom: 2px solid #e9ecef;
   padding-bottom: 0;
+  flex-wrap: wrap;
 }
 
+/* Default State */
 .tab-btn {
-  background: transparent;
-  border: none;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 500;
-  color: #6c757d;
+  color: #6b7280;
   cursor: pointer;
-  transition: all 0.3s;
-  border-bottom: 3px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px 8px 0 0;
   position: relative;
   bottom: -2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Hover State */
 .tab-btn:hover {
   color: #38b1c5;
-  background: rgba(56, 177, 197, 0.05);
+  background: linear-gradient(
+    135deg,
+    rgba(56, 177, 197, 0.08) 0%,
+    rgba(218, 146, 44, 0.08) 100%
+  );
+  border-color: #38b1c5;
+  border-bottom-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 177, 197, 0.15);
 }
 
+/* Active State */
 .tab-btn.active {
-  color: #38b1c5;
-  border-bottom-color: #38b1c5;
+  color: #000;
+  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  border: 2px solid transparent;
+  border-bottom-color: transparent;
   font-weight: 600;
+  box-shadow: 0 4px 15px rgba(56, 177, 197, 0.25);
+  position: relative;
 }
 
+.tab-btn.active::before {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Disabled State */
+.tab-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+}
+
+.tab-btn:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Tab Content Area */
 .avatar_studio-tab-content {
   display: none;
-  padding: 24px;
+  padding: 16px;
   background: #f8f9fa;
-  border-radius: 8px;
-  animation: fadeIn 0.3s;
+  border-radius: 0 0 8px 8px;
+  border: 2px solid #e9ecef;
+  border-top: none;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .avatar_studio-tab-content.active {
   display: block;
 }
 
+/* Fade In Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -640,16 +687,72 @@ input[type="checkbox"] {
   }
 }
 
+/* Label Styling within Tabs */
 .avatar_studio-tab-content label {
   display: block;
   margin-bottom: 8px;
-  color: #495057;
+  color: #334155;
   font-weight: 600;
   font-size: 14px;
 }
 
+/* Full Width Utility */
 .full-width {
   width: 100%;
+}
+
+/* Nested Tabs (for button sub-tabs like Start Button, End Button, etc.) */
+.avatar_studio-tabs .avatar_studio-tabs .tab-btn {
+  padding: 10px 20px;
+  font-size: 13px;
+  border-radius: 6px 6px 0 0;
+}
+
+.avatar_studio-tabs .avatar_studio-tabs .avatar_studio-tab-buttons {
+  gap: 6px;
+  padding-bottom: 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .tab-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .avatar_studio-tab-buttons {
+    gap: 6px;
+  }
+
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .tab-btn:hover {
+    transform: none;
+  }
+
+  .avatar_studio-tab-content {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  .avatar_studio-tab-buttons {
+    gap: 4px;
+  }
 }
 
 .section-badge {
@@ -964,17 +1067,18 @@ input[type="checkbox"] {
   gap: 6px;
 }
 
-/* Message field - Larger (60%) */
+/* Message field - Larger */
 .toast-input-group.message-group {
   flex: 3; /* Takes 3 parts of available space */
   min-width: 0;
 }
 
-/* Type and Time fields - Smaller (20% each) */
+/* Type and Time fields - Smaller */
 .toast-input-group.type-group,
-.toast-input-group.time-group {
+.toast-input-group.time-group,
+.toast-input-group.hideafter-group {
   flex: 1; /* Takes 1 part each */
-  min-width: 150px;
+  min-width: 130px;
 }
 
 .toast-label {
@@ -988,7 +1092,8 @@ input[type="checkbox"] {
 /* Make all inputs equal height */
 .toast-message,
 .toast-type,
-.toast-time {
+.toast-time,
+.toast-hideafter {
   width: 100%;
   padding: 12px; /* Consistent padding */
   border: 1px solid #ddd;
@@ -1002,7 +1107,8 @@ input[type="checkbox"] {
 
 .toast-message:focus,
 .toast-type:focus,
-.toast-time:focus {
+.toast-time:focus,
+.toast-hideafter:focus {
   border-color: #2271b1;
   outline: none;
   box-shadow: 0 0 0 1px rgba(34, 113, 177, 0.2);
@@ -1021,18 +1127,7 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* Required field indicators */
-.toast-type:required,
-.toast-time:required {
-  border-left: 3px solid #dc3545 !important;
-}
-
-.toast-type:required:valid,
-.toast-time:required:valid {
-  border-left-color: #198754 !important;
-}
-
-/* Time input specific */
+/* Time and HideAfter input specific */
 .time-input-wrapper {
   position: relative;
   width: 100%;
@@ -1050,8 +1145,35 @@ input[type="checkbox"] {
   pointer-events: none;
 }
 
-.toast-time {
+.toast-time,
+.toast-hideafter {
   padding-right: 40px;
+}
+
+/* HideAfter specific styling */
+.toast-input-group.hideafter-group .time-input-wrapper::after {
+  content: "sec";
+}
+
+.toast-input-group.hideafter-group small {
+  display: block;
+  color: #666;
+  font-size: 11px;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* Required field indicators */
+.toast-type:required,
+.toast-time:required,
+.toast-hideafter:required {
+  border-left: 3px solid #dc3545 !important;
+}
+
+.toast-type:required:valid,
+.toast-time:required:valid,
+.toast-hideafter:required:valid {
+  border-left-color: #198754 !important;
 }
 
 .remove-toast-message {
@@ -1137,16 +1259,6 @@ input[type="checkbox"] {
   font-weight: 500;
 }
 
-.toast-type:required,
-.toast-time:required {
-  border-left: 3px solid #dc3545 !important;
-}
-
-.toast-type:required:valid,
-.toast-time:required:valid {
-  border-left-color: #198754 !important;
-}
-
 /* Responsive design */
 @media (max-width: 1024px) {
   .toast-input-group.message-group {
@@ -1154,8 +1266,23 @@ input[type="checkbox"] {
   }
 
   .toast-input-group.type-group,
-  .toast-input-group.time-group {
-    min-width: 120px;
+  .toast-input-group.time-group,
+  .toast-input-group.hideafter-group {
+    min-width: 110px;
+  }
+}
+
+@media (max-width: 900px) {
+  .toast-input-group.message-group {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .toast-input-group.type-group,
+  .toast-input-group.time-group,
+  .toast-input-group.hideafter-group {
+    flex: 1;
+    min-width: calc(33.333% - 10px);
   }
 }
 
@@ -1172,7 +1299,8 @@ input[type="checkbox"] {
 
   .toast-input-group.message-group,
   .toast-input-group.type-group,
-  .toast-input-group.time-group {
+  .toast-input-group.time-group,
+  .toast-input-group.hideafter-group {
     width: 100%;
     flex: none;
     min-width: auto;
@@ -1194,7 +1322,8 @@ input[type="checkbox"] {
 @media (max-width: 480px) {
   .toast-message,
   .toast-type,
-  .toast-time {
+  .toast-time,
+  .toast-hideafter {
     height: 40px;
     padding: 10px;
     font-size: 13px;
@@ -1442,7 +1571,6 @@ input[type="checkbox"] {
 .preview-toast-container .notification {
   position: relative !important;
   opacity: 1 !important;
-  animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
   display: flex !important;
   align-items: center !important;
   gap: 14px !important;

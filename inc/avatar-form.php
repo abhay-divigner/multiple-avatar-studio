@@ -722,7 +722,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                         </div>
                                         
                                         <div class="toast-input-group time-group">
-                                            <span class="toast-label">Time (seconds)</span>
+                                            <span class="toast-label">Show At (seconds)</span>
                                             <div class="time-input-wrapper">
                                                 <input type="number" 
                                                     name="toast_messages[<?php echo esc_attr($index); ?>][time]" 
@@ -732,6 +732,22 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                     class="toast-time">
                                             </div>
                                             <div class="toast-time-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
+                                        </div>
+                                        
+                                        <!-- Add this new hideAfter field -->
+                                        <div class="toast-input-group hideafter-group">
+                                            <span class="toast-label">Display for (seconds)</span>
+                                            <div class="time-input-wrapper">
+                                                <input type="number" 
+                                                    name="toast_messages[<?php echo esc_attr($index); ?>][hideAfter]" 
+                                                    placeholder="Sec"
+                                                    min="2"
+                                                    max="30"
+                                                    value="<?php echo esc_attr($toast['hideAfter'] ?? ''); ?>"
+                                                    class="toast-hideafter">
+                                            </div>
+                                            <div class="toast-hideafter-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
+                                            <small style="display: block; color: #666; font-size: 11px; margin-top: 2px;">Min: 2s, Max: 30s</small>
                                         </div>
                                     </div>
                                     <button style="margin-top: 24px;" type="button" class="button button-secondary remove-toast-message" title="Remove this toast message">
@@ -810,11 +826,23 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                     <div id="chatBox-style">
                         <div class="avatar_studio-tabs">
                             <div class="avatar_studio-tab-buttons">
-                                <button type="button" class="tab-btn active" data-tab="chatBox">Chat Box</button>
-                                <button type="button" class="tab-btn " data-tab="thumbnail">Thumbnail</button>
-                                <button type="button" class="tab-btn " data-tab="heading">Heading</button>
-                                <button type="button" class="tab-btn " data-tab="buttons">Buttons</button>
-                                <button type="button" class="tab-btn" data-tab="toast-notifications">Flash Messages</button>
+                                <!-- Before Session Mode Tabs -->
+                                <div class="tab-group session-before-tabs">
+                                    <button type="button" class="tab-btn active" data-tab="chatBox">Chat Box</button>
+                                    <button type="button" class="tab-btn" data-tab="thumbnail">Thumbnail</button>
+                                    <button type="button" class="tab-btn" data-tab="heading">Heading</button>
+                                    <button type="button" class="tab-btn" data-tab="buttons">Buttons</button>
+                                    <!-- Flash Messages tab removed from Before Session mode -->
+                                </div>
+                                
+                                <!-- During Session Mode Tabs -->
+                                <div class="tab-group session-during-tabs" style="display: none;">
+                                    <button type="button" class="tab-btn active" data-tab="chatBox">Chat Box</button>
+                                    <button type="button" class="tab-btn" data-tab="thumbnail">Thumbnail</button>
+                                    <button type="button" class="tab-btn" data-tab="heading">Heading</button>
+                                    <button type="button" class="tab-btn" data-tab="buttons">Buttons</button>
+                                    <button type="button" class="tab-btn" data-tab="toast-notifications">Flash Messages</button>
+                                </div>
                             </div>
 
 
@@ -879,13 +907,13 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                 <select name="styles[chatBox][position]" id="heading-position"
                                                     class="position-select position">
                                                     <option value="relative" <?php echo $position == 'relative' ? 'selected="selected"' : ''; ?>>
-                                                        Relative</option>
+                                                        Relative&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp</option>
                                                     <option value="absolute" <?php echo $position == 'absolute' ? 'selected="selected"' : ''; ?>>
-                                                        Absolute</option>
+                                                        Absolute&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp</option>
                                                     <option value="fixed" <?php echo $position == 'fixed' ? 'selected="selected"' : ''; ?>>
-                                                        Fixed</option>
+                                                        Fixed&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp</option>
                                                     <option value="sticky" <?php echo $position == 'sticky' ? 'selected="selected"' : ''; ?>>
-                                                        Sticky</option>
+                                                        Sticky&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1238,13 +1266,13 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                 <select name="styles[heading][position]" id="heading-position"
                                                     class="position-select position">
                                                     <option value="relative" <?php echo $position == 'relative' ? 'selected="selected"' : ''; ?>>
-                                                        Relative</option>
+                                                        Relative&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                     <option value="absolute" <?php echo $position == 'absolute' ? 'selected="selected"' : ''; ?>>
-                                                        Absolute</option>
+                                                        Absolute&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                     <option value="fixed" <?php echo $position == 'fixed' ? 'selected="selected"' : ''; ?>>
-                                                        Fixed</option>
+                                                        Fixed&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                     <option value="sticky" <?php echo $position == 'sticky' ? 'selected="selected"' : ''; ?>>
-                                                        Sticky</option>
+                                                        Sticky&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1367,6 +1395,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             id="heading-padding-bottom"
                                                             class="padding-input padding-bottom"
                                                             value="<?php echo isset($headingStyle['padding']['bottom']) ? esc_attr($headingStyle['padding']['bottom']) : ''; ?>" />
+                                                        <span class="clear-btn"
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
                                                 </div>
@@ -1426,8 +1455,8 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                 <!--Button Start  -->
                                 <div class="avatar_studio-tabs">
                                     <div class="avatar_studio-tab-buttons">
-                                        <button type="button" class="tab-btn active" data-tab="start-button">Start Button</button>
-                                        <button type="button" class="tab-btn active" data-tab="switch-button" style="display: none;">Chat Mode Button</button>
+                                        <button type="button" class="tab-btn" data-tab="start-button">Start Button</button>
+                                        <button type="button" class="tab-btn" data-tab="switch-button" style="display: none;">Chat Mode Button</button>
                                         <button type="button" class="tab-btn" data-tab="mic-button" style="display: none;">Mic Button</button>
                                         <button type="button" class="tab-btn" data-tab="camera-button" style="display: none;">Camera Button</button>
                                         <button type="button" class="tab-btn" data-tab="end-button" style="display: none;">End Button</button>
@@ -1814,17 +1843,17 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                         ?>
                                                         <select name="styles[switch-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php echo $textAlign == 'left' ? 'selected="selected"' : ''; ?>>Left</option>
-                                                            <option value="center" <?php echo $textAlign == 'center' ? 'selected="selected"' : ''; ?>>Center</option>
-                                                            <option value="right" <?php echo $textAlign == 'right' ? 'selected="selected"' : ''; ?>>Right</option>
-                                                            <option value="justify" <?php echo $textAlign == 'justify' ? 'selected="selected"' : ''; ?>>Justify</option>
-                                                            <option value="start" <?php echo $textAlign == 'start' ? 'selected="selected"' : ''; ?>>Start</option>
-                                                            <option value="end" <?php echo $textAlign == 'end' ? 'selected="selected"' : ''; ?>>End</option>
+                                                            <option value="left" <?php echo $textAlign == 'left' ? 'selected="selected"' : ''; ?>>Left&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="center" <?php echo $textAlign == 'center' ? 'selected="selected"' : ''; ?>>Center&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="right" <?php echo $textAlign == 'right' ? 'selected="selected"' : ''; ?>>Right&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="justify" <?php echo $textAlign == 'justify' ? 'selected="selected"' : ''; ?>>Justify&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="start" <?php echo $textAlign == 'start' ? 'selected="selected"' : ''; ?>>Start&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="end" <?php echo $textAlign == 'end' ? 'selected="selected"' : ''; ?>>End&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
-                                                    <label>Font Size:</label>
+                                                    <label>Icon Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[switch-button][font-size]"
@@ -2017,17 +2046,17 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                         <?php $textAlign = isset($micButtonStyle['text-align']) ? $micButtonStyle['text-align'] : 'left'; ?>
                                                         <select name="styles[mic-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left</option>
-                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center</option>
-                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right</option>
-                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify</option>
-                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start</option>
-                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End</option>
+                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
-                                                    <label>Font Size:</label>
+                                                    <label>Icon Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[mic-button][font-size]" class="font-size "
@@ -2211,17 +2240,17 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                         ?>
                                                         <select name="styles[camera-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left</option>
-                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center</option>
-                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right</option>
-                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify</option>
-                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start</option>
-                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End</option>
+                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
-                                                    <label>Font Size:</label>
+                                                    <label>Icon Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[camera-button][font-size]"
@@ -2409,17 +2438,17 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                         <?php $textAlign = isset($chatEndButtonStyle['text-align']) ? $chatEndButtonStyle['text-align'] : 'left'; ?>
                                                         <select name="styles[chat-end-button][text-align]"
                                                             class="text-align-select text-align">
-                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left</option>
-                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center</option>
-                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right</option>
-                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify</option>
-                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start</option>
-                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End</option>
+                                                            <option value="left" <?php selected($textAlign, 'left'); ?>>Left&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="center" <?php selected($textAlign, 'center'); ?>>Center&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="right" <?php selected($textAlign, 'right'); ?>>Right&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="justify" <?php selected($textAlign, 'justify'); ?>>Justify&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="start" <?php selected($textAlign, 'start'); ?>>Start&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                                                            <option value="end" <?php selected($textAlign, 'end'); ?>>End&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
-                                                    <label>Font Size:</label>
+                                                    <label>Icon Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[chat-end-button][font-size]" class="font-size"
@@ -2527,7 +2556,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
-                                                    <label>Font Size:</label>
+                                                    <label>Icon Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[transcript-button][font-size]"
@@ -2841,7 +2870,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
                                                 </div>
-                                                <div class="style-wrapper">
+                                                <!-- <div class="style-wrapper">
                                                     <label>Position (from top & right):</label>
                                                     <div class="row gap-0">
                                                         <div class="col">
@@ -2867,9 +2896,9 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> -->
                                                 <div class="style-wrapper">
-                                                    <label>Font Size (icon):</label>
+                                                    <label>Icon Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
                                                             name="styles[close-button][font-size]"
@@ -2969,15 +2998,6 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                     </div>
                                                 </div>
                                                 <div class="style-wrapper">
-                                                    <label>Font Size:</label>
-                                                    <div class="input-controls">
-                                                        <input type="number" min="0"
-                                                            name="styles[fullscreen-button][font-size]"
-                                                            class="font-size"
-                                                            value="<?php echo isset($fullscreenButtonStyle['font-size']) ? esc_attr($fullscreenButtonStyle['font-size']) : '14'; ?>" />
-                                                    </div>
-                                                </div>
-                                                <div class="style-wrapper">
                                                     <label>Icon Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
@@ -3071,7 +3091,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
                                                 </div>
-                                                <div class="style-wrapper">
+                                                <!-- <div class="style-wrapper">
                                                     <label>Font Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
@@ -3079,7 +3099,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             class="font-size"
                                                             value="<?php echo isset($toastSuccessStyle['font-size']) ? esc_attr($toastSuccessStyle['font-size']) : '14'; ?>" />
                                                     </div>
-                                                </div>
+                                                </div> -->
                                                 <div class="style-wrapper">
                                                     <label>Box Shadow:</label>
                                                     <div class="input-controls">
@@ -3165,7 +3185,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
                                                 </div>
-                                                <div class="style-wrapper">
+                                                <!-- <div class="style-wrapper">
                                                     <label>Font Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
@@ -3173,7 +3193,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             class="font-size"
                                                             value="<?php echo isset($toastErrorStyle['font-size']) ? esc_attr($toastErrorStyle['font-size']) : '14'; ?>" />
                                                     </div>
-                                                </div>
+                                                </div> -->
                                                 <div class="style-wrapper">
                                                     <label>Box Shadow:</label>
                                                     <div class="input-controls">
@@ -3259,7 +3279,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
                                                 </div>
-                                                <div class="style-wrapper">
+                                                <!-- <div class="style-wrapper">
                                                     <label>Font Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
@@ -3267,7 +3287,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             class="font-size"
                                                             value="<?php echo isset($toastWarningStyle['font-size']) ? esc_attr($toastWarningStyle['font-size']) : '14'; ?>" />
                                                     </div>
-                                                </div>
+                                                </div> -->
                                                 <div class="style-wrapper">
                                                     <label>Box Shadow:</label>
                                                     <div class="input-controls">
@@ -3353,7 +3373,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             onclick="this.previousElementSibling.value=''; this.style.display='none';">&#x2715;</span>
                                                     </div>
                                                 </div>
-                                                <div class="style-wrapper">
+                                                <!-- <div class="style-wrapper">
                                                     <label>Font Size:</label>
                                                     <div class="input-controls">
                                                         <input type="number" min="0"
@@ -3361,7 +3381,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                             class="font-size"
                                                             value="<?php echo isset($toastInfoStyle['font-size']) ? esc_attr($toastInfoStyle['font-size']) : '14'; ?>" />
                                                     </div>
-                                                </div>
+                                                </div> -->
                                                 <div class="style-wrapper">
                                                     <label>Box Shadow:</label>
                                                     <div class="input-controls">

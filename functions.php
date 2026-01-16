@@ -58,8 +58,8 @@ function avatar_studio_admin_styles() {
         wp_enqueue_style(
             'avatar-studio-admin-css',
             plugin_dir_url(__FILE__) . 'assets/css/option.css',
-            [], // No dependencies
-            '1.0.6' // Version for cache busting
+            [], 
+            '1.0.6' 
         );
     }
 }
@@ -554,7 +554,7 @@ function avatar_studio_shortcode($atts)
     // if (!$livekit_enable) {
     if ($avatar_vendor == 'tavus') {
         wp_enqueue_script('avatar_studio-tavus', esc_url(plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion), array(), AvatarStudioVersion, true);
-        wp_enqueue_script('daily-co', 'https://unpkg.com/@daily-co/daily-js', array(), null, true);
+        wp_enqueue_script('daily-co', esc_url(plugin_dir_url(__FILE__) . 'assets/js/daily-co.js?v=' . AvatarStudioVersion), array(), AvatarStudioVersion, true);
     } else {
         wp_enqueue_script('avatar_studio-heygen', esc_url(plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion), array(), AvatarStudioVersion, true);
     }

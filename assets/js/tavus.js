@@ -69,7 +69,7 @@ class Se extends x {
     super(e), (this.name = "DeepgramUnknownError"), (this.originalError = t);
   }
 }
-class K extends x {
+class G extends x {
   constructor() {
     super(
       "You are attempting to use an old format for a newer SDK version. Read more here: https://dpgr.am/js-v3"
@@ -919,9 +919,9 @@ function Ut() {
                       "responseURL" in U
                         ? U.responseURL
                         : P.headers.get("X-Request-URL"));
-                  var X = "response" in U ? U.response : U.responseText;
+                  var Y = "response" in U ? U.response : U.responseText;
                   setTimeout(function () {
-                    j(new D(X, P));
+                    j(new D(Y, P));
                   }, 0);
                 }),
                   (U.onerror = function () {
@@ -966,12 +966,12 @@ function Ut() {
                   Object.getOwnPropertyNames(h.headers).forEach(function (P) {
                     Je.push(v(P)), U.setRequestHeader(P, A(h.headers[P]));
                   }),
-                    L.headers.forEach(function (P, X) {
-                      Je.indexOf(X) === -1 && U.setRequestHeader(X, P);
+                    L.headers.forEach(function (P, Y) {
+                      Je.indexOf(Y) === -1 && U.setRequestHeader(Y, P);
                     });
                 } else
-                  L.headers.forEach(function (P, X) {
-                    U.setRequestHeader(X, P);
+                  L.headers.forEach(function (P, Y) {
+                    U.setRequestHeader(Y, P);
                   });
                 L.signal &&
                   (L.signal.addEventListener("abort", he),
@@ -1225,20 +1225,20 @@ const Mt = () => (typeof Headers > "u" ? Fe.Headers : Headers),
     websocket: { options: { url: pt, _nodeOnlyHeaders: ke } },
   },
   Ft = { global: Bt, agent: Nt };
-var re;
+var ne;
 (function (i) {
   (i[(i.connecting = 0)] = "connecting"),
     (i[(i.open = 1)] = "open"),
     (i[(i.closing = 2)] = "closing"),
     (i[(i.closed = 3)] = "closed");
-})(re || (re = {}));
-var te;
+})(ne || (ne = {}));
+var re;
 (function (i) {
   (i.Connecting = "connecting"),
     (i.Open = "open"),
     (i.Closing = "closing"),
     (i.Closed = "closed");
-})(te || (te = {}));
+})(re || (re = {}));
 var Qe = {};
 const yt = () => {};
 class ue extends Ot.EventEmitter {
@@ -1409,7 +1409,7 @@ class $e extends ue {
     }
     if (ft()) {
       qe(async () => {
-        const { default: o } = await import("./browser-CJzJFKHo.js").then(
+        const { default: o } = await import("./browser-BHMW1EVa.js").then(
           (c) => c.b
         );
         return { default: o };
@@ -1431,7 +1431,7 @@ class $e extends ue {
       },
     })),
       qe(async () => {
-        const { default: o } = await import("./browser-CJzJFKHo.js").then(
+        const { default: o } = await import("./browser-BHMW1EVa.js").then(
           (c) => c.b
         );
         return { default: o };
@@ -1448,14 +1448,14 @@ class $e extends ue {
   }
   connectionState() {
     switch (this.conn && this.conn.readyState) {
-      case re.connecting:
-        return te.Connecting;
-      case re.open:
-        return te.Open;
-      case re.closing:
-        return te.Closing;
+      case ne.connecting:
+        return re.Connecting;
+      case ne.open:
+        return re.Open;
+      case ne.closing:
+        return re.Closing;
       default:
-        return te.Closed;
+        return re.Closed;
     }
   }
   getReadyState() {
@@ -1464,10 +1464,10 @@ class $e extends ue {
       (e = this.conn) === null || e === void 0 ? void 0 : e.readyState) !==
       null && t !== void 0
       ? t
-      : re.closed;
+      : ne.closed;
   }
   isConnected() {
-    return this.connectionState() === te.Open;
+    return this.connectionState() === re.Open;
   }
   send(e) {
     const t = () =>
@@ -1590,7 +1590,7 @@ class Wt {
       (this.onerror = () => {}),
       (this.onmessage = () => {}),
       (this.onopen = () => {}),
-      (this.readyState = re.connecting),
+      (this.readyState = ne.connecting),
       (this.send = () => {}),
       (this.url = null),
       (this.url = e.toString()),
@@ -1652,7 +1652,7 @@ const zt = (i) => {
         ? (yield qe(() => Promise.resolve().then(() => Ct), void 0)).Response
         : Response;
     });
-var Y = function (i, e, t, r) {
+var Q = function (i, e, t, r) {
   function n(s) {
     return s instanceof t
       ? s
@@ -1699,7 +1699,7 @@ class se extends ue {
     );
   }
   _handleError(e, t) {
-    return Y(this, void 0, void 0, function* () {
+    return Q(this, void 0, void 0, function* () {
       const r = yield Gt();
       e instanceof r
         ? e
@@ -1723,7 +1723,7 @@ class se extends ue {
     );
   }
   _handleRequest(e, t, r, n) {
-    return Y(this, void 0, void 0, function* () {
+    return Q(this, void 0, void 0, function* () {
       return new Promise((s, o) => {
         const c = this.fetch;
         c(t, this._getRequestOptions(e, r, n))
@@ -1736,27 +1736,27 @@ class se extends ue {
     });
   }
   get(e, t) {
-    return Y(this, void 0, void 0, function* () {
+    return Q(this, void 0, void 0, function* () {
       return this._handleRequest("GET", e, t);
     });
   }
   post(e, t, r) {
-    return Y(this, void 0, void 0, function* () {
+    return Q(this, void 0, void 0, function* () {
       return this._handleRequest("POST", e, t, r);
     });
   }
   put(e, t, r) {
-    return Y(this, void 0, void 0, function* () {
+    return Q(this, void 0, void 0, function* () {
       return this._handleRequest("PUT", e, t, r);
     });
   }
   patch(e, t, r) {
-    return Y(this, void 0, void 0, function* () {
+    return Q(this, void 0, void 0, function* () {
       return this._handleRequest("PATCH", e, t, r);
     });
   }
   delete(e, t) {
-    return Y(this, void 0, void 0, function* () {
+    return Q(this, void 0, void 0, function* () {
       return this._handleRequest("DELETE", e, t);
     });
   }
@@ -1773,7 +1773,7 @@ class se extends ue {
     );
   }
 }
-var W;
+var z;
 (function (i) {
   (i.Open = "Open"),
     (i.Close = "Close"),
@@ -1791,7 +1791,7 @@ var W;
     (i.PromptUpdated = "PromptUpdated"),
     (i.SpeakUpdated = "SpeakUpdated"),
     (i.Unhandled = "Unhandled");
-})(W || (W = {}));
+})(z || (z = {}));
 class Xt extends $e {
   constructor(e, t = "/:version/agent/converse") {
     var r, n, s, o;
@@ -1813,9 +1813,9 @@ class Xt extends $e {
   }
   setupConnection() {
     this.setupConnectionEvents({
-      Open: W.Open,
-      Close: W.Close,
-      Error: W.Error,
+      Open: z.Open,
+      Close: z.Close,
+      Error: z.Error,
     }),
       this.conn &&
         (this.conn.onmessage = (e) => {
@@ -1829,7 +1829,7 @@ class Xt extends $e {
         const f = JSON.parse(e.data);
         this.handleTextMessage(f);
       } catch (f) {
-        this.emit(W.Error, {
+        this.emit(z.Error, {
           event: e,
           data:
             ((t = e.data) === null || t === void 0
@@ -1857,7 +1857,7 @@ class Xt extends $e {
         : Buffer.isBuffer(e.data)
         ? this.handleBinaryMessage(e.data)
         : (console.log("Received unknown data type", e.data),
-          this.emit(W.Error, {
+          this.emit(z.Error, {
             event: e,
             message: "Received unknown data type.",
             url: (o = this.conn) === null || o === void 0 ? void 0 : o.url,
@@ -1867,10 +1867,10 @@ class Xt extends $e {
           }));
   }
   handleBinaryMessage(e) {
-    this.emit(W.Audio, e);
+    this.emit(z.Audio, e);
   }
   handleTextMessage(e) {
-    e.type in W ? this.emit(e.type, e) : this.emit(W.Unhandled, e);
+    e.type in z ? this.emit(e.type, e) : this.emit(z.Unhandled, e);
   }
   configure(e) {
     const t = JSON.stringify(Object.assign({ type: "Settings" }, e));
@@ -2997,28 +2997,28 @@ class lr extends ue {
     return new Xt(this.options, e);
   }
   get transcription() {
-    throw new K();
+    throw new G();
   }
   get projects() {
-    throw new K();
+    throw new G();
   }
   get keys() {
-    throw new K();
+    throw new G();
   }
   get members() {
-    throw new K();
+    throw new G();
   }
   get scopes() {
-    throw new K();
+    throw new G();
   }
   get invitation() {
-    throw new K();
+    throw new G();
   }
   get usage() {
-    throw new K();
+    throw new G();
   }
   get billing() {
-    throw new K();
+    throw new G();
   }
 }
 function ur(i, e) {
@@ -3071,19 +3071,19 @@ const He = async (i, e = "") => {
     STOP: "conversation.user.stopped_speaking",
     START: "conversation.user.started_speaking",
   },
-  ne = { PRODUCTION: "production", DEVELOPMENT: "development" },
-  G = ne.PRODUCTION,
+  X = { PRODUCTION: "production", DEVELOPMENT: "development" },
+  K = X.PRODUCTION,
   mt = "rc2146c13e81",
   wt = "p8e76077c890",
   bt = "50292eae2a07421ca19e9b0bbc097eca";
 let M = { current: null },
   J = { current: null };
-const Q = document.getElementById("avatarVideo"),
+const Z = document.getElementById("avatarVideo"),
   V = document.getElementById("userVideo"),
   ie = document.querySelector(".avatarContainer"),
   F = document.getElementById("startSession"),
   we = document.getElementById("endSession"),
-  ee = document.getElementById("micToggler"),
+  te = document.getElementById("micToggler"),
   oe = document.getElementById("cameraToggler"),
   Ue = document.getElementById("switchInteractionMode"),
   Me = document.getElementById("input-container"),
@@ -3107,9 +3107,9 @@ let it = document.getElementById("ajaxURL");
 const Ce = it ? it?.value : "";
 let _e = null,
   Ee = null,
-  Z = null;
+  ee = null;
 const pr = () => {
-  if (!G.trim()) {
+  if (!K.trim()) {
     console.warn("Please specify the Project mode");
     return;
   }
@@ -3128,14 +3128,15 @@ const pr = () => {
       notifications: o,
       deepgramApiKey: n,
       customRagEnabled: s,
-      mode: G,
+      mode: K,
       tavusApiKey: bt,
       replicaId: mt,
       personaId: wt,
     }
   );
 };
-let z = pr();
+let W = pr();
+console.log("PROJEC", K);
 class yr {
   constructor() {
     (this.apiKey = bt),
@@ -3161,7 +3162,7 @@ class yr {
         "webkitSpeechRecognition" in window || "SpeechRecognition" in window),
       (this.lastProcessedMessageId = null),
       (this.avatarMessagePollingInterval = null),
-      (this.timerSeconds = z.timer * 60),
+      (this.timerSeconds = W.timer * 60),
       (this.remainingSeconds = 0),
       (this.timerInterval = null),
       this.initializeButtons(),
@@ -3210,10 +3211,12 @@ class yr {
   startTimer(e = 30) {
     this.endTimer(), (this.remainingSeconds = e), this.updateTimerDisplay();
     const t = new Map();
-    z.notifications.forEach((r) => {
-      const n = e - r.time;
-      n >= 0 && t.set(n, r);
-    }),
+    W.notifications &&
+      Array.isArray(W.notifications) &&
+      W.notifications.forEach((r) => {
+        const n = e - r.time;
+        n >= 0 && t.set(n, r);
+      }),
       (this.timerInterval = setInterval(() => {
         if (
           (this.remainingSeconds--,
@@ -3226,7 +3229,7 @@ class yr {
             type: r.type,
             timeTriggered: this.remainingSeconds,
           }),
-            vr(r.message, r.type),
+            vr(r.message, r.type, r.hideAfter),
             t.delete(this.remainingSeconds);
         }
         this.remainingSeconds <= 0 &&
@@ -3253,7 +3256,7 @@ class yr {
   initializeButtons() {
     F && F.addEventListener("click", () => this.startConversation()),
       we && we.addEventListener("click", () => this.endConversation()),
-      ee && ee.addEventListener("click", () => this.toggleMicrophone()),
+      te && te.addEventListener("click", () => this.toggleMicrophone()),
       oe && oe.addEventListener("click", () => this.toggleCamera());
   }
   updateUIState() {
@@ -3312,7 +3315,7 @@ class yr {
       (e.className = this.isMicMuted
         ? "fa-solid fa-microphone-slash"
         : "fa-solid fa-microphone"),
-      ee && (ee.style.display = "flex");
+      te && (te.style.display = "flex");
   }
   updateCameraButtonState() {
     const e = document.getElementById("cameraIcon");
@@ -3330,8 +3333,7 @@ class yr {
     try {
       let e;
       if (
-        (G === ne.DEVELOPMENT || (G === ne.PRODUCTION && (e = await gr())),
-        !e.ok)
+        (K === X.DEVELOPMENT || (K === X.PRODUCTION && (e = await gr())), !e.ok)
       ) {
         const r = await e.json();
         throw new Error(r.error || "Failed to create conversation");
@@ -3343,7 +3345,7 @@ class yr {
         (this.conversationUrl = t.conversation_url),
         (this.conversationId = t.conversation_id),
         (this.deepgramToken = t.deepgram_token),
-        (z.notifications = t.toast_messages),
+        K === X.PRODUCTION && (W.notifications = t.toast_messages),
         console.log("Conversation created:", t),
         fetch(Ce, {
           method: "POST",
@@ -3437,12 +3439,12 @@ class yr {
         (this.transcript = []),
         console.log("✅ Joined conversation"),
         console.log(),
-        z.customRagEnabled)
+        W.customRagEnabled)
       ) {
         let r = "";
         this.daily.setLocalAudio(!1),
-          G === ne.DEVELOPMENT ||
-            (G === ne.PRODUCTION && (r = this.deepgramToken)),
+          K === X.DEVELOPMENT ||
+            (K === X.PRODUCTION && (r = this.deepgramToken)),
           await mr(this, r);
       }
       this.updateStatus("🔄 Waiting for avatar to join...");
@@ -3478,13 +3480,13 @@ class yr {
       if (
         (this.endTimer(),
         this.resetTimer(),
-        z.customRagEnabled &&
+        W.customRagEnabled &&
           (await this.cleanupDeepgramConnection(),
           this.keepAliveInterval &&
             (clearInterval(this.keepAliveInterval),
             (this.keepAliveInterval = null),
             console.log("💓 Keep-alive cleared")),
-          z.customRagEnabled))
+          W.customRagEnabled))
       ) {
         if (J.current)
           try {
@@ -3517,12 +3519,12 @@ class yr {
         (this.lastProcessedMessageId = null),
         this.updateUIState(),
         this.updateStatus("Conversation ended. Ready to start a new one."),
-        Q && (Q.srcObject = null),
+        Z && (Z.srcObject = null),
         V && ((V.srcObject = null), V.classList.add("hide")),
         (_e = null),
         (Ee = null),
-        (Z = null),
-        ee && (ee.style.display = "none"),
+        (ee = null),
+        te && (te.style.display = "none"),
         oe && (oe.style.display = "none"),
         this.endTimer(),
         be && be.classList.remove("hide");
@@ -3535,7 +3537,7 @@ class yr {
     this.daily &&
       ((this.isMicMuted = !this.isMicMuted),
       this.isMicMuted && nt && nt.classList.add("hide"),
-      z.customRagEnabled
+      W.customRagEnabled
         ? this.isMicMuted
           ? (M.current?.stream &&
               M.current.stream.getAudioTracks().forEach((e) => {
@@ -3573,12 +3575,12 @@ class yr {
       const t = this.daily.participants().local;
       t &&
         t.video &&
-        ((Z = t.video.track),
-        this.handleUserVideoTrack(Z),
+        ((ee = t.video.track),
+        this.handleUserVideoTrack(ee),
         console.log("✅ User video track setup:", {
-          enabled: Z?.enabled,
-          muted: Z?.muted,
-          readyState: Z?.readyState,
+          enabled: ee?.enabled,
+          muted: ee?.muted,
+          readyState: ee?.readyState,
         }));
     } catch (e) {
       console.error("Error setting up user video:", e);
@@ -3622,7 +3624,7 @@ class yr {
           V && V.classList.remove("hide"),
           this.updateStatus("🤖 Avatar joined the conversation!"),
           console.log("🤖 Avatar joined - checking video feed availability"),
-          await He(this.daily, z.openingText));
+          await He(this.daily, W.openingText));
       }),
       this.daily.on("participant-updated", (e) => {
         const t = e.participant;
@@ -3645,7 +3647,7 @@ class yr {
           Ee && _e && this.handleAvatarVideoTrack(Ee, _e),
           t.local &&
             r.kind === "video" &&
-            ((Z = r),
+            ((ee = r),
             this.handleUserVideoTrack(r),
             console.log("✅ Local video track started successfully"));
       }),
@@ -3707,11 +3709,11 @@ class yr {
     }
   }
   handleAvatarVideoTrack(e, t) {
-    if (Q && e) {
+    if (Z && e) {
       const r = new MediaStream([e, t]);
-      (Q.srcObject = r),
-        (Q.muted = !1),
-        (Q.onloadedmetadata = () => Q.play().catch(console.error)),
+      (Z.srcObject = r),
+        (Z.muted = !1),
+        (Z.onloadedmetadata = () => Z.play().catch(console.error)),
         this.updateStatus("🤖 Avatar is ready! You can start talking.");
     }
   }
@@ -3739,8 +3741,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const r = !!B.classList.contains("voice_mode");
     (i.isMicMuted = !r),
       console.log({ isMicMuted: i.isMicMuted }),
-      (ee.disabled = !r),
-      z.customRagEnabled
+      (te.disabled = !r),
+      W.customRagEnabled
         ? i.isMicMuted
           ? (M.current?.state === "recording" &&
               (M.current.pause(),
@@ -3784,7 +3786,7 @@ async function ot(i) {
     const e = le.value.trim();
     if (!e) return;
     let t = e;
-    if ((await vt(i.daily), z.customRagEnabled)) {
+    if ((await vt(i.daily), W.customRagEnabled)) {
       le.value = "";
       const r = await _t(t, i);
       await He(i?.daily, r);
@@ -3825,19 +3827,18 @@ function Ve() {
     { es: "Spanish", fr: "French", en: "English" }[i] || "English"
   );
 }
-function vr(i, e = "info") {
-  const t = document.getElementById("notification-container"),
-    r = document.createElement("div");
-  (r.className = `notification ${e}`),
-    (r.innerHTML = `
+function vr(i, e = "info", t = 5) {
+  const r = document.getElementById("notification-container"),
+    n = document.createElement("div");
+  (n.className = `notification ${e}`),
+    (n.innerHTML = `
       <span>${i}</span>
-      <span class="close-btn">&times;</span>
   `),
-    t.appendChild(r),
-    setTimeout(() => r.classList.add("show"), 50),
-    setTimeout(() => at(r), 5e3),
-    r.querySelector(".close-btn").addEventListener("click", () => {
-      at(r);
+    r.appendChild(n),
+    setTimeout(() => n.classList.add("show"), 50),
+    setTimeout(() => at(n), Number.isFinite(Number(t)) ? Number(t) * 1e3 : 5e3),
+    n.querySelector(".close-btn").addEventListener("click", () => {
+      at(n);
     });
 }
 function at(i) {
@@ -4013,8 +4014,8 @@ const mr = async (i, e = "") => {
       e.appendMessage("user", i);
       try {
         let t, r;
-        if (G !== ne.DEVELOPMENT) {
-          if (G === ne.PRODUCTION) {
+        if (K !== X.DEVELOPMENT) {
+          if (K === X.PRODUCTION) {
             let n = document.getElementById("avatarStudioId");
             (t = await fetch(Ce, {
               method: "POST",

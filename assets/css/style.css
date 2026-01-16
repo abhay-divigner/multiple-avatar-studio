@@ -286,7 +286,6 @@
 
 #chatBox-close:hover,
 .chatBox-fullscreen:hover,
-.language-switcher:hover,
 .view-transcript-button:hover {
   background: rgba(0, 0, 0, 0.75) !important;
 }
@@ -1021,7 +1020,7 @@ button#cameraToggler {
   font-size: inherit;
   align-items: center;
   justify-content: center;
-  padding: 5px 5px;
+  padding: 0 3px;
 }
 
 #chatBox .language-switcher .lang-icon img.emoji {
