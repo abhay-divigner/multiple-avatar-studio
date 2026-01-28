@@ -246,7 +246,6 @@
 .avatarContainer .avatar_name {
   width: 30px;
   height: 30px;
-  /* background: rgba(0, 0, 0, 0.6) !important; */
   border-radius: 5 px !important;
   padding: 0 !important;
   text-align: center;
@@ -427,7 +426,6 @@
 }
 
 .userVideoContainer #userVideo {
-  /* width: min(max(120px, 25%), 180px); */
   width: 22%;
   border-radius: 12px;
   position: absolute;
@@ -558,7 +556,6 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  /* gap-8 */
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -957,7 +954,6 @@ button#cameraToggler {
 }
 
 .showTranscript .view-transcript-button {
-  /* background: #ffffff !important; */
   color: #000000 !important;
 }
 
@@ -1087,7 +1083,6 @@ button#cameraToggler {
   transform: translate(-50%, -50%);
   width: 100vw;
   height: 100vh;
-  /* background-color: rgba(0, 0, 0, 0.5); */
   display: none;
   justify-content: center;
   align-items: center;
@@ -1100,7 +1095,6 @@ button#cameraToggler {
 }
 
 .disclaimer-content {
-  /* background-color: rgba(0, 0, 0, 0.6); */
   width: 90%;
   max-width: 800px;
   border-radius: 8px;
@@ -1118,9 +1112,7 @@ button#cameraToggler {
 
 .disclaimer-title {
   margin: 0;
-  /* font-size: 18px; */
   font-weight: 600;
-  /* color: #fff; */
 }
 
 .closeDisclaimer {
@@ -1220,12 +1212,11 @@ button#cameraToggler {
 }
 /* Style for #userDetailsForm */
 #userDetailsForm {
-  /* Width will be set by JavaScript */
-  max-width: 95%; /* Fallback for mobile */
-  max-height: 80vh; /* Limit height */
-  overflow-y: auto; /* Make scrollable */
+  max-width: 95%;
+  max-height: 80vh;
+  overflow-y: auto;
   overflow-x: hidden;
-  margin: 0 auto; /* Center it */
+  margin: 0 auto;
   padding: 25px 25px 0 25px;
   background: white;
   border-radius: 12px;
@@ -1233,7 +1224,7 @@ button#cameraToggler {
 
   /* Custom scrollbar */
   scrollbar-width: thin;
-  scrollbar-color: #38b1c5 #f1f1f1;
+  scrollbar-color: #05d686 #f1f1f1;
 }
 
 /* Webkit scrollbar styling */
@@ -1247,12 +1238,12 @@ button#cameraToggler {
 }
 
 #userDetailsForm::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(135deg, #05d686 0%, #007649 100%);
   border-radius: 4px;
 }
 
 #userDetailsForm::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2c8fa0 0%, #c47a24 100%);
+  background: linear-gradient(135deg, #007649 0%, #05d686 100%);
 }
 
 /* Keep form fields properly spaced */
@@ -1273,7 +1264,7 @@ button#cameraToggler {
 /* Mobile responsive */
 @media (max-width: 768px) {
   #userDetailsForm {
-    width: 95% !important; /* Force mobile width */
+    width: 95% !important;
     max-height: 85vh !important;
     padding: 20px;
   }
@@ -1467,10 +1458,6 @@ div#streamingStatus {
   font-size: 13px;
   height: 100px;
   overflow-y: scroll;
-}
-
-.manage-column {
-  /* display: inline-flex; */
 }
 
 @keyframes fadeInUp {

@@ -433,13 +433,13 @@ class avatarManager
         echo '</div>';
         
         // Shortcode on right
-        echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
+        echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #05D686 0%, #007649 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
         echo '<div style="display: flex; align-items: end; gap: 12px;">';
         echo '<div style="text-align: left;">';
         echo '<strong style="display: block; margin-bottom: 6px; color: #374151; font-size: 13px;">Shortcode</strong>';
         echo '<code style="background: #f8f9fa; padding: 8px 12px; border-radius: 4px; font-size: 13px; border: 1px solid #e5e7eb; font-weight: 600; color: #1f2937; line-height: 1; height: 28px; display: flex; align-items: center;">' . esc_html($predicted_shortcode) . '</code>';
         echo '</div>';
-        echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($predicted_shortcode) . '" style="background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
+        echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($predicted_shortcode) . '" style="background: linear-gradient(135deg, #05D686 0%, #007649 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
         echo '</div>';
         echo '</div>';
         
@@ -485,13 +485,13 @@ class avatarManager
         echo '</div>';
         
         // Shortcode on right
-        echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #38b1c5 0%, #da922c 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
+        echo '<div style="display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex-wrap: wrap; background: white; border: 1px solid transparent; background-image: linear-gradient(white, white), linear-gradient(135deg, #05D686 0%, #007649 100%); background-origin: border-box; background-clip: padding-box, border-box; border-radius: 8px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);">';
         echo '<div style="display: flex; align-items: end; gap: 12px;">';
         echo '<div style="text-align: left;">';
         echo '<strong style="display: block; margin-bottom: 6px; color: #374151; font-size: 13px;">Shortcode</strong>';
         echo '<code style="background: #f8f9fa; padding: 8px 12px; border-radius: 4px; font-size: 13px; border: 1px solid #e5e7eb; font-weight: 600; color: #1f2937; line-height: 1; height: 28px; display: flex; align-items: center;">' . esc_html($shortcode) . '</code>';
         echo '</div>';
-        echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($shortcode) . '" style="background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
+        echo '<button class="copy-shortcode-btn" data-shortcode="' . esc_attr($shortcode) . '" style="background: linear-gradient(135deg, #05D686 0%, #007649 100%); border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; height: 45px; white-space: nowrap; display: flex; align-items: center;">Copy</button>';
         echo '</div>';
         echo '</div>';
         
@@ -675,7 +675,6 @@ class avatarManager
             'instruction_enable' => isset($_POST['instruction_enable']) ? intval($_POST['instruction_enable']) : 0,
             'pages' => isset($_POST['pages']) ? wp_json_encode($_POST['pages']) : null,
             'styles' => $styles_json,
-            'welcome_message_enable' => isset($_POST['welcome_message_enable']) ? intval($_POST['welcome_message_enable']) : 0,
             'welcome_message' => isset($_POST['welcome_message']) ? wp_json_encode($_POST['welcome_message']) : null,
             'start_button_label' => isset($_POST['start_button_label']) ? sanitize_text_field($_POST['start_button_label']) : 'Chat',
         ], ['id' => $id]);
@@ -863,7 +862,6 @@ class avatarManager
             'instruction_enable' => isset($_POST['instruction_enable']) ? intval($_POST['instruction_enable']) : 0,
             'pages' => isset($_POST['pages']) ? wp_json_encode($_POST['pages']) : null,
             'styles' => $styles_json,
-            'welcome_message_enable' => isset($_POST['welcome_message_enable']) ? intval($_POST['welcome_message_enable']) : 0,
             'welcome_message' => isset($_POST['welcome_message']) ? wp_json_encode($_POST['welcome_message']) : null,
             'start_button_label' => isset($_POST['start_button_label']) ? sanitize_text_field($_POST['start_button_label']) : 'Chat',
         ];

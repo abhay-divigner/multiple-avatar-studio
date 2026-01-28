@@ -14,22 +14,22 @@
   outline: none;
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    linear-gradient(130deg, #05d686 0%, #007649 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
-  box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
+  box-shadow: 0 0 0 4px rgba(5, 214, 134, 0.1);
 }
 
 /* Form selection description links */
 .form-table .description a {
-  color: #38b1c5;
+  color: #05d686;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .form-table .description a:hover {
-  color: #da922c;
+  color: #007649;
   text-decoration: underline;
 }
 
@@ -43,20 +43,20 @@
   background: white;
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    linear-gradient(130deg, #05d686 0%, #007649 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   border-radius: 12px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+  box-shadow: 0 4px 15px rgba(5, 214, 134, 0.1);
   overflow: hidden;
 }
 
 .avatar-form-grid-header {
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.08) 0%,
-    rgba(218, 146, 44, 0.08) 100%
+    rgba(5, 214, 134, 0.08) 0%,
+    rgba(0, 118, 73, 0.08) 100%
   );
   padding: 20px;
   position: relative;
@@ -71,14 +71,14 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(90deg, #05d686 0%, #007649 100%);
 }
 
 .avatar-form-grid-header h2 {
   margin: 0;
   font-size: 28px;
   font-weight: 700;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -149,10 +149,10 @@
   outline: none;
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    linear-gradient(130deg, #05d686 0%, #007649 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
-  box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
+  box-shadow: 0 0 0 4px rgba(5, 214, 134, 0.1);
 }
 
 .form-field .field-description {
@@ -168,26 +168,10 @@ input[type="checkbox"]:checked::before {
   margin: -0.1275rem 0px 0 -0.15rem;
 }
 
-/* Vendor Display Styling */
-/* .vendor-display {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%);
-    border: 2px solid transparent;
-    background-image: 
-        linear-gradient(135deg, rgba(56, 177, 197, 0.08) 0%, rgba(218, 146, 44, 0.08) 100%),
-        linear-gradient(135deg, rgba(56, 177, 197, 0.3) 0%, rgba(218, 146, 44, 0.3) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border-radius: 8px;
-} */
-
 .vendor-display strong {
   font-size: 15px;
   font-weight: 600;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -228,7 +212,7 @@ input[type="checkbox"]:checked::before {
 .radio-option input[type="radio"]:checked {
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    linear-gradient(130deg, #05d686 0%, #007649 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
 }
@@ -242,11 +226,11 @@ input[type="checkbox"]:checked::before {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
 }
 
 .radio-option input[type="radio"]:hover {
-  border-color: #38b1c5;
+  border-color: #05d686;
 }
 
 .radio-option label {
@@ -296,17 +280,17 @@ input[type="checkbox"]:checked::before {
   border-color: #dc2626 !important;
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.05) 0%,
-    rgba(218, 146, 44, 0.05) 100%
+    rgba(5, 214, 134, 0.05) 0%,
+    rgba(0, 118, 73, 0.05) 100%
   ) !important;
 }
 
 .form-field .image-uploader-wrap .upload-image-btn {
-  border-color: #38b1c5 !important;
+  border-color: #05d686 !important;
 }
 
 .form-field .image-uploader-wrap .upload-image-btn:hover {
-  border-color: #38b1c5 !important;
+  border-color: #05d686 !important;
 }
 
 .form-field .image-uploader-wrap .remove-image-btn {
@@ -314,7 +298,6 @@ input[type="checkbox"]:checked::before {
 }
 
 .form-field .image-uploader-wrap .remove-image-btn:hover {
-  /* background: #dc2626 !important; */
   color: #dc2626 !important;
 }
 
@@ -335,10 +318,10 @@ input[type="checkbox"]:checked::before {
   .select2-selection--multiple {
   border: 2px solid transparent !important;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%) !important;
+    linear-gradient(130deg, #05d686 0%, #007649 100%) !important;
   background-origin: border-box !important;
   background-clip: padding-box, border-box !important;
-  box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1) !important;
+  box-shadow: 0 0 0 4px rgba(5, 214, 134, 0.1) !important;
 }
 
 /* Tooltip in Grid */
@@ -349,9 +332,9 @@ input[type="checkbox"]:checked::before {
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
     linear-gradient(
-      135deg,
-      rgba(56, 177, 197, 0.5) 0%,
-      rgba(218, 146, 44, 0.5) 100%
+      130deg,
+      rgba(5, 214, 134, 0.5) 0%,
+      rgba(0, 118, 73, 0.5) 100%
     );
   background-origin: border-box;
   background-clip: padding-box, border-box;
@@ -362,7 +345,7 @@ input[type="checkbox"]:checked::before {
   cursor: help;
   font-size: 12px;
   font-weight: 700;
-  color: #38b1c5;
+  color: #05d686;
 }
 
 .form-field .tooltip-wrapper {
@@ -418,8 +401,8 @@ input[type="checkbox"]:checked::before {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    #38b1c5 25%,
-    #da922c 75%,
+    #05d686 25%,
+    #007649 75%,
     transparent 100%
   );
   margin: 20px 0;
@@ -474,11 +457,11 @@ input[type="checkbox"]:checked::before {
 }
 
 .page-header {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   padding: 30px;
   border-radius: 16px;
   margin-bottom: 30px;
-  box-shadow: 0 10px 40px rgba(56, 177, 197, 0.2);
+  box-shadow: 0 10px 40px rgba(5, 214, 134, 0.2);
 }
 
 .page-header h1 {
@@ -499,7 +482,7 @@ input[type="checkbox"]:checked::before {
   line-height: 30px;
   font-weight: 700;
   padding-bottom: 12px;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -518,7 +501,6 @@ input[type="checkbox"]:checked::before {
 
 .form-table th {
   text-align: left;
-  /* padding: 12px 20px 0 0; */
   font-weight: 600;
   color: #495057;
   font-size: 14px;
@@ -554,16 +536,16 @@ input[type="url"] {
 input[type="text"]:focus,
 input[type="url"]:focus {
   outline: none;
-  border-color: #38b1c5;
+  border-color: #05d686;
   background: white;
-  box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
+  box-shadow: 0 0 0 4px rgba(5, 214, 134, 0.1);
 }
 
 input[type="checkbox"] {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #38b1c5;
+  accent-color: #05d686;
 }
 
 .editor-wrapper {
@@ -576,7 +558,7 @@ input[type="checkbox"] {
 }
 
 .editor-wrapper:focus-within {
-  border-color: #38b1c5;
+  border-color: #05d686;
   background: white;
 }
 
@@ -612,26 +594,26 @@ input[type="checkbox"] {
 
 /* Hover State */
 .tab-btn:hover {
-  color: #38b1c5;
+  color: #05d686;
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.08) 0%,
-    rgba(218, 146, 44, 0.08) 100%
+    rgba(5, 214, 134, 0.08) 0%,
+    rgba(0, 118, 73, 0.08) 100%
   );
-  border-color: #38b1c5;
+  border-color: #05d686;
   border-bottom-color: transparent;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(56, 177, 197, 0.15);
+  box-shadow: 0 4px 12px rgba(5, 214, 134, 0.15);
 }
 
 /* Active State */
 .tab-btn.active {
   color: #000;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   border: 2px solid transparent;
   border-bottom-color: transparent;
   font-weight: 600;
-  box-shadow: 0 4px 15px rgba(56, 177, 197, 0.25);
+  box-shadow: 0 4px 15px rgba(5, 214, 134, 0.25);
   position: relative;
 }
 
@@ -642,7 +624,7 @@ input[type="checkbox"] {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(90deg, #05d686 0%, #007649 100%);
   border-radius: 2px 2px 0 0;
 }
 
@@ -757,15 +739,10 @@ input[type="checkbox"] {
 
 .section-badge {
   display: inline-block;
-  /* background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); */
   color: white;
-  /* padding: 4px 12px; */
-  /* border-radius: 12px; */
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  /* letter-spacing: 0.5px; */
-  /* margin-left: 12px; */
 }
 
 .toggle-wrapper {
@@ -792,18 +769,17 @@ input[type="checkbox"] {
 }
 
 /* design-preview */
-
 #design-preview {
   width: 100%;
   background: white;
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    linear-gradient(130deg, #05d686 0%, #007649 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   border-radius: 12px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+  box-shadow: 0 4px 15px rgba(5, 214, 134, 0.1);
   padding-top: 12px;
 }
 
@@ -1069,7 +1045,7 @@ input[type="checkbox"] {
 
 /* Message field - Larger */
 .toast-input-group.message-group {
-  flex: 3; /* Takes 3 parts of available space */
+  flex: 3;
   min-width: 0;
 }
 
@@ -1077,7 +1053,7 @@ input[type="checkbox"] {
 .toast-input-group.type-group,
 .toast-input-group.time-group,
 .toast-input-group.hideafter-group {
-  flex: 1; /* Takes 1 part each */
+  flex: 1;
   min-width: 130px;
 }
 
@@ -1095,13 +1071,13 @@ input[type="checkbox"] {
 .toast-time,
 .toast-hideafter {
   width: 100%;
-  padding: 12px; /* Consistent padding */
+  padding: 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
   transition: all 0.2s ease;
   box-sizing: border-box;
-  height: 44px; /* Fixed equal height */
+  height: 44px;
   line-height: 20px;
 }
 
@@ -1185,7 +1161,7 @@ input[type="checkbox"] {
   cursor: pointer;
   transition: all 0.2s ease;
   align-self: flex-start;
-  height: 44px; /* Match input height */
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1217,7 +1193,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 44px; /* Match input height */
+  height: 44px;
   font-size: 14px;
   font-weight: 500;
 }
@@ -1336,29 +1312,22 @@ input[type="checkbox"] {
 }
 
 #saveBtn {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   color: #fff;
   padding: 6px 18px;
   border-radius: 6px;
   border: none;
 }
 #saveBtn:hover {
-  background: linear-gradient(135deg, #38b1c5 10%, #da922c 90%);
+  background: linear-gradient(130deg, #04b875 0%, #005c3a 100%);
 }
 /* Enhanced Preview Area Styles */
-.preview-area {
-  /* background: #f8f9fa;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
-}
-
 .preview-area h2 {
   color: #2c3e50;
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1393,12 +1362,12 @@ input[type="checkbox"] {
 }
 
 .preview-mode-btn:hover {
-  border-color: #38b1c5;
-  color: #38b1c5;
+  border-color: #05d686;
+  color: #05d686;
 }
 
 .preview-mode-btn.active {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   border-color: transparent;
   color: white;
   font-weight: 600;
@@ -1429,7 +1398,6 @@ input[type="checkbox"] {
   left: 0%;
 }
 
-/* Session State Specific Styles */
 /* Before Session Mode - Show only start button and thumbnail */
 .preview-mode.session-beforebion-beforebefore .chatBtnContainer {
   display: flex !important;
@@ -1444,17 +1412,6 @@ input[type="checkbox"] {
 
 .preview-mode.session-before .transcriptToggleButton {
   display: flex;
-}
-
-.preview-mode.session-before .actionContainer,
-.preview-mode.session-before #chatBox-close,
-.preview-mode.session-before .action-view-transcript,
-.preview-mode.session-before .chatBox-fullscreen,
-.preview-mode.session-before .language-switcher,
-.preview-mode.session-before .disclaimer,
-.preview-mode.session-before .instruction,
-.preview-mode.session-before .userform {
-  /* display: none !important; */
 }
 
 .preview-mode.session-during .language-switcher {
@@ -1511,14 +1468,6 @@ input[type="checkbox"] {
   display: inline-flex !important;
 }
 
-.preview-mode.session-during #chatBox-close,
-.preview-mode.session-during .chatBox-fullscreen,
-.preview-mode.session-during .language-switcher,
-.preview-mode.session-during #switchInteractionMode,
-.preview-mode.session-during #listeningIcon {
-  /* display: none !important; */
-}
-
 /* Hide transcript container and user video in preview mode */
 .preview-mode ~ #transcriptContainer,
 .preview-mode .userVideoContainer {
@@ -1527,13 +1476,6 @@ input[type="checkbox"] {
 
 .preview-mode.session-during #chatBox .hide {
   display: flex !important;
-}
-
-/* Hide specific elements in both preview modes */
-.preview-mode #chatBox-close,
-.preview-mode .chatBox-fullscreen,
-.preview-mode .language-switcher {
-  /* display: none !important; */
 }
 
 /* Show video in during session mode */

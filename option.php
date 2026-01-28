@@ -219,7 +219,7 @@ add_action('admin_menu', 'avatar_studio_plugin_menu');
                 <div style="display: flex; flex-direction: row; gap: 20px;">
   
                 <!-- Purpose Description -->
-                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
+                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #05D686; margin-bottom: 25px;">
                     <p style="color: #1e293b;">
                     <strong style="color: #333;">Export Conversation Transcripts</strong><br>
                     This integration automatically exports user conversation transcripts from Tavus to Google Drive. 
@@ -229,7 +229,7 @@ add_action('admin_menu', 'avatar_studio_plugin_menu');
                 </div>
 
                 <!-- Perception Analysis Note -->
-                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #38b1c5; margin-bottom: 25px;">
+                <div class="alert-box" style="flex: 1; background: linear-gradient(135deg, rgba(56, 177, 197, 0.1) 0%, rgba(218, 146, 44, 0.1) 100%); border-color: #05D686; margin-bottom: 25px;">
                     <p style="color: #1e293b;">
                     <strong style="color: #333;">Export Perception Analysis Data</strong><br>
                     Perception analysis reveals insights into user interactions with AI avatars by capturing emotions, engagement, and behavior. It helps understand user sentiment, improve avatar performance, and optimize conversations using emotion detection, engagement scores, attention metrics, and interaction quality indicators.
@@ -774,18 +774,37 @@ add_action('admin_menu', 'avatar_studio_plugin_menu');
                     </div>
                     
                     <div class="pagination-links">
-                        <?php if ($current_page > 1): ?>
-                            <a href="<?php echo esc_url(add_query_arg('paged', 1)); ?>" class="page-btn">« First</a>
-                            <a href="<?php echo esc_url(add_query_arg('paged', $current_page - 1)); ?>" class="page-btn">‹ Previous</a>
-                        <?php endif; ?>
+                    <?php 
+                    // Helper function to build pagination URLs
+                    function build_pagination_url($page) {
+                        $url = admin_url('admin.php?page=avatar_studio_sessions');
+                        
+                        // Get all current query parameters except paged
+                        $params = $_GET;
+                        unset($params['paged']);
+                        $params['paged'] = $page;
+                        
+                        // Add all parameters back
+                        if (!empty($params)) {
+                            $url .= '&' . http_build_query($params);
+                        }
+                        
+                        return $url;
+                    }
+                    ?>
+                    
+                    <?php if ($current_page > 1): ?>
+                        <a href="<?php echo esc_url(build_pagination_url(1)); ?>" class="page-btn">« First</a>
+                        <a href="<?php echo esc_url(build_pagination_url($current_page - 1)); ?>" class="page-btn">‹ Previous</a>
+                    <?php endif; ?>
 
-                        <span class="page-current">Page <?php echo esc_html($current_page); ?> of <?php echo esc_html($total_pages); ?></span>
+                    <span class="page-current">Page <?php echo esc_html($current_page); ?> of <?php echo esc_html($total_pages); ?></span>
 
-                        <?php if ($current_page < $total_pages): ?>
-                            <a href="<?php echo esc_url(add_query_arg('paged', $current_page + 1)); ?>" class="page-btn">Next ›</a>
-                            <a href="<?php echo esc_url(add_query_arg('paged', $total_pages)); ?>" class="page-btn">Last »</a>
-                        <?php endif; ?>
-                    </div>
+                    <?php if ($current_page < $total_pages): ?>
+                        <a href="<?php echo esc_url(build_pagination_url($current_page + 1)); ?>" class="page-btn">Next ›</a>
+                        <a href="<?php echo esc_url(build_pagination_url($total_pages)); ?>" class="page-btn">Last »</a>
+                    <?php endif; ?>
+                </div>
                     <div class="page-jump-wrapper">
                             <span class="page-jump-label">Go to page:</span>
                             <input type="number" class="page-jump-input" id="pageJumpInput" min="1" max="<?php echo esc_attr($total_pages); ?>" value="<?php echo esc_attr($current_page); ?>">
@@ -819,6 +838,81 @@ add_action('admin_menu', 'avatar_studio_plugin_menu');
             </div>
         </div>
     </div>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Copy Session ID functionality
+        $('.copy-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var sessionId = $(this).data('session-id');
+            var button = $(this);
+            var originalHTML = button.html();
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(sessionId).then(function() {
+                // Show success feedback
+                button.html('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>');
+                button.css('color', '#10b981');
+                
+                // Revert after 2 seconds
+                setTimeout(function() {
+                    button.html(originalHTML);
+                    button.css('color', '');
+                }, 2000);
+            }).catch(function(err) {
+                // Fallback for older browsers
+                var tempInput = $('<textarea>');
+                $('body').append(tempInput);
+                tempInput.val(sessionId).select();
+                document.execCommand('copy');
+                tempInput.remove();
+                
+                // Show success feedback even with fallback
+                button.html('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>');
+                button.css('color', '#10b981');
+                
+                setTimeout(function() {
+                    button.html(originalHTML);
+                    button.css('color', '');
+                }, 2000);
+            });
+        });
+
+        // Page jump functionality
+        function jumpToPage() {
+            var pageInput = document.getElementById('pageJumpInput');
+            var pageNumber = parseInt(pageInput.value);
+            var maxPage = parseInt(pageInput.max);
+            var minPage = parseInt(pageInput.min);
+            var currentPage = <?php echo $current_page; ?>;
+            
+            if (isNaN(pageNumber)) {
+                pageInput.value = currentPage;
+                return;
+            }
+            
+            if (pageNumber < minPage) pageNumber = minPage;
+            if (pageNumber > maxPage) pageNumber = maxPage;
+            
+            if (pageNumber !== currentPage) {
+                var url = new URL(window.location.href);
+                url.searchParams.set('paged', pageNumber);
+                window.location.href = url.toString();
+            }
+        }
+
+        // Bind enter key to page jump
+        $('#pageJumpInput').on('keypress', function(e) {
+            if (e.which === 13) {
+                jumpToPage();
+            }
+        });
+
+        // Bind click event to page jump button
+        $('.page-jump-btn').on('click', jumpToPage);
+    });
+    </script>
     <?php
 }
 

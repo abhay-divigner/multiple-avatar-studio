@@ -3,18 +3,18 @@
   background: #f8f9fa;
   max-width: 1400px;
   margin: 20px auto;
-  padding: 0 20px;
+  padding: 40px 20px 20px 20px !important;
   width: 100%;
   box-sizing: border-box;
 }
 
 /* Header Section */
 .avatar-studio-header {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   padding: clamp(20px, 3vw, 32px) clamp(20px, 3vw, 40px);
   margin: 0 0 30px 0;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(56, 177, 197, 0.15);
+  box-shadow: 0 4px 20px rgba(5, 214, 134, 0.15);
   overflow: hidden;
 }
 
@@ -53,7 +53,7 @@
 .button,
 .button-primary,
 #add-avatar-btn {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   border: none;
   color: #ffffff;
   padding: clamp(10px, 1.5vw, 12px) clamp(20px, 2.5vw, 28px);
@@ -63,21 +63,21 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 8px rgba(56, 177, 197, 0.2);
+  box-shadow: 0 2px 8px rgba(5, 214, 134, 0.2);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: clamp(4px, 0.8vw, 8px);
   white-space: nowrap;
-  min-height: 44px; /* Better touch target */
+  min-height: 44px;
 }
 
 .button:hover,
 .button-primary:hover,
 #add-avatar-btn:hover {
-  background: linear-gradient(135deg, #38b1c5 20%, #da922c 80%);
+  background: linear-gradient(130deg, #04b875 0%, #005c3a 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(56, 177, 197, 0.3);
+  box-shadow: 0 4px 16px rgba(5, 214, 134, 0.3);
   color: #ffffff;
 }
 
@@ -88,7 +88,7 @@
 }
 
 #back-to-avatar-btn {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   color: #fff;
   border: none;
   padding: clamp(8px, 1.2vw, 10px) clamp(16px, 2vw, 20px);
@@ -97,12 +97,12 @@
 }
 
 #back-to-avatar-btn:hover {
-  background: linear-gradient(135deg, #38b1c5 10%, #da922c 90%);
+  background: linear-gradient(130deg, #04b875 0%, #005c3a 100%);
 }
 
 /* Notice Styling */
 .notice {
-  border-left: 4px solid #38b1c5;
+  border-left: 4px solid #05d686;
   background: #ffffff;
   border-radius: 8px;
   padding: clamp(12px, 1.5vw, 16px) clamp(16px, 1.8vw, 20px);
@@ -113,7 +113,7 @@
 }
 
 .notice-success {
-  border-left-color: #46b450;
+  border-left-color: #05d686;
   background: #f0f9f1;
 }
 
@@ -171,7 +171,7 @@
   font-size: clamp(22px, 3vw, 28px);
   line-height: 1.2;
   font-weight: 600;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -207,14 +207,14 @@
 }
 
 .vendor-option:hover {
-  border-color: #38b1c5;
+  border-color: #05d686;
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.05) 0%,
-    rgba(218, 146, 44, 0.05) 100%
+    rgba(5, 214, 134, 0.05) 0%,
+    rgba(0, 118, 73, 0.05) 100%
   );
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(56, 177, 197, 0.15);
+  box-shadow: 0 12px 24px rgba(5, 214, 134, 0.15);
 }
 
 .vendor-icon {
@@ -261,13 +261,13 @@
   background: white;
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    linear-gradient(130deg, #05d686 0%, #007649 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   border-radius: 12px;
   padding: 0;
   margin: 20px 0;
-  box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
+  box-shadow: 0 4px 15px rgba(5, 214, 134, 0.1);
   transition: all 0.3s ease;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -277,14 +277,14 @@
 .avatar-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px; /* Minimum width before horizontal scroll */
+  min-width: 600px;
 }
 
 .avatar-table thead th {
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.1) 0%,
-    rgba(218, 146, 44, 0.1) 100%
+    rgba(5, 214, 134, 0.1) 0%,
+    rgba(0, 118, 73, 0.1) 100%
   );
   color: #374151;
   font-weight: 600;
@@ -308,16 +308,16 @@
 .avatar-table tbody tr.main-row:hover {
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.03) 0%,
-    rgba(218, 146, 44, 0.03) 100%
+    rgba(5, 214, 134, 0.03) 0%,
+    rgba(0, 118, 73, 0.03) 100%
   );
 }
 
 .avatar-table tbody tr.main-row.expanded {
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.05) 0%,
-    rgba(218, 146, 44, 0.05) 100%
+    rgba(5, 214, 134, 0.05) 0%,
+    rgba(0, 118, 73, 0.05) 100%
   );
   border-bottom: none;
 }
@@ -340,21 +340,21 @@
   width: clamp(20px, 2vw, 24px);
   height: clamp(20px, 2vw, 24px);
   border-radius: 6px;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   transition: all 0.3s ease;
 }
 
 .expand-icon i {
   transition: transform 0.3s ease;
   font-size: clamp(14px, 1.2vw, 16px);
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   -webkit-text-fill-color: #ffffff;
 }
 
 .main-row.expanded .expand-icon {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
 }
 
 .main-row.expanded .expand-icon i {
@@ -374,7 +374,7 @@
 }
 
 .avatar-preview-img:hover {
-  border-color: #38b1c5;
+  border-color: #05d686;
   transform: scale(1.05);
 }
 
@@ -393,19 +393,19 @@
 .vendor-badge.tavus {
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.15) 0%,
-    rgba(56, 177, 197, 0.25) 100%
+    rgba(5, 214, 134, 0.15) 0%,
+    rgba(5, 214, 134, 0.25) 100%
   );
-  color: #38b1c5;
+  color: #007649;
 }
 
 .vendor-badge.heygen {
   background: linear-gradient(
     135deg,
-    rgba(218, 146, 44, 0.15) 0%,
-    rgba(218, 146, 44, 0.25) 100%
+    rgba(0, 118, 73, 0.15) 0%,
+    rgba(0, 118, 73, 0.25) 100%
   );
-  color: #da922c;
+  color: #007649;
 }
 
 /* Expanded Details Row */
@@ -413,8 +413,8 @@
   display: none;
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.02) 0%,
-    rgba(218, 146, 44, 0.02) 100%
+    rgba(5, 214, 134, 0.02) 0%,
+    rgba(0, 118, 73, 0.02) 100%
   );
   border-bottom: 1px solid #e5e7eb;
 }
@@ -459,7 +459,7 @@
 
 .detail-item:hover {
   border-color: #c9c9c9;
-  box-shadow: 0 2px 8px rgba(56, 177, 197, 0.1);
+  box-shadow: 0 2px 8px rgba(5, 214, 134, 0.1);
 }
 
 .detail-item label {
@@ -503,7 +503,7 @@
 }
 
 .copy-shortcode-btn {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   border: none;
   color: white;
   padding: clamp(4px, 0.8vw, 6px) clamp(8px, 1.5vw, 12px);
@@ -518,7 +518,7 @@
 
 .copy-shortcode-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(56, 177, 197, 0.3);
+  box-shadow: 0 2px 8px rgba(5, 214, 134, 0.3);
 }
 
 /* Action Buttons */
@@ -552,15 +552,15 @@
 .action-btn.edit {
   background: linear-gradient(
     135deg,
-    rgba(56, 177, 197, 0.1) 0%,
-    rgba(218, 146, 44, 0.1) 100%
+    rgba(5, 214, 134, 0.1) 0%,
+    rgba(0, 118, 73, 0.1) 100%
   );
-  color: #38b1c5;
-  border-color: rgba(56, 177, 197, 0.3);
+  color: #05d686;
+  border-color: rgba(5, 214, 134, 0.3);
 }
 
 .action-btn.edit:hover {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   color: white;
   border-color: transparent;
   transform: translateY(-2px);
@@ -600,7 +600,7 @@
   width: clamp(24px, 3vw, 32px);
   height: clamp(24px, 3vw, 32px);
   border-radius: 8px;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   color: white;
   font-weight: 600;
   font-size: clamp(11px, 1vw, 13px);
@@ -783,7 +783,7 @@
 .empty-state i {
   font-size: clamp(48px, 6vw, 64px);
   margin-bottom: clamp(16px, 2vw, 20px);
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(130deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

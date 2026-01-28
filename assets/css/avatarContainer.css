@@ -19,7 +19,7 @@ div#ea11y-root {
   margin-bottom: 10px;
   font-size: 24px;
   color: #2c3e50;
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(135deg, #05d686 0%, #007649 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -75,7 +75,7 @@ div#ea11y-root {
   outline: none;
   border: 2px solid transparent;
   background-image: linear-gradient(white, white),
-    linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+    linear-gradient(135deg, #05d686 0%, #007649 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   box-shadow: 0 0 0 4px rgba(56, 177, 197, 0.1);
@@ -128,7 +128,7 @@ div#ea11y-root {
 
 #skipBtn {
   background: white;
-  border-color: #e5e7eb;
+  border-color: #bababa;
   color: #6b7280;
 }
 
@@ -138,29 +138,13 @@ div#ea11y-root {
 }
 
 #nextBtn {
-  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  background: linear-gradient(135deg, #05d686 0%, #007649 100%);
   color: white;
 }
 
 #nextBtn:hover {
-  background: linear-gradient(135deg, #38b1c5 10%, #da922c 90%);
+  background: linear-gradient(135deg, #05d686 10%, #007649 90%);
   box-shadow: 0 4px 12px rgba(56, 177, 197, 0.3);
-}
-
-.no-fields,
-.error {
-  text-align: center;
-  color: #6b7280;
-  padding: 20px;
-  background: #f9fafb;
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-.error {
-  color: #ef4444;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
 }
 
 /* Add to your existing CSS */
@@ -180,14 +164,12 @@ div#ea11y-root {
 }
 /* Add to your existing CSS */
 .instruction-container {
-  /* background: white; */
   border-radius: 12px;
   padding: 24px;
   margin: 20px 0;
   box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
 }
 .form-container {
-  /* background: white; */
   border-radius: 12px;
   padding: 24px;
   margin: 20px 0;
@@ -195,7 +177,7 @@ div#ea11y-root {
 }
 
 #userform {
-  display: none; /* Hidden by default, shown when needed */
+  display: none;
 }
 
 /* Add these styles for form validation */
@@ -341,11 +323,6 @@ div#ea11y-root {
   line-height: 1.5;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   word-wrap: break-word;
-}
-
-/* hide-language-switcher-on-disbaling-from-dashboard-form */
-#selectedLanguage[data-welcome-enabled="false"] img {
-  display: none !important;
 }
 
 /* Animations */

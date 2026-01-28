@@ -30,7 +30,6 @@ global $instruction;
 global $instruction_title;
 global $start_button_label;
 global $selected_form_id;
-global $welcome_message_enable;
 
 if (!isset($selected_form_id) && isset($avatar) && isset($avatar->selected_form_id)) {
     $selected_form_id = $avatar->selected_form_id;
@@ -266,14 +265,14 @@ enqueue_avatar_studio_scripts($js_config);
 
         <div class="language-switcher" title="Change Language">
             <span class="lang-icon" onclick="toggleLanguageDropdown()">
-                <span id="selectedLanguage" data-welcome-enabled="<?php echo $welcome_message_enable ? 'true' : 'false'; ?>">
+                <span id="selectedLanguage" style="opacity: 0;">
                     <img draggable="false" class="emoji" alt="us"
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1fa-1f1f8.svg">
                 </span>
             </span>
 
             <div class="dropdown" id="languageDropdown" style="display: none;">
-                <a href="#" onclick="setLanguage('en', 'us', 'English')">
+                <!-- <a href="#" onclick="setLanguage('en', 'us', 'English')">
                     <img draggable="false" class="emoji" alt="us"
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1fa-1f1f8.svg"> English
                 </a>
@@ -284,7 +283,7 @@ enqueue_avatar_studio_scripts($js_config);
                 <a href="#" onclick="setLanguage('fr', 'fr', 'Français')">
                     <img draggable="false" class="emoji" alt="fr"
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1eb-1f1f7.svg"> Français
-                </a>
+                </a> -->
             </div>
         </div>
     </div>

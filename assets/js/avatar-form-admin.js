@@ -1650,7 +1650,7 @@ function setupVendorSpecificFields() {
           chatBox.classList.add("session-before");
           previewStateIndicator.textContent = "Before Session";
           previewStateIndicator.style.background =
-            "linear-gradient(135deg, #38b1c5 0%, #da922c 100%)";
+            "linear-gradient(135deg, #05D686 0%, #007649 100%)";
 
           const welcomeContainer = chatBox.querySelector(".welcomeContainer");
           const videoHolder = chatBox.querySelector("#video_holder");
@@ -2560,7 +2560,7 @@ $("#selected_form_id").on("change", function () {
     // For now, just update the placeholder
     previewContainer.html(
       '<div style="text-align: center; padding: 40px 20px; color: #6b7280;">' +
-        '<div style="font-size: 48px; margin-bottom: 20px; color: #38b1c5;">✓</div>' +
+        '<div style="font-size: 48px; margin-bottom: 20px; color: #05D686;">✓</div>' +
         '<h4 style="margin: 0 0 10px 0; color: #374151;">Form Selected</h4>' +
         '<p style="margin: 0; font-size: 14px;">Form ID: ' +
         formId +
