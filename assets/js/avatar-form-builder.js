@@ -166,8 +166,19 @@
       revert: "invalid",
       cursor: "move",
       zIndex: 100,
+      appendTo: "body",
+      containment: "document",
       start: function (event, ui) {
         $(this).addClass("dragging");
+        ui.helper.css({
+          width: "180px",
+          opacity: "0.9",
+          background: "#f9fafb",
+          border: "1px solid #e5e7eb",
+          "border-radius": "8px",
+          padding: "12px",
+          "box-shadow": "0 4px 12px rgba(0,0,0,0.15)",
+        });
       },
       stop: function (event, ui) {
         $(this).removeClass("dragging");
@@ -180,9 +191,15 @@
         accept: ".draggable-field",
         activeClass: "droppable-active",
         hoverClass: "droppable-hover",
+        tolerance: "pointer",
         drop: function (event, ui) {
           const fieldType = ui.draggable.data("type");
           addFormField(fieldType);
+
+          // Scroll to bottom of preview
+          $(".preview-container").scrollTop(
+            $(".preview-container")[0].scrollHeight
+          );
         },
       })
       .sortable({
@@ -190,6 +207,7 @@
         placeholder: "sortable-placeholder",
         cursor: "move",
         opacity: 0.7,
+        tolerance: "pointer",
         update: function () {
           saveFieldOrder();
         },
@@ -222,11 +240,17 @@
       label: defaultLabel,
       required: false,
       placeholder: "",
-      options:
-        type === "select" || type === "radio" || type === "checkbox"
-          ? ["Option 1", "Option 2"]
-          : [],
+      // Special properties for conditional textarea
+      conditional_enabled: type === "other" ? false : undefined,
+      checkbox_label:
+        type === "other" ? "Enable this to add other details" : "",
+      textarea_label: type === "other" ? "Additional Details" : "",
     };
+
+    // For conditional textarea, we don't need regular options
+    if (type === "select" || type === "radio" || type === "checkbox") {
+      field.options = ["Option 1", "Option 2"];
+    }
 
     formFields.push(field);
     updateFormPreview();
@@ -347,6 +371,29 @@
           field.required ? "required" : ""
         } disabled rows="3"></textarea>`;
         break;
+      case "other":
+        html += `<div class="conditional-field-wrapper">`;
+        html += `<div class="conditional-checkbox">`;
+        html += `<label><input type="checkbox" ${
+          field.conditional_enabled ? "checked" : ""
+        } disabled> ${
+          field.checkbox_label || "Enable additional details"
+        }</label>`;
+        html += `</div>`;
+        html += `<div class="other" style="${
+          field.conditional_enabled ? "" : "display: none;"
+        }">`;
+        html += `<textarea placeholder="${
+          field.placeholder || "Enter additional details..."
+        }" ${field.required ? "required" : ""} ${
+          field.conditional_enabled ? "" : "disabled"
+        } disabled rows="3"></textarea>`;
+        html += `<small class="field-description">${
+          field.textarea_label || "Additional details"
+        }</small>`;
+        html += `</div>`;
+        html += `</div>`;
+        break;
       case "select":
         html += `<select ${field.required ? "required" : ""} disabled>`;
         html += `<option value="">Select an option</option>`;
@@ -392,6 +439,7 @@
       number: "editor-ol",
       tel: "phone",
       textarea: "text",
+      other: "text-page",
       select: "menu",
       radio: "marker",
       checkbox: "yes",
@@ -419,32 +467,57 @@
 
   function showFieldSettings(field) {
     let settingsHtml = `
-            <form id="fieldSettingsForm">
-                <input type="hidden" name="field_id" value="${field.id}">
-                <table class="avatar-form-table">
-                    <tr>
-                        <th><label>Field Type</label></th>
-                        <td><strong>${field.type}</strong></td>
-                    </tr>
-                    <tr>
-                        <th><label for="field_label">Label</label></th>
-                        <td><input type="text" id="field_label" name="label" value="${
-                          field.label
-                        }" class="regular-text"></td>
-                    </tr>
-                    <tr>
-                        <th><label for="field_placeholder">Placeholder</label></th>
-                        <td><input type="text" id="field_placeholder" name="placeholder" value="${
-                          field.placeholder
-                        }" class="regular-text"></td>
-                    </tr>
-                    <tr>
-                        <th><label for="field_required">Required</label></th>
-                        <td><input type="checkbox" id="field_required" name="required" ${
-                          field.required ? "checked" : ""
-                        }></td>
-                    </tr>
+        <form id="fieldSettingsForm">
+            <input type="hidden" name="field_id" value="${field.id}">
+            <table class="avatar-form-table">
+                <tr>
+                    <th><label>Field Type</label></th>
+                    <td><strong>${field.type}</strong></td>
+                </tr>
+                <tr>
+                    <th><label for="field_label">Label</label></th>
+                    <td><input type="text" id="field_label" name="label" value="${field.label}" class="regular-text"></td>
+                </tr>
+    `;
+
+    if (field.type === "other") {
+      settingsHtml += `
+            <tr>
+                <th><label for="checkbox_label">Checkbox Label</label></th>
+                <td><input type="text" id="checkbox_label" name="checkbox_label" value="${
+                  field.checkbox_label || "Enable this to add other details"
+                }" class="regular-text"></td>
+            </tr>
+            
+            <tr>
+                <th><label for="field_placeholder">Textarea Placeholder</label></th>
+                <td><input type="text" id="field_placeholder" name="placeholder" value="${
+                  field.placeholder
+                }" class="regular-text"></td>
+            </tr>
+            <tr>
+                <th><label for="field_required">Textarea Required</label></th>
+                <td><input type="checkbox" id="field_required" name="required" ${
+                  field.required ? "checked" : ""
+                }></td>
+            </tr>
         `;
+    } else {
+      settingsHtml += `
+            <tr>
+                <th><label for="field_placeholder">Placeholder</label></th>
+                <td><input type="text" id="field_placeholder" name="placeholder" value="${
+                  field.placeholder
+                }" class="regular-text"></td>
+            </tr>
+            <tr>
+                <th><label for="field_required">Required</label></th>
+                <td><input type="checkbox" id="field_required" name="required" ${
+                  field.required ? "checked" : ""
+                }></td>
+            </tr>
+        `;
+    }
 
     if (["select", "radio", "checkbox"].includes(field.type)) {
       settingsHtml += `
@@ -515,16 +588,24 @@
 
     if (field) {
       field.label = $("#field_label").val();
-      field.placeholder = $("#field_placeholder").val();
-      field.required = $("#field_required").is(":checked");
 
-      if (["select", "radio", "checkbox"].includes(field.type)) {
-        const options = [];
-        $('#fieldSettingsForm input[name="options[]"]').each(function () {
-          const val = $(this).val().trim();
-          if (val) options.push(val);
-        });
-        field.options = options.length > 0 ? options : ["Option 1"];
+      if (field.type === "other") {
+        field.checkbox_label = $("#checkbox_label").val();
+        field.textarea_label = $("#textarea_label").val();
+        field.placeholder = $("#field_placeholder").val();
+        field.required = $("#field_required").is(":checked");
+      } else {
+        field.placeholder = $("#field_placeholder").val();
+        field.required = $("#field_required").is(":checked");
+
+        if (["select", "radio", "checkbox"].includes(field.type)) {
+          const options = [];
+          $('#fieldSettingsForm input[name="options[]"]').each(function () {
+            const val = $(this).val().trim();
+            if (val) options.push(val);
+          });
+          field.options = options.length > 0 ? options : ["Option 1"];
+        }
       }
 
       updateFormPreview();

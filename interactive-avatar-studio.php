@@ -11,8 +11,6 @@
  * Domain Path: /languages
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Company / Brand: Avanew
- * Official Website: https://avanew.ai/
  */
 
 if (!defined('ABSPATH')) {
@@ -77,6 +75,7 @@ function enqueue_avatar_studio_script()
     global $user_form_enable;
     global $instruction_enable;
     global $skip_instruction_video;
+    global $welcome_message_enable;
     global $instruction;
     global $instruction_title;
     global $start_button_label;
@@ -113,6 +112,7 @@ function enqueue_avatar_studio_script()
     $chatBoxHeading = isset($avatar->title) ? $avatar->title : '';
     $opening_text = $avatar && $avatar->welcome_message ? json_decode($avatar->welcome_message, true) : [];
     $styles = $avatar && $avatar->styles ? json_decode($avatar->styles, true) : [];
+    $welcome_message_enable = isset($avatar->welcome_message_enable) ? $avatar->welcome_message_enable : 0;
     $time_limit = isset($avatar->time_limit) ? $avatar->time_limit : 60;
     $avatar_name = isset($avatar->avatar_name) ? $avatar->avatar_name : '';
     $avatar_id = isset($avatar->avatar_id) ? $avatar->avatar_id : '';
@@ -170,7 +170,7 @@ function enqueue_avatar_studio_script()
             return '';
         }
 
-        wp_enqueue_script('avatar_studio-jspdf', $dir . 'assets/js/jspdf/jspdf.umd.min.js', array('jquery'), '2.5.1', true);    
+        wp_enqueue_script('avatar_studio-jspdf', $dir . 'assets/js/jspdf/jspdf.umd.min.js', array('jquery'), '4.0.0', true);    
         wp_enqueue_script('avatar_studio-script', $dir . 'assets/js/avatar_studio-script.js', array('jquery'), AvatarStudioVersion, true);
         wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
         
@@ -305,7 +305,7 @@ function create_avatar_studio_avaters_table()
         vendor VARCHAR(30) NULL DEFAULT 'tavus',
         api_key VARCHAR(100) NULL,
         title VARCHAR(100) NULL,
-        description VARCHAR(300) NULL,
+        description LONGTEXT(300) NULL,
         avatar_name VARCHAR(100) NULL,
         avatar_id VARCHAR(100) NULL,
         knowledge_id VARCHAR(100) NULL,
@@ -320,7 +320,7 @@ function create_avatar_studio_avaters_table()
         livekit_enable TINYINT NULL DEFAULT 0,
         video_enable TINYINT NULL DEFAULT 0,
         chat_only TINYINT NULL DEFAULT 0,
-        disclaimer_title VARCHAR(255) NULL,
+        disclaimer_title TEXT(255) NULL,
         disclaimer LONGTEXT NULL,
         disclaimer_enable TINYINT NULL DEFAULT 0,
         user_form_enable TINYINT NULL DEFAULT 0,
@@ -334,6 +334,7 @@ function create_avatar_studio_avaters_table()
         voice_emotion TEXT NULL,
         pages LONGTEXT NULL,
         styles LONGTEXT NULL,
+        welcome_message_enable TINYINT NULL DEFAULT 0,
         welcome_message LONGTEXT NULL,
         start_button_label VARCHAR(100) NULL DEFAULT 'Chat',
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -428,6 +429,13 @@ function avatarStudioUpdateDatabase()
 {
     global $wpdb;
     $table_name = $wpdb->prefix . 'avatar_studio_avatars';
+
+    // Check and add welcome_message_enable column if it doesn't exist
+    $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'welcome_message_enable'));
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN welcome_message_enable TINYINT NULL DEFAULT 0 AFTER welcome_message");
+        error_log('Added welcome_message_enable column to avatar_studio_avatars table');
+    }
     
     // Check and add toast_messages column if it doesn't exist
     $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'toast_messages'));
@@ -445,7 +453,7 @@ function avatarStudioUpdateDatabase()
     // Existing column checks...
     $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'disclaimer_title'));
     if (empty($column_exists)) {
-        $wpdb->query("ALTER TABLE $table_name ADD COLUMN disclaimer_title VARCHAR(255) DEFAULT ''");
+        $wpdb->query("ALTER TABLE $table_name ADD COLUMN disclaimer_title TEXT(255) DEFAULT ''");
     }
 
     $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'instruction_title'));

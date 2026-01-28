@@ -429,7 +429,72 @@ function avatar_studio_enqueue_shortcode_styles() {
         wp_add_inline_style('avatar-studio-shortcode-dynamic', $avatar_studio_shortcode_styles);
     }
 }
-add_action('wp_footer', 'avatar_studio_enqueue_shortcode_styles');
+add_action('wp_footer', 'avatar_studio_enqueue_shortcode_styles', 100);
+
+function avatar_studio_generate_modal_css($key, $style) {
+    $css = '';
+    
+    if ($key === 'disclaimer' || $key === 'instruction') {
+        $selector = $key === 'disclaimer' ? '.disclaimer-modal' : '.instruction-modal';
+        
+        // Background overlay
+        if (isset($style['background'])) {
+            $opacity = isset($style['opacity']) ? floatval($style['opacity']) : 0.9;
+            $css .= $selector . " {\n";
+            $css .= "    background: " . $style['background'] . " !important;\n";
+            $css .= "    opacity: " . $opacity . " !important;\n";
+            $css .= "}\n\n";
+        }
+        
+        // Content container
+        if (isset($style['content_background'])) {
+            $css .= $selector . " .modal-content {\n";
+            $css .= "    background: " . $style['content_background'] . " !important;\n";
+            
+            if (isset($style['border_radius'])) {
+                $css .= "    border-radius: " . intval($style['border_radius']) . "px !important;\n";
+            }
+            
+            $css .= "}\n\n";
+        }
+        
+        // Heading styles
+        if (isset($style['heading_color']) || isset($style['heading_size'])) {
+            $css .= $selector . " .modal-heading,\n";
+            $css .= $selector . " h2,\n";
+            $css .= $selector . " h3 {\n";
+            
+            if (isset($style['heading_color'])) {
+                $css .= "    color: " . $style['heading_color'] . " !important;\n";
+            }
+            
+            if (isset($style['heading_size'])) {
+                $css .= "    font-size: " . intval($style['heading_size']) . "px !important;\n";
+            }
+            
+            $css .= "}\n\n";
+        }
+        
+        // Content text styles
+        if (isset($style['content_color']) || isset($style['content_size'])) {
+            $css .= $selector . " .modal-text,\n";
+            $css .= $selector . " p,\n";
+            $css .= $selector . " .modal-content > div {\n";
+            
+            if (isset($style['content_color'])) {
+                $css .= "    color: " . $style['content_color'] . " !important;\n";
+            }
+            
+            if (isset($style['content_size'])) {
+                $css .= "    font-size: " . intval($style['content_size']) . "px !important;\n";
+            }
+            
+            $css .= "}\n\n";
+        }
+    }
+    
+    return $css;
+}
 
 // shortcode
 function avatar_studio_shortcode($atts)
@@ -437,141 +502,135 @@ function avatar_studio_shortcode($atts)
     $atts = shortcode_atts([
         'id' => '',
     ], $atts, 'avatar_studio');
+    
     $avatar_studio_enable = get_option('avatar_studio_enable');
     $avatar_studio_id = esc_html($atts['id']);
 
-    global $livekit_enable;
-    global $avatar_vendor;
-    global $api_key;
-    global $chatBoxHeading;
-    global $video_enable;
-    global $chat_only;
-    global $homePageID;
-    global $pageId;
-    global $avatar_id;
-    global $knowledge_id;
-    global $previewThumbnail;
-    global $previewImage;
-    global $active_thumbnail;
-    global $avatar_name;
-    global $avatarContainerID;
-    global $time_limit;
-    global $styles;
-    global $disclaimer_enable;
-    global $disclaimer;
-    global $disclaimer_title;
-    global $user_form_enable;
-    global $instruction_enable;
-    global $skip_instruction_video;
-    global $instruction;
-    global $instruction_title;
-    global $start_button_label;
+    if (empty($avatar_studio_id)) {
+        return '<p>Error: Avatar ID is required. Use [avatar_studio id="1"]</p>';
+    }
 
     global $wpdb;
-    $avatar = $wpdb->get_row($wpdb->prepare(" SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d ", $avatar_studio_id));
+    $avatar = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}avatar_studio_avatars WHERE id = %d", $avatar_studio_id));
+    
     if (!$avatar) {
-        return 'NOT Found';
+        return '<p>Avatar not found.</p>';
     }
-    if ($avatar->vendor) {
-        $avatar_vendor = $avatar->vendor;
-    }
-    $avatar_studio_id = $avatar->id;
-    $avatar_open_on_desktop = isset($avatar->open_on_desktop) ? $avatar->open_on_desktop : 0;
-    $api_key = isset($avatar->api_key) ? $avatar->api_key : '';
-    $chatBoxHeading = isset($avatar->title) ? $avatar->title : '';
-    $opening_text = $avatar && $avatar->welcome_message ? json_decode($avatar->welcome_message, true) : [];
-    $styles = $avatar && $avatar->styles ? json_decode($avatar->styles, true) : [];
-    $time_limit = isset($avatar->time_limit) ? $avatar->time_limit : 60;
-    $avatar_name = isset($avatar->avatar_name) ? $avatar->avatar_name : '';
-    $avatar_id = isset($avatar->avatar_id) ? $avatar->avatar_id : '';
-    $knowledge_id = isset($avatar->knowledge_id) ? $avatar->knowledge_id : '';
-    $previewImage = isset($avatar->preview_image) ? $avatar->preview_image : '';
-    $start_button_label = isset($avatar->start_button_label) ? stripslashes($avatar->start_button_label) : '';
-    $active_thumbnail = isset($avatar->active_thumbnail) ? $avatar->active_thumbnail : 'medium';
 
+    // Set global variables (same as enqueue_avatar_studio_script)
+    global $livekit_enable, $avatar_vendor, $api_key, $chatBoxHeading, $video_enable, $chat_only;
+    global $homePageID, $pageId, $avatar_id, $knowledge_id, $previewThumbnail, $previewImage;
+    global $active_thumbnail, $avatar_name, $time_limit, $styles;
+    global $disclaimer_enable, $disclaimer, $disclaimer_title;
+    global $user_form_enable, $instruction_enable, $skip_instruction_video;
+    global $instruction, $instruction_title, $start_button_label, $selected_form_id;
+    global $avatar_studio_shortcode_styles;
+
+    $avatar_vendor = $avatar->vendor ?? 'tavus';
+    $api_key = $avatar->api_key ?? '';
+    $chatBoxHeading = $avatar->title ?? '';
+    $opening_text = $avatar->welcome_message ? json_decode($avatar->welcome_message, true) : [];
+    $styles = $avatar->styles ? json_decode($avatar->styles, true) : [];
+    $time_limit = $avatar->time_limit ?? 60;
+    $avatar_name = $avatar->avatar_name ?? '';
+    $avatar_id = $avatar->avatar_id ?? '';
+    $knowledge_id = $avatar->knowledge_id ?? '';
+    $previewImage = $avatar->preview_image ?? '';
+    $start_button_label = isset($avatar->start_button_label) ? stripslashes($avatar->start_button_label) : 'Chat';
+    $active_thumbnail = $avatar->active_thumbnail ?? 'medium';
+    
+    // Set thumbnail based on active size
     if ($active_thumbnail == 'mini') {
-        $previewThumbnail = isset($avatar->thumbnail_mini) ? $avatar->thumbnail_mini : '';
+        $previewThumbnail = $avatar->thumbnail_mini ?? '';
     } else if ($active_thumbnail == 'medium') {
-        $previewThumbnail = isset($avatar->thumbnail_medium) ? $avatar->thumbnail_medium : '';
+        $previewThumbnail = $avatar->thumbnail_medium ?? '';
     } else if ($active_thumbnail == 'large') {
-        $previewThumbnail = isset($avatar->thumbnail_large) ? $avatar->thumbnail_large : '';
+        $previewThumbnail = $avatar->thumbnail_large ?? '';
     }
-    if ($previewThumbnail == '') {
+    
+    if (empty($previewThumbnail)) {
         $previewThumbnail = $previewImage;
     }
 
-    $disclaimer_enable = isset($avatar->disclaimer_enable) ? $avatar->disclaimer_enable : 0;
+    // Set feature flags
+    $disclaimer_enable = $avatar->disclaimer_enable ?? 0;
     $disclaimer_title = isset($avatar->disclaimer_title) ? stripslashes($avatar->disclaimer_title) : '';
     $disclaimer = isset($avatar->disclaimer) ? stripslashes($avatar->disclaimer) : '';
-    $user_form_enable = isset($avatar->user_form_enable) ? $avatar->user_form_enable : 0;
-    $selected_form_id = isset($avatar->selected_form_id) ? $avatar->selected_form_id : 0;
-    $PLUGIN_OPTIONS['selected_form_id'] = $selected_form_id;
-    $sanitized_options = array_map('sanitize_text_field', (array) $PLUGIN_OPTIONS);
-    wp_localize_script('avanew_as_main_script', 'AVANEW_AS_OPTIONS', $sanitized_options);
-
-    $instruction_enable = isset($avatar->instruction_enable) ? $avatar->instruction_enable : 0;
-    $skip_instruction_video = isset($avatar->skip_instruction_video) ? $avatar->skip_instruction_video : 0;
+    $user_form_enable = $avatar->user_form_enable ?? 0;
+    $selected_form_id = $avatar->selected_form_id ?? 0;
+    $instruction_enable = $avatar->instruction_enable ?? 0;
+    $skip_instruction_video = $avatar->skip_instruction_video ?? 0;
     $instruction_title = isset($avatar->instruction_title) ? stripslashes($avatar->instruction_title) : '';
     $instruction = isset($avatar->instruction) ? stripslashes($avatar->instruction) : '';
+    $chat_only = $avatar->chat_only ?? 0;
+    $video_enable = $avatar->video_enable ?? 0;
+    $voice_emotion = $avatar->voice_emotion ?? '';
+    $livekit_enable = $avatar->livekit_enable ?? false;
 
-    $chat_only = isset($avatar->chat_only) ? $avatar->chat_only : 0;
-    $video_enable = isset($avatar->video_enable) ? $avatar->video_enable : 0;
-
-    $voice_emotion = isset($avatar->voice_emotion) ? $avatar->voice_emotion : '';
-    $livekit_enable = isset($avatar->livekit_enable) ? $avatar->livekit_enable : false;
-
-    $PLUGIN_OPTIONS = [];
-    $PLUGIN_OPTIONS['time_limit'] = $time_limit > 0 ? $time_limit : 300;
-    $PLUGIN_OPTIONS['avatar_studio_enable'] = !!$avatar_studio_enable;
-    $PLUGIN_OPTIONS['livekit_enable'] = !!$livekit_enable;
-    $PLUGIN_OPTIONS['opening_text'] = $opening_text;
-    $PLUGIN_OPTIONS['voice_emotion'] = $voice_emotion;
-    $PLUGIN_OPTIONS['chat_only'] = $chat_only;
-    $PLUGIN_OPTIONS['video_enable'] = $video_enable;
-
-    $PLUGIN_OPTIONS['instruction_enable'] = $instruction_enable;
-    $PLUGIN_OPTIONS['skip_instruction_video'] = $skip_instruction_video;
-    $PLUGIN_OPTIONS['disclaimer_enable'] = $disclaimer_enable;
-    $PLUGIN_OPTIONS['user_form_enable'] = $user_form_enable;
+    // Prepare plugin options for JavaScript
+    $PLUGIN_OPTIONS = [
+        'time_limit' => $time_limit > 0 ? $time_limit : 300,
+        'avatar_studio_enable' => !!$avatar_studio_enable,
+        'livekit_enable' => !!$livekit_enable,
+        'opening_text' => $opening_text,
+        'voice_emotion' => $voice_emotion,
+        'chat_only' => $chat_only,
+        'video_enable' => $video_enable,
+        'instruction_enable' => $instruction_enable,
+        'skip_instruction_video' => $skip_instruction_video,
+        'disclaimer_enable' => $disclaimer_enable,
+        'user_form_enable' => $user_form_enable,
+        'selected_form_id' => $selected_form_id,
+    ];
 
     $plugin_dir = plugin_dir_url(__FILE__);
-    wp_enqueue_script('avatar_studio-jspdf', $plugin_dir . 'assets/js/jspdf/jspdf.umd.min.js', array('jquery'), '2.5.1', true);
-
-    wp_enqueue_script('avatar_studio-script', plugins_url('assets/js/avatar_studio-script.js', __FILE__), array('jquery'), AvatarStudioVersion, true);
+    
+    // Enqueue all necessary scripts and styles
+    wp_enqueue_style('avatar-studio-frontend-css', $plugin_dir . 'assets/css/avatarContainer.css', [], '1.0.6');
+    wp_enqueue_style('avatar-studio-fontawesome', $plugin_dir . 'assets/css/fontawesome/css/all.min.css', [], '1.0.6');
+    wp_enqueue_style('avatar_studio-style', $plugin_dir . 'assets/css/style.css', [], AvatarStudioVersion);
+    
+    // Enqueue jsPDF
+    wp_enqueue_script('avatar_studio-jspdf', $plugin_dir . 'assets/js/jspdf/jspdf.umd.min.js', ['jquery'], '4.0.0', true);
+    
+    // Enqueue main script
+    wp_enqueue_script('avatar_studio-script', $plugin_dir . 'assets/js/avatar_studio-script.js', ['jquery', 'avatar_studio-jspdf'], AvatarStudioVersion, true);
     wp_localize_script('avatar_studio-script', 'PLUGIN_OPTIONS', $PLUGIN_OPTIONS);
 
-    // Generate and store CSS for this shortcode instance
+    // Enqueue vendor-specific scripts
+    if ($avatar_vendor == 'tavus') {
+        wp_enqueue_script('avatar_studio-tavus', $plugin_dir . 'assets/js/tavus.js', [], AvatarStudioVersion, true);
+        wp_enqueue_script('daily-co', $plugin_dir . 'assets/js/daily-co.js', [], AvatarStudioVersion, true);
+    } else {
+        wp_enqueue_script('avatar_studio-heygen', $plugin_dir . 'assets/js/heygen.js', [], AvatarStudioVersion, true);
+    }
+
+    // Generate and enqueue dynamic CSS
     if ($styles && is_array($styles)) {
         $generated_css = avatar_studio_generate_shortcode_css($styles);
         if (!isset($avatar_studio_shortcode_styles)) {
             $avatar_studio_shortcode_styles = '';
         }
         $avatar_studio_shortcode_styles .= $generated_css;
+        
+        // Add inline styles immediately for shortcode
+        wp_register_style('avatar-studio-shortcode-inline', false);
+        wp_enqueue_style('avatar-studio-shortcode-inline');
+        wp_add_inline_style('avatar-studio-shortcode-inline', $generated_css);
     }
 
+    // Start output buffering
     ob_start();
-
-    // if (!$livekit_enable) {
-    if ($avatar_vendor == 'tavus') {
-        wp_enqueue_script('avatar_studio-tavus', esc_url(plugin_dir_url(__FILE__) . 'assets/js/tavus.js?v=' . AvatarStudioVersion), array(), AvatarStudioVersion, true);
-        wp_enqueue_script('daily-co', esc_url(plugin_dir_url(__FILE__) . 'assets/js/daily-co.js?v=' . AvatarStudioVersion), array(), AvatarStudioVersion, true);
-    } else {
-        wp_enqueue_script('avatar_studio-heygen', esc_url(plugin_dir_url(__FILE__) . 'assets/js/heygen.js?v=' . AvatarStudioVersion), array(), AvatarStudioVersion, true);
-    }
-    // }
-
-    ?>
-    <?php
-    // Output hidden inputs and HTML structure
     ?>
     <input type="hidden" id="ajaxURL" value="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" />
     <input type="hidden" id="avatar_studio_nonce" value="<?php echo esc_attr(wp_create_nonce('avatar_studio_nonce_action')); ?>" />
-    <input type="hidden" id="heygen_assets" value="<?php echo esc_attr(plugin_dir_url(__FILE__) . 'assets'); ?>" />
+    <input type="hidden" id="heygen_assets" value="<?php echo esc_attr($plugin_dir . 'assets'); ?>" />
+    
     <div class="chatBox-shortCode">
-        <div id="chatBox" class="<?php echo esc_attr(($chat_only) ? 'text_mode' : 'voice_mode'); ?>" style="">
+        <div id="chatBox" class="<?php echo esc_attr($chat_only ? 'text_mode' : 'voice_mode'); ?>">
             <div id="chat-widget">
                 <input type="hidden" id="avatarStudioId" value="<?php echo esc_attr($avatar_studio_id); ?>">
-                <input type="hidden" id="pageId" value="">
+                <input type="hidden" id="pageId" value="<?php echo esc_attr(get_the_ID()); ?>">
                 <?php
                 // Include the avatar container file
                 require(plugin_dir_path(__FILE__) . 'avatarContainer.php');
@@ -580,7 +639,7 @@ function avatar_studio_shortcode($atts)
         </div>
     </div>
     <?php
-    $output = ob_get_clean();
-    return $output;
+    
+    return ob_get_clean();
 }
 add_shortcode('avatar_studio', 'avatar_studio_shortcode');

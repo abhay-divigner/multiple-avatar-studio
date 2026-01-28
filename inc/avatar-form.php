@@ -52,7 +52,43 @@ $avatar_vendor = $get_vendor || ($avatar->vendor == "tavus") ? "tavus" : "heygen
 $all_pages = get_pages();
 $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
 ?>
+<?php
+// Decode the styles JSON
+$styles = [];
+if ($avatar && $avatar->styles) {
+    $styles = json_decode($avatar->styles, true);
+    if (!is_array($styles)) {
+        $styles = [];
+    }
+}
 
+// Also make sure these exist in the $styles array
+if (!isset($styles['disclaimer'])) {
+    $styles['disclaimer'] = [
+        'background' => 'rgba(0, 0, 0, 0.85)',
+        'opacity' => '0.9',
+        'content_background' => '#ffffff',
+        'border_radius' => '8',
+        'heading_color' => '#ffffff',
+        'content_color' => '#f8f9fa',
+        'heading_size' => '20',
+        'content_size' => '14'
+    ];
+}
+
+if (!isset($styles['instruction'])) {
+    $styles['instruction'] = [
+        'background' => 'rgba(0, 0, 0, 0.85)',
+        'opacity' => '0.9',
+        'content_background' => '#ffffff',
+        'border_radius' => '8',
+        'heading_color' => '#ffffff',
+        'content_color' => '#f8f9fa',
+        'heading_size' => '20',
+        'content_size' => '14'
+    ];
+}
+?>
 <link rel="stylesheet" href="<?php echo esc_url(plugin_dir_url(__FILE__)); ?>../assets/css/fontawesome/css/all.min.css">
 
 
@@ -457,48 +493,212 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                     </td>
                                 </tr>
 
-                                <!-- New Combined Row - Wrapped in a container with ID for toggling -->
+                                <!-- Disclaimer Fields Row - Wrapped in a container with ID for toggling -->
                                 <tr id="disclaimer_fields_row" style="<?php echo (!$avatar || !$avatar->disclaimer_enable) ? 'display: none;' : ''; ?>">
                                     <th colspan="2">
-                                        <div style="display: flex; gap: 30px;">
+                                        <div class="disclaimer-content-wrapper">
+                                            <!-- Content Configuration -->
+                                            <div class="disclaimer-content-config">
+                                                <div style="display: flex; gap: 30px; margin-bottom: 30px;">
+                                                    <!-- Heading -->
+                                                    <div style="flex: 1;">
+                                                        <label><strong>Heading*</strong></label><br>
+                                                        <input type="text" name="disclaimer_title" id="disclaimer_title"
+                                                            value="<?php echo $avatar && $avatar->disclaimer_title ? esc_attr($avatar->disclaimer_title) : ''; ?>"
+                                                            placeholder="e.g., Terms & Conditions"
+                                                            style="width: 100%; margin-top: 5px;"
+                                                            <?php echo ($avatar && $avatar->disclaimer_enable) ? 'required' : ''; ?>>
+                                                        <div id="disclaimer_title_error" style="color: red; font-size: 12px; display: none;">Heading is required when disclaimer is enabled.</div>
+                                                    </div>
 
-                                            <!-- Heading -->
-                                            <div style="flex: 1;">
-                                                <label><strong>Heading*</strong></label><br>
-                                                <input type="text" name="disclaimer_title" id="disclaimer_title"
-                                                    value="<?php echo $avatar && $avatar->disclaimer_title ? esc_attr($avatar->disclaimer_title) : ''; ?>"
-                                                    placeholder="e.g., Terms & Conditions"
-                                                    style="width: 100%; margin-top: 5px;"
-                                                    <?php echo ($avatar && $avatar->disclaimer_enable) ? 'required' : ''; ?>>
-                                                <div id="disclaimer_title_error" style="color: red; font-size: 12px; display: none;">Heading is required when disclaimer is enabled.</div>
-                                            </div>
+                                                    <!-- Disclaimer Content -->
+                                                    <div style="flex: 1;">
+                                                        <label><strong>Disclaimer Content*</strong></label><br>
+                                                        <div class="editor-wrapper" style="margin-top: 5px;">
+                                                            <?php
+                                                            $disclaimer_content = $avatar && $avatar->disclaimer ? $avatar->disclaimer : '';
+                                                            $editor_id = 'disclaimer_editor';
+                                                            $settings = array(
+                                                                'textarea_name' => 'disclaimer',
+                                                                'textarea_rows' => 10,
+                                                                'media_buttons' => true,
+                                                                'teeny' => false,
+                                                                'quicktags' => true,
+                                                                'wpautop' => true,
+                                                                'editor_class' => ($avatar && $avatar->disclaimer_enable) ? 'required-editor' : ''
+                                                            );
+                                                            wp_editor($disclaimer_content, $editor_id, $settings);
+                                                            ?>
+                                                            <div id="disclaimer_content_error" style="color: red; font-size: 12px; display: none;">Content is required when disclaimer is enabled.</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                            <!-- Disclaimer Content -->
-                                            <div style="flex: 1;">
-                                                <label><strong>Disclaimer Content*</strong></label><br>
-                                                <div class="editor-wrapper" style="margin-top: 5px;">
-                                                    <?php
-                                                    $disclaimer_content = $avatar && $avatar->disclaimer ? $avatar->disclaimer : '';
-                                                    $editor_id = 'disclaimer_editor';
-                                                    $settings = array(
-                                                        'textarea_name' => 'disclaimer',
-                                                        'textarea_rows' => 10,
-                                                        'media_buttons' => true,
-                                                        'teeny' => false,
-                                                        'quicktags' => true,
-                                                        'wpautop' => true,
-                                                        'editor_class' => ($avatar && $avatar->disclaimer_enable) ? 'required-editor' : ''
-                                                    );
-                                                    wp_editor($disclaimer_content, $editor_id, $settings);
-                                                    ?>
-                                                    <div id="disclaimer_content_error" style="color: red; font-size: 12px; display: none;">Content is required when disclaimer is enabled.</div>
+                                                <!-- Styling Controls -->
+                                                <div class="styling-controls-section">
+                                                    <h3 style="margin: 30px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #e9ecef;">
+                                                        <i class="dashicons dashicons-admin-customizer" style="margin-right: 8px;"></i>
+                                                        Styling Configuration
+                                                    </h3>
+                                                    
+                                                    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                                                        <!-- Container Styling -->
+                                                        <div style="flex: 1; min-width: 300px;">
+                                                            <h4 style="margin-bottom: 15px; color: #2c3e50;">Container Styling</h4>
+                                                            
+                                                            <!-- Background Color -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-color-picker" style="margin-right: 5px;"></i>
+                                                                    Background Color
+                                                                </label>
+                                                                <input type="text" name="styles[disclaimer][background]" 
+                                                                    class="color-picker-field" 
+                                                                    value="<?php echo isset($styles['disclaimer']['background']) ? esc_attr($styles['disclaimer']['background']) : 'rgba(0, 0, 0, 0.85)'; ?>"
+                                                                    data-default-color="rgba(0, 0, 0, 0.85)" />
+                                                                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                                                    Background color of the disclaimer overlay
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Background Opacity -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-visibility" style="margin-right: 5px;"></i>
+                                                                    Background Opacity
+                                                                </label>
+                                                                <input type="range" name="styles[disclaimer][opacity]" 
+                                                                    min="0.1" max="1" step="0.1"
+                                                                    value="<?php echo isset($styles['disclaimer']['opacity']) ? esc_attr($styles['disclaimer']['opacity']) : '0.9'; ?>"
+                                                                    style="width: 100%;"
+                                                                    oninput="document.getElementById('disclaimer_opacity_value').textContent = this.value;">
+                                                                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px;">
+                                                                    <span>10%</span>
+                                                                    <span id="disclaimer_opacity_value"><?php echo isset($styles['disclaimer']['opacity']) ? esc_attr($styles['disclaimer']['opacity']) : '0.9'; ?></span>
+                                                                    <span>100%</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Content Background -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-admin-appearance" style="margin-right: 5px;"></i>
+                                                                    Content Background
+                                                                </label>
+                                                                <input type="text" name="styles[disclaimer][content_background]" 
+                                                                    class="color-picker-field" 
+                                                                    value="<?php echo isset($styles['disclaimer']['content_background']) ? esc_attr($styles['disclaimer']['content_background']) : '#ffffff'; ?>"
+                                                                    data-default-color="#ffffff" />
+                                                                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                                                    Background of the content box
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Border Radius -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-editor-expand" style="margin-right: 5px;"></i>
+                                                                    Border Radius (px)
+                                                                </label>
+                                                                <input type="number" name="styles[disclaimer][border_radius]" 
+                                                                    min="0" max="50" step="1"
+                                                                    value="<?php echo isset($styles['disclaimer']['border_radius']) ? esc_attr($styles['disclaimer']['border_radius']) : '8'; ?>"
+                                                                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Text Styling -->
+                                                        <div style="flex: 1; min-width: 300px;">
+                                                            <h4 style="margin-bottom: 15px; color: #2c3e50;">Text Styling</h4>
+                                                            
+                                                            <!-- Heading Color -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-editor-textcolor" style="margin-right: 5px;"></i>
+                                                                    Heading Color
+                                                                </label>
+                                                                <input type="text" name="styles[disclaimer][heading_color]" 
+                                                                    class="color-picker-field" 
+                                                                    value="<?php echo isset($styles['disclaimer']['heading_color']) ? esc_attr($styles['disclaimer']['heading_color']) : '#ffffff'; ?>"
+                                                                    data-default-color="#ffffff" />
+                                                            </div>
+
+                                                            <!-- Content Color -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-editor-paragraph" style="margin-right: 5px;"></i>
+                                                                    Content Color
+                                                                </label>
+                                                                <input type="text" name="styles[disclaimer][content_color]" 
+                                                                    class="color-picker-field" 
+                                                                    value="<?php echo isset($styles['disclaimer']['content_color']) ? esc_attr($styles['disclaimer']['content_color']) : '#f8f9fa'; ?>"
+                                                                    data-default-color="#f8f9fa" />
+                                                            </div>
+
+                                                            <!-- Heading Font Size -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-editor-textsize" style="margin-right: 5px;"></i>
+                                                                    Heading Font Size (px)
+                                                                </label>
+                                                                <input type="number" name="styles[disclaimer][heading_size]" 
+                                                                    min="12" max="36" step="1"
+                                                                    value="<?php echo isset($styles['disclaimer']['heading_size']) ? esc_attr($styles['disclaimer']['heading_size']) : '20'; ?>"
+                                                                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                                                            </div>
+
+                                                            <!-- Content Font Size -->
+                                                            <div style="margin-bottom: 15px;">
+                                                                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">
+                                                                    <i class="dashicons dashicons-editor-alignleft" style="margin-right: 5px;"></i>
+                                                                    Content Font Size (px)
+                                                                </label>
+                                                                <input type="number" name="styles[disclaimer][content_size]" 
+                                                                    min="10" max="24" step="1"
+                                                                    value="<?php echo isset($styles['disclaimer']['content_size']) ? esc_attr($styles['disclaimer']['content_size']) : '14'; ?>"
+                                                                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Preview -->
+                                                        <div style="flex: 1; min-width: 300px;">
+                                                            <h4 style="margin-bottom: 15px; color: #2c3e50;">Live Preview</h4>
+                                                            <div id="disclaimer_preview" 
+                                                                style="padding: 20px; border: 2px dashed #ddd; border-radius: 8px; min-height: 300px; background: <?php echo isset($styles['disclaimer']['background']) ? esc_attr($styles['disclaimer']['background']) : 'rgba(0, 0, 0, 0.85)'; ?>; display: flex; align-items: center; justify-content: center; position: relative;">
+                                                                <div style="background: <?php echo isset($styles['disclaimer']['content_background']) ? esc_attr($styles['disclaimer']['content_background']) : '#ffffff'; ?>; 
+                                                                    border-radius: <?php echo isset($styles['disclaimer']['border_radius']) ? esc_attr($styles['disclaimer']['border_radius']) : '8'; ?>px; 
+                                                                    padding: 25px; max-width: 500px; width: 100%;">
+                                                                    <h3 style="color: <?php echo isset($styles['disclaimer']['heading_color']) ? esc_attr($styles['disclaimer']['heading_color']) : '#ffffff'; ?>; 
+                                                                        font-size: <?php echo isset($styles['disclaimer']['heading_size']) ? esc_attr($styles['disclaimer']['heading_size']) : '20'; ?>px; 
+                                                                        margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                                                                        <?php echo $avatar && $avatar->disclaimer_title ? esc_html($avatar->disclaimer_title) : 'Disclaimer Heading'; ?>
+                                                                    </h3>
+                                                                    <div style="color: <?php echo isset($styles['disclaimer']['content_color']) ? esc_attr($styles['disclaimer']['content_color']) : '#f8f9fa'; ?>; 
+                                                                        font-size: <?php echo isset($styles['disclaimer']['content_size']) ? esc_attr($styles['disclaimer']['content_size']) : '14'; ?>px; 
+                                                                        line-height: 1.6; max-height: 150px; overflow-y: auto;">
+                                                                        <?php 
+                                                                        $preview_content = $avatar && $avatar->disclaimer ? strip_tags($avatar->disclaimer) : 'This is a preview of your disclaimer content. Users will need to agree to these terms before proceeding with the avatar session.';
+                                                                        echo esc_html(substr($preview_content, 0, 200)) . (strlen($preview_content) > 200 ? '...' : '');
+                                                                        ?>
+                                                                    </div>
+                                                                    <div style="margin-top: 20px; text-align: right;">
+                                                                        <button type="button" style="background: #38b1c5; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                                                                            Agree
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+                                                                <i class="dashicons dashicons-info" style="margin-right: 5px;"></i>
+                                                                This is a simplified preview. The actual modal will cover the entire screen.
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-
                                         </div>
                                     </th>
                                 </tr>
-
                             </table>
                         </div>
 
@@ -520,37 +720,193 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                             <tr id="form_selection_row" style="display: <?php echo $avatar && $avatar->user_form_enable ? 'table-row' : 'none'; ?>;">
                                 <th><label for="selected_form_id">Select Form</label></th>
                                 <td>
-                                    <select name="selected_form_id" id="selected_form_id" class="regular-text" 
-                                        <?php echo $avatar && $avatar->user_form_enable ? 'required' : ''; ?>>
-                                        <option value="0">-- Select a form --</option>
-                                        <?php
-                                        $form_builder = Avatar_Form_Builder::get_instance();
-                                        $forms = $form_builder->get_all_forms();
-                                        $selected_form_id = isset($avatar->selected_form_id) ? $avatar->selected_form_id : 0;
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+                                        <!-- Form Selection Column -->
+                                        <div style="flex: 1; min-width: 300px;">
+                                            <select name="selected_form_id" id="selected_form_id" class="regular-text" 
+                                                <?php echo $avatar && $avatar->user_form_enable ? 'required' : ''; ?>
+                                                style="width: 100%; margin-bottom: 10px;">
+                                                <option value="0">-- Select a form --</option>
+                                                <?php
+                                                $form_builder = Avatar_Form_Builder::get_instance();
+                                                $forms = $form_builder->get_all_forms();
+                                                $selected_form_id = isset($avatar->selected_form_id) ? $avatar->selected_form_id : 0;
 
-                                        foreach ($forms as $form) {
-                                            echo '<option value="' . esc_attr($form->id) . '" '
-                                                . selected($selected_form_id, $form->id, false) . '>'
-                                                . esc_html($form->title) . ' (ID: ' . intval($form->id) . ')' . '</option>';
-                                        }
-                                        ?>
-                                    </select>
+                                                foreach ($forms as $form) {
+                                                    echo '<option value="' . esc_attr($form->id) . '" '
+                                                        . selected($selected_form_id, $form->id, false) . '>'
+                                                        . esc_html($form->title) . ' (ID: ' . intval($form->id) . ')' . '</option>';
+                                                }
+                                                ?>
+                                            </select>
 
-                                    <p class="description">Select a form to show before the session starts</p>
-                                    <p class="description">
-                                        <a href="<?php echo esc_url(admin_url('admin.php?page=avatar-form-builder')); ?>" target="_blank">
-                                            Manage forms in Form Builder →
-                                        </a>
-                                    </p>
+                                            <p class="description" style="margin-bottom: 10px;">Select a form to show before the session starts</p>
+                                            <p class="description" style="margin-bottom: 0;">
+                                                <a href="<?php echo esc_url(admin_url('admin.php?page=avatar-form-builder')); ?>" target="_blank">
+                                                    Manage forms in Form Builder →
+                                                </a>
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Form Width Column -->
+                                        <div style="flex: 1; min-width: 300px; margin-left: -40px;">
+                                            <div style="padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e5e7eb; height: 100%;">
+                                                <h4 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 14px;">User Form Width</h4>
+                                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">
+                                                    Form Width (px or %)
+                                                </label>
+                                                <input type="text" name="styles[userform][width]" 
+                                                    value="<?php echo isset($styles['userform']['width']) ? esc_attr($styles['userform']['width']) : '500px'; ?>"
+                                                    placeholder="e.g., 500px, 80%, 90vw"
+                                                    style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; margin-bottom: 10px;" />
+                                                <div style="font-size: 13px; color: #6b7280;">
+                                                    Set the width of <code>UserForm</code> container. Use px for fixed width or %/vw for responsive.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Live Preview (Optional - can be kept below or removed) -->
+                                    <div style="margin-top: 20px; display: none;">
+                                        <div id="userform-preview-container" style="background: white; border: 2px dashed #ddd; border-radius: 8px; padding: 20px; min-height: 400px; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;">
+                                            <!-- Overlay background -->
+                                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); opacity: 0.9;"></div>
+                                            
+                                            <!-- Actual Form Preview -->
+                                            <div id="userDetailsForm-preview" 
+                                                style="position: relative; z-index: 1; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1); 
+                                                width: <?php echo isset($styles['userform']['width']) ? esc_attr($styles['userform']['width']) : '500px'; ?>; 
+                                                max-height: 350px; overflow-y: auto;">
+                                                
+                                                <?php
+                                                // Show the actual selected form in preview
+                                                $selected_form_id = isset($avatar->selected_form_id) ? $avatar->selected_form_id : 0;
+                                                
+                                                if ($selected_form_id > 0 && $user_form_enable) {
+                                                    $form_builder = Avatar_Form_Builder::get_instance();
+                                                    $form = $form_builder->get_form_by_id($selected_form_id);
+                                                    
+                                                    if ($form && !empty($form->form_data)) {
+                                                        $form_data = json_decode($form->form_data, true);
+                                                        
+                                                        if ($form_data && is_array($form_data) && isset($form_data['fields']) && !empty($form_data['fields'])) {
+                                                            
+                                                            if (!empty($form_data['title'])) {
+                                                                echo '<h3 style="margin-top: 0; margin-bottom: 10px; font-size: 24px; color: #2c3e50; 
+                                                                    background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+                                                                    -webkit-background-clip: text;
+                                                                    -webkit-text-fill-color: transparent;
+                                                                    background-clip: text;">' 
+                                                                    . esc_html($form_data['title']) . '</h3>';
+                                                            }
+                                                            
+                                                            if (!empty($form_data['description'])) {
+                                                                echo '<p class="form-description" style="color: #666; margin-bottom: 20px; font-size: 14px; line-height: 1.5;">' 
+                                                                    . esc_html($form_data['description']) . '</p>';
+                                                            }
+                                                            
+                                                            echo '<div class="user-form-fields">';
+                                                            
+                                                            // Show first 3 fields as preview
+                                                            $field_count = 0;
+                                                            foreach ($form_data['fields'] as $field) {
+                                                                if ($field_count >= 3) break; // Limit to 3 fields for preview
+                                                                
+                                                                echo '<div class="form-field" style="margin-bottom: 15px;">';
+                                                                echo '<label style="display: block; margin-bottom: 6px; font-weight: 600; color: #334155; font-size: 13px;">' 
+                                                                    . esc_html($field['label']) 
+                                                                    . (isset($field['required']) && $field['required'] ? ' <span style="color: #ef4444;">*</span>' : '') 
+                                                                    . '</label>';
+                                                                
+                                                                switch ($field['type']) {
+                                                                    case 'text':
+                                                                    case 'email':
+                                                                    case 'number':
+                                                                    case 'tel':
+                                                                    case 'date':
+                                                                        echo '<input type="' . esc_attr($field['type']) . '" 
+                                                                            style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px;" 
+                                                                            placeholder="' . esc_attr($field['placeholder'] ?? '') . '" />';
+                                                                        break;
+                                                                        
+                                                                    case 'textarea':
+                                                                        echo '<textarea style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; min-height: 80px;" 
+                                                                            placeholder="' . esc_attr($field['placeholder'] ?? '') . '"></textarea>';
+                                                                        break;
+                                                                        
+                                                                    case 'select':
+                                                                        echo '<select style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px;">';
+                                                                        echo '<option value="">' . esc_html($field['placeholder'] ?? 'Select an option') . '</option>';
+                                                                        if (!empty($field['options'])) {
+                                                                            foreach ($field['options'] as $option) {
+                                                                                echo '<option value="' . esc_attr($option) . '">' . esc_html($option) . '</option>';
+                                                                            }
+                                                                        }
+                                                                        echo '</select>';
+                                                                        break;
+                                                                }
+                                                                
+                                                                echo '</div>';
+                                                                $field_count++;
+                                                            }
+                                                            
+                                                            if (count($form_data['fields']) > 3) {
+                                                                echo '<div style="text-align: center; padding: 10px; color: #6b7280; font-size: 13px; font-style: italic;">';
+                                                                echo '+' . (count($form_data['fields']) - 3) . ' more fields...';
+                                                                echo '</div>';
+                                                            }
+                                                            
+                                                            echo '</div>';
+                                                            
+                                                            echo '<div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid #e5e7eb;">';
+                                                            echo '<button style="padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; 
+                                                                background: white; border: 2px solid #e5e7eb; color: #6b7280;">Skip</button>';
+                                                            echo '<button style="padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; 
+                                                                background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%); color: white; border: none;">Next</button>';
+                                                            echo '</div>';
+                                                        }
+                                                    }
+                                                } else {
+                                                    // Show placeholder if no form selected
+                                                    echo '<div style="text-align: center; padding: 40px 20px; color: #6b7280;">';
+                                                    echo '<div style="font-size: 48px; margin-bottom: 20px; color: #d1d5db;">📋</div>';
+                                                    echo '<h4 style="margin: 0 0 10px 0; color: #374151;">No Form Selected</h4>';
+                                                    echo '<p style="margin: 0; font-size: 14px;">Select a form above to preview it here</p>';
+                                                    echo '</div>';
+                                                }
+                                                ?>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: center; margin-top: 10px; font-size: 13px; color: #6b7280;">
+                                            <i class="dashicons dashicons-info" style="margin-right: 5px;"></i>
+                                            Preview shows actual selected form with scrollable container
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         </table>
                     </div>
 
+                    <script>
+                    // Update the toggle function to show/hide both rows
+                    function toggleFormSelection(checkbox) {
+                        var formSelectionRow = document.getElementById('form_selection_row');
+                        var formWidthRow = document.getElementById('form_width_row');
+                        
+                        if (checkbox.checked) {
+                            formSelectionRow.style.display = 'table-row';
+                            formWidthRow.style.display = 'table-row';
+                        } else {
+                            formSelectionRow.style.display = 'none';
+                            formWidthRow.style.display = 'none';
+                        }
+                    }
+                    </script>
+
                     <div class="form-divider"></div>
                     
                     <div class="boxed">
-                        <h2>Video Instructions <span class="section-badge">(Optional)</span></h2>
+                         <h2>Video Instructions <span class="section-badge">(Optional)</span></h2>
                         <!-- Tooltip for the section -->
                         <div class="tooltip" style="font-size: 13px; color: #666;">
                             <span style="font-weight: bold;">Video Instructions:</span> Add instructional content to help users interact with your avatar. You can include video links, step-by-step guides, or usage tips. Enable the "Skip Video Instruction" option if you want to skip the instruction video.
@@ -639,9 +995,9 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                         <div class="avatar_studio-tabs">
                             <div class="avatar_studio-tab-buttons">
                                 <button type="button" class="tab-btn active" data-tab="en">🇬🇧 English</button>
-                                <button type="button" class="tab-btn" data-tab="es">🇪🇸 Spanish</button>
+                                <!-- <button type="button" class="tab-btn" data-tab="es">🇪🇸 Spanish</button>
                                 <button type="button" class="tab-btn" data-tab="fr">🇫🇷 French</button>
-                                <button type="button" class="tab-btn" data-tab="de">🇩🇪 German</button>
+                                <button type="button" class="tab-btn" data-tab="de">🇩🇪 German</button> -->
                             </div>
 
                             <div id="avatar_studio-tab-en" class="avatar_studio-tab-content active">
@@ -716,7 +1072,7 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                 <option value="" <?php echo empty($toast['type'] ?? '') ? 'selected' : ''; ?>>Select Type</option>
                                                 <option value="success" <?php echo ($toast['type'] ?? '') == 'success' ? 'selected' : ''; ?>>Success</option>
                                                 <option value="error" <?php echo ($toast['type'] ?? '') == 'error' ? 'selected' : ''; ?>>Error</option>
-                                                <option value="warn" <?php echo ($toast['type'] ?? '') == 'warn' ? 'selected' : ''; ?>>Warning</option>
+                                                <option value="warning" <?php echo ($toast['type'] ?? '') == 'warning' ? 'selected' : ''; ?>>Warning</option>
                                                 <option value="info" <?php echo ($toast['type'] ?? '') == 'info' ? 'selected' : ''; ?>>Info</option>
                                             </select>
                                         </div>
@@ -742,12 +1098,12 @@ $previewImage = plugin_dir_url(__FILE__) . '../assets/images/preview.webp';
                                                     name="toast_messages[<?php echo esc_attr($index); ?>][hideAfter]" 
                                                     placeholder="Sec"
                                                     min="2"
-                                                    max="30"
+                                                    max="60"
                                                     value="<?php echo esc_attr($toast['hideAfter'] ?? ''); ?>"
                                                     class="toast-hideafter">
                                             </div>
                                             <div class="toast-hideafter-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
-                                            <small style="display: block; color: #666; font-size: 11px; margin-top: 2px;">Min: 2s, Max: 30s</small>
+                                            <small style="display: block; color: #666; font-size: 11px; margin-top: 2px;">Min: 2s, Max: 60s</small>
                                         </div>
                                     </div>
                                     <button style="margin-top: 24px;" type="button" class="button button-secondary remove-toast-message" title="Remove this toast message">

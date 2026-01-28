@@ -2389,3 +2389,192 @@ jQuery(document).ready(function ($) {
     $("#avatar_studio-tab-" + tabId).addClass("active");
   });
 });
+jQuery(document).ready(function ($) {
+  // Initialize color pickers for disclaimer and instruction styling
+  $(".color-picker-field").wpColorPicker({
+    change: function (event, ui) {
+      updatePreview();
+    },
+  });
+
+  // Update preview when any styling input changes
+  $('input[name*="styles[disclaimer]"], input[name*="styles[instruction]"]').on(
+    "input change",
+    function () {
+      updatePreview();
+    }
+  );
+
+  // Function to update both previews
+  function updatePreview() {
+    updateDisclaimerPreview();
+    updateInstructionPreview();
+  }
+
+  // Update disclaimer preview
+  function updateDisclaimerPreview() {
+    var background =
+      $('input[name="styles[disclaimer][background]"]').val() ||
+      "rgba(0, 0, 0, 0.85)";
+    var opacity = $('input[name="styles[disclaimer][opacity]"]').val() || "0.9";
+    var contentBg =
+      $('input[name="styles[disclaimer][content_background]"]').val() ||
+      "#ffffff";
+    var borderRadius =
+      $('input[name="styles[disclaimer][border_radius]"]').val() || "8";
+    var headingColor =
+      $('input[name="styles[disclaimer][heading_color]"]').val() || "#ffffff";
+    var contentColor =
+      $('input[name="styles[disclaimer][content_color]"]').val() || "#f8f9fa";
+    var headingSize =
+      $('input[name="styles[disclaimer][heading_size]"]').val() || "20";
+    var contentSize =
+      $('input[name="styles[disclaimer][content_size]"]').val() || "14";
+
+    $("#disclaimer_preview").css({
+      background: background,
+      opacity: opacity,
+    });
+
+    $("#disclaimer_preview > div").css({
+      background: contentBg,
+      "border-radius": borderRadius + "px",
+    });
+
+    $("#disclaimer_preview h3").css({
+      color: headingColor,
+      "font-size": headingSize + "px",
+    });
+
+    $("#disclaimer_preview > div > div").css({
+      color: contentColor,
+      "font-size": contentSize + "px",
+    });
+  }
+
+  // Update instruction preview
+  function updateInstructionPreview() {
+    var background =
+      $('input[name="styles[instruction][background]"]').val() ||
+      "rgba(0, 0, 0, 0.85)";
+    var opacity =
+      $('input[name="styles[instruction][opacity]"]').val() || "0.9";
+    var contentBg =
+      $('input[name="styles[instruction][content_background]"]').val() ||
+      "#ffffff";
+    var borderRadius =
+      $('input[name="styles[instruction][border_radius]"]').val() || "8";
+    var headingColor =
+      $('input[name="styles[instruction][heading_color]"]').val() || "#ffffff";
+    var contentColor =
+      $('input[name="styles[instruction][content_color]"]').val() || "#f8f9fa";
+    var headingSize =
+      $('input[name="styles[instruction][heading_size]"]').val() || "20";
+    var contentSize =
+      $('input[name="styles[instruction][content_size]"]').val() || "14";
+
+    $("#instruction_preview").css({
+      background: background,
+      opacity: opacity,
+    });
+
+    $("#instruction_preview > div").css({
+      background: contentBg,
+      "border-radius": borderRadius + "px",
+    });
+
+    $("#instruction_preview h3").css({
+      color: headingColor,
+      "font-size": headingSize + "px",
+    });
+
+    $("#instruction_preview > div > div").css({
+      color: contentColor,
+      "font-size": contentSize + "px",
+    });
+  }
+
+  // Update disclaimer content preview when content changes
+  $("#disclaimer_editor").on("input", function () {
+    var content = $(this).val();
+    if (content.length > 0) {
+      var plainText = content.replace(/<[^>]*>/g, ""); // Strip HTML tags
+      var previewText =
+        plainText.substring(0, 200) + (plainText.length > 200 ? "..." : "");
+      $("#disclaimer_preview > div > div").text(previewText);
+    }
+  });
+
+  // Update instruction content preview when content changes
+  $("#instruction_editor").on("input", function () {
+    var content = $(this).val();
+    if (content.length > 0) {
+      var plainText = content.replace(/<[^>]*>/g, ""); // Strip HTML tags
+      var previewText =
+        plainText.substring(0, 200) + (plainText.length > 200 ? "..." : "");
+      $("#instruction_preview > div > div").text(previewText);
+    }
+  });
+
+  // Update disclaimer heading preview
+  $("#disclaimer_title").on("input", function () {
+    var heading = $(this).val() || "Disclaimer Heading";
+    $("#disclaimer_preview h3").text(heading);
+  });
+
+  // Update instruction heading preview
+  $("#instruction_title").on("input", function () {
+    var heading = $(this).val() || "Instruction Heading";
+    $("#instruction_preview h3").text(heading);
+  });
+
+  // Initial update of previews
+  updatePreview();
+});
+// Update user form width preview
+$('input[name="styles[userform][width]"]').on("input", function () {
+  var width = $(this).val() || "500px";
+  $("#userDetailsForm-preview").css("width", width);
+
+  // Update preview text
+  var previewContainer = $(this).closest("div").next();
+  var previewText = previewContainer.find(".preview-info");
+  if (previewText.length === 0) {
+    previewContainer.append(
+      '<div class="preview-info" style="text-align: center; margin-top: 10px; font-size: 13px; color: #6b7280;">Width: ' +
+        width +
+        "</div>"
+    );
+  } else {
+    previewText.text("Width: " + width);
+  }
+});
+
+// Update preview when form selection changes
+$("#selected_form_id").on("change", function () {
+  var formId = $(this).val();
+  var previewContainer = $("#userDetailsForm-preview");
+
+  if (formId > 0) {
+    // You can add AJAX here to load the actual form preview
+    // For now, just update the placeholder
+    previewContainer.html(
+      '<div style="text-align: center; padding: 40px 20px; color: #6b7280;">' +
+        '<div style="font-size: 48px; margin-bottom: 20px; color: #38b1c5;">✓</div>' +
+        '<h4 style="margin: 0 0 10px 0; color: #374151;">Form Selected</h4>' +
+        '<p style="margin: 0; font-size: 14px;">Form ID: ' +
+        formId +
+        "</p>" +
+        '<p style="margin: 10px 0 0 0; font-size: 12px; color: #9ca3af;">Actual form will appear here</p>' +
+        "</div>"
+    );
+  } else {
+    previewContainer.html(
+      '<div style="text-align: center; padding: 40px 20px; color: #6b7280;">' +
+        '<div style="font-size: 48px; margin-bottom: 20px; color: #d1d5db;">📋</div>' +
+        '<h4 style="margin: 0 0 10px 0; color: #374151;">No Form Selected</h4>' +
+        '<p style="margin: 0; font-size: 14px;">Select a form above to preview it here</p>' +
+        "</div>"
+    );
+  }
+});

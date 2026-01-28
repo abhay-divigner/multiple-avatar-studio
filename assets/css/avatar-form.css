@@ -137,7 +137,7 @@
 .form-field select {
   width: 100%;
   padding: 10px 14px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #c5c5c5;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -1249,7 +1249,7 @@ input[type="checkbox"] {
   font-weight: 500;
 }
 
-.toast-type option[value="warn"] {
+.toast-type option[value="warning"] {
   color: #fd7e14;
   font-weight: 500;
 }

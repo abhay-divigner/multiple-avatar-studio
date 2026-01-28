@@ -318,8 +318,8 @@ jQuery(document).ready(function ($) {
         return false;
       }
 
-      if (hideAfter > 30) {
-        $validation.text("Maximum hide time is 30 seconds").show();
+      if (hideAfter > 60) {
+        $validation.text("Maximum hide time is 60 seconds").show();
         $input.css("border-color", "#dc3545");
         return false;
       }
@@ -507,7 +507,7 @@ jQuery(document).ready(function ($) {
                             <option value="">Select Type</option>
                             <option value="success">Success</option>
                             <option value="error">Error</option>
-                            <option value="warn">Warn</option>
+                            <option value="warning">Warning</option>
                             <option value="info">Info</option>
                         </select>
                     </div>
@@ -532,12 +532,12 @@ jQuery(document).ready(function ($) {
                                 name="toast_messages[${toastIndex}][hideAfter]" 
                                 placeholder="Sec"
                                 min="2"
-                                max="30"
+                                max="60"
                                 value=""
                                 class="toast-hideafter">
                         </div>
                         <div class="toast-hideafter-validation" style="display: none; color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
-                        <small style="display: block; color: #666; font-size: 11px; margin-top: 2px;">Min: 2s, Max: 30s</small>
+                        <small style="display: block; color: #666; font-size: 11px; margin-top: 2px;">Min: 2s, Max: 60s</small>
                     </div>
                 </div>
                 <button style="margin-top: 24px;" type="button" class="button button-secondary remove-toast-message" title="Remove this toast message">

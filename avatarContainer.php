@@ -30,6 +30,7 @@ global $instruction;
 global $instruction_title;
 global $start_button_label;
 global $selected_form_id;
+global $welcome_message_enable;
 
 if (!isset($selected_form_id) && isset($avatar) && isset($avatar->selected_form_id)) {
     $selected_form_id = $avatar->selected_form_id;
@@ -66,7 +67,8 @@ $js_config = array(
     'form_id' => 0,
     'ajax_url' => admin_url('admin-ajax.php'),
     'instruction_section_exists' => false,
-    'nonce' => wp_create_nonce('avatar_studio_nonce')
+    'nonce' => wp_create_nonce('avatar_studio_nonce'),
+    'styles' => $styles
 );
 
 // Get form ID
@@ -264,7 +266,7 @@ enqueue_avatar_studio_scripts($js_config);
 
         <div class="language-switcher" title="Change Language">
             <span class="lang-icon" onclick="toggleLanguageDropdown()">
-                <span id="selectedLanguage">
+                <span id="selectedLanguage" data-welcome-enabled="<?php echo $welcome_message_enable ? 'true' : 'false'; ?>">
                     <img draggable="false" class="emoji" alt="us"
                         src="https://s.w.org/images/core/emoji/16.0.1/svg/1f1fa-1f1f8.svg">
                 </span>
@@ -366,12 +368,12 @@ enqueue_avatar_studio_scripts($js_config);
                         echo '<div class="user-form-fields">';
                         
                         foreach ($form_data['fields'] as $field) {
-                            $field_id = 'field_' . uniqid();
-                            $field_name = sanitize_title($field['label']) . '_' . $field_id;
+                            $field_id = isset($field['field_id']) ? $field['field_id'] : $field['id'];
+                            $field_name = $field_id;
                             $required_class = isset($field['required']) && $field['required'] ? 'required' : '';
                             $required_attr = isset($field['required']) && $field['required'] ? 'required' : '';
                             
-                            echo '<div class="form-field ' . esc_attr($field['type']) . '-field ' . esc_attr($required_class) . '">';
+                            echo '<div class="form-field ' . esc_attr($field['type']) . '-field ' . esc_attr($required_class) . '" data-field-id="' . esc_attr($field_id) . '" data-field-label="' . esc_attr($field['label']) . '">';
                             echo '<label for="' . esc_attr($field_name) . '">' . esc_html($field['label']) . '</label>';
                             
                             switch ($field['type']) {
@@ -397,8 +399,10 @@ enqueue_avatar_studio_scripts($js_config);
                                     
                                 case 'select':
                                     echo '<select 
-                                           id="' . esc_attr($field_name) . '" 
-                                           name="' . esc_attr($field_name) . '" ' . esc_attr($required_attr) . '>';
+                                        id="' . esc_attr($field_name) . '" 
+                                        name="' . esc_attr($field_name) . '" ' . esc_attr($required_attr) . '
+                                        class="' . ($field['enable_other'] ? 'has-other-option' : '') . '"
+                                        data-field-id="' . esc_attr($field_name) . '">';
                                     echo '<option value="">' . esc_html($field['placeholder'] ?? 'Select an option') . '</option>';
                                     
                                     if (!empty($field['options'])) {
@@ -406,39 +410,155 @@ enqueue_avatar_studio_scripts($js_config);
                                             echo '<option value="' . esc_attr($option) . '">' . esc_html($option) . '</option>';
                                         }
                                     }
+                                    
+                                    // Add "Other" option
+                                    if ($field['enable_other']) {
+                                        echo '<option value="_other_">Other</option>';
+                                    }
+                                    
                                     echo '</select>';
+                                    
+                                    // Add "Other" text input
+                                    if ($field['enable_other']) {
+                                    echo '<div class="other-input-wrapper" id="' . esc_attr($field_name) . '_other_wrapper" style="display: none; margin-top: 10px;">';
+                                    echo '<label for="' . esc_attr($field_name) . '_other">' . esc_html($field['other_field_label'] ?? 'Please specify:') . '</label>';
+                                    echo '<textarea
+                                            id="' . esc_attr($field_name) . '_other"
+                                            name="' . esc_attr($field_name) . '_other"
+                                            placeholder="' . esc_attr($field['other_field_placeholder'] ?? 'Enter your answer...') . '"
+                                            class="other-text-input"
+                                            rows="4"
+                                            style="width: 100%; margin-top: 5px;"></textarea>';
+                                    echo '</div>';
+                                }
+
                                     break;
                                     
                                 case 'radio':
-                                    if (!empty($field['options'])) {
-                                        foreach ($field['options'] as $index => $option) {
-                                            $radio_id = $field_name . '_' . $index;
-                                            echo '<div class="radio-option">';
+                                        if (!empty($field['options'])) {
+                                            foreach ($field['options'] as $index => $option) {
+                                                $radio_id = $field_name . '_' . $index;
+                                                echo '<div class="radio-option">';
+                                                echo '<input type="radio" 
+                                                    id="' . esc_attr($radio_id) . '" 
+                                                    name="' . esc_attr($field_name) . '" 
+                                                    value="' . esc_attr($option) . '" 
+                                                    class="' . ($field['enable_other'] ? 'has-other-option' : '') . '"
+                                                    data-field-id="' . esc_attr($field_name) . '"
+                                                    ' . esc_attr($required_attr) . '>';
+                                                echo '<label for="' . esc_attr($radio_id) . '">' . esc_html($option) . '</label>';
+                                                echo '</div>';
+                                            }
+                                        }
+                                        
+                                        // Add "Other" radio option
+                                        if ($field['enable_other']) {
+                                            $other_radio_id = $field_name . '_other_radio';
+                                            echo '<div class="radio-option other-radio-option">';
                                             echo '<input type="radio" 
-                                                   id="' . esc_attr($radio_id) . '" 
-                                                   name="' . esc_attr($field_name) . '" 
-                                                   value="' . esc_attr($option) . '" ' . esc_attr($required_attr) . '>';
-                                            echo '<label for="' . esc_attr($radio_id) . '">' . esc_html($option) . '</label>';
+                                                id="' . esc_attr($other_radio_id) . '" 
+                                                name="' . esc_attr($field_name) . '" 
+                                                value="_other_" 
+                                                class="has-other-option"
+                                                data-field-id="' . esc_attr($field_name) . '"
+                                                ' . esc_attr($required_attr) . '>';
+                                            echo '<label for="' . esc_attr($other_radio_id) . '">Other</label>';
+                                            echo '</div>';
+                                            
+                                            // Add "Other" text input
+                                            echo '<div class="other-input-wrapper" id="' . esc_attr($field_name) . '_other_wrapper" style="display: none; margin-top: 10px; margin-left: 20px;">';
+                                            echo '<label for="' . esc_attr($field_name) . '_other">' . esc_html($field['other_field_label'] ?? 'Please specify:') . '</label>';
+                                            echo '<textarea type="text" 
+                                                id="' . esc_attr($field_name) . '_other" 
+                                                name="' . esc_attr($field_name) . '_other" 
+                                                placeholder="' . esc_attr($field['other_field_placeholder'] ?? 'Enter your answer...') . '" 
+                                                class="other-text-input"
+                                                style="width: 100%; margin-top: 5px;"></textarea>';
                                             echo '</div>';
                                         }
-                                    }
-                                    break;
-                                    
-                                case 'checkbox':
-                                    if (!empty($field['options'])) {
-                                        foreach ($field['options'] as $index => $option) {
-                                            $checkbox_id = $field_name . '_' . $index;
-                                            echo '<div class="checkbox-option">';
+                                        break;
+                                                                        
+                                    case 'checkbox':
+                                        if (!empty($field['options'])) {
+                                            foreach ($field['options'] as $index => $option) {
+                                                $checkbox_id = $field_name . '_' . $index;
+                                                echo '<div class="checkbox-option">';
+                                                echo '<input type="checkbox" 
+                                                    id="' . esc_attr($checkbox_id) . '" 
+                                                    name="' . esc_attr($field_name) . '[]" 
+                                                    value="' . esc_attr($option) . '" 
+                                                    class="' . ($field['enable_other'] ? 'has-other-option' : '') . '"
+                                                    data-field-id="' . esc_attr($field_name) . '">';
+                                                echo '<label for="' . esc_attr($checkbox_id) . '">' . esc_html($option) . '</label>';
+                                                echo '</div>';
+                                            }
+                                        }
+                                        
+                                        // Add "Other" checkbox option
+                                        if ($field['enable_other']) {
+                                            $other_checkbox_id = $field_name . '_other_checkbox';
+                                            echo '<div class="checkbox-option other-checkbox-option">';
                                             echo '<input type="checkbox" 
-                                                   id="' . esc_attr($checkbox_id) . '" 
-                                                   name="' . esc_attr($field_name) . '[]" 
-                                                   value="' . esc_attr($option) . '">';
-                                            echo '<label for="' . esc_attr($checkbox_id) . '">' . esc_html($option) . '</label>';
+                                                id="' . esc_attr($other_checkbox_id) . '" 
+                                                name="' . esc_attr($field_name) . '[]" 
+                                                value="_other_" 
+                                                class="has-other-option"
+                                                data-field-id="' . esc_attr($field_name) . '">';
+                                            echo '<label for="' . esc_attr($other_checkbox_id) . '">Other</label>';
+                                            echo '</div>';
+                                            
+                                            // Add "Other" text input
+                                            echo '<div class="other-input-wrapper" id="' . esc_attr($field_name) . '_other_wrapper" style="display: none; margin-top: 10px; margin-left: 20px;">';
+                                            echo '<label for="' . esc_attr($field_name) . '_other">' . esc_html($field['other_field_label'] ?? 'Please specify:') . '</label>';
+                                            echo '<textarea type="text" 
+                                                id="' . esc_attr($field_name) . '_other" 
+                                                name="' . esc_attr($field_name) . '_other" 
+                                                placeholder="' . esc_attr($field['other_field_placeholder'] ?? 'Enter your answer...') . '" 
+                                                class="other-text-input"
+                                                style="width: 100%; margin-top: 5px;"></textarea>';
                                             echo '</div>';
                                         }
+                                        break;
+                                    case 'other':
+                                        $field_name_checkbox = $field_name . '[checkbox]';
+                                        $field_name_textarea = $field_name . '[textarea]';
+                                        $is_required = isset($field['required']) && $field['required'] ? 'true' : 'false';
+                                        
+                                        echo '<div class="form-field other-field">';
+                                        // echo '<label class="field-main-label">' . esc_html($field['label']) . '</label>';
+                                        
+                                        echo '<div class="conditional-field-wrapper">';
+                                        
+                                        // Checkbox
+                                        echo '<div class="conditional-checkbox">';
+                                        echo '<label>';
+                                        echo '<input type="checkbox" 
+                                            name="' . esc_attr($field_name_checkbox) . '" 
+                                            value="on" 
+                                            class="conditional-checkbox-input"
+                                            id="' . esc_attr($field_name) . '_checkbox"> ';
+                                        echo esc_html($field['checkbox_label'] ?: 'Enable additional details');
+                                        echo '</label>';
+                                        echo '</div>';
+                                        
+                                        // Textarea (initially disabled)
+                                        echo '<div class="other" id="' . esc_attr($field_name) . '_textarea_container" style="display: none;">';
+                                        // echo '<label class="textarea-label" for="' . esc_attr($field_name) . '_textarea">' . 
+                                        //     esc_html($field['textarea_label'] ?: 'Additional details') . '</label>';
+                                        echo '<textarea 
+                                            id="' . esc_attr($field_name) . '_textarea"
+                                            name="' . esc_attr($field_name_textarea) . '" 
+                                            placeholder="' . esc_attr($field['placeholder'] ?: 'Enter your details here...') . '" 
+                                            rows="4" 
+                                            class="other-input"
+                                            data-required="' . esc_attr($is_required) . '"
+                                            disabled></textarea>';
+                                        echo '</div>';
+                                        
+                                        echo '</div>';
+                                        echo '</div>';
+                                        break;
                                     }
-                                    break;
-                            }
                             
                             echo '</div>';
                         }
@@ -490,3 +610,221 @@ enqueue_avatar_studio_scripts($js_config);
         </div>
     </div>
 <?php } ?>
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    console.log('Conditional textarea handler initialized');
+    
+    // Function to toggle textarea based on checkbox
+    function toggleConditionalTextarea(checkbox) {
+        var $checkbox = $(checkbox);
+        var fieldName = $checkbox.attr('id').replace('_checkbox', '');
+        var $textareaContainer = $('#' + fieldName + '_textarea_container');
+        var $textarea = $('#' + fieldName + '_textarea');
+        var isRequired = $textarea.data('required') === 'true';
+        
+        console.log('Checkbox changed:', $checkbox.is(':checked'), 'Field:', fieldName);
+        
+        if ($checkbox.is(':checked')) {
+            // Show textarea container
+            $textareaContainer.slideDown(300, function() {
+                // Enable textarea
+                $textarea.prop('disabled', false);
+                if (isRequired) {
+                    $textarea.prop('required', true);
+                }
+                console.log('Textarea enabled for:', fieldName);
+            });
+        } else {
+            // Hide textarea container
+            $textareaContainer.slideUp(300, function() {
+                // Disable textarea
+                $textarea.prop('disabled', true);
+                $textarea.prop('required', false);
+                $textarea.val(''); // Clear value
+                console.log('Textarea disabled for:', fieldName);
+            });
+        }
+    }
+    
+    // Handle checkbox change events
+    $(document).on('change', '.conditional-checkbox-input', function() {
+        console.log('Checkbox change event fired');
+        toggleConditionalTextarea(this);
+    });
+    
+    // Initialize on page load
+    $('.conditional-checkbox-input').each(function() {
+        console.log('Initializing checkbox:', $(this).attr('id'));
+        // If checkbox is checked on page load, enable textarea
+        if ($(this).is(':checked')) {
+            toggleConditionalTextarea(this);
+        }
+    });
+    
+    // Debug function to check textarea state
+    window.debugTextarea = function() {
+        console.log('=== DEBUG TEXTAREA STATE ===');
+        $('.other-input').each(function() {
+            var $textarea = $(this);
+            console.log('Textarea ID:', $textarea.attr('id'), 
+                'Disabled:', $textarea.prop('disabled'),
+                'Visible:', $textarea.is(':visible'),
+                'Parent visible:', $textarea.closest('.other').is(':visible'));
+        });
+    };
+    
+});
+</script>
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    console.log('Initializing Other option handlers...');
+    
+    // Function to handle "Other" option selection
+    function initializeOtherOptionHandlers() {
+        console.log('Setting up Other option event listeners');
+        
+        // For dropdowns
+        $(document).on('change', 'select.has-other-option', function() {
+            const $select = $(this);
+            const fieldId = $select.data('field-id');
+            const $otherWrapper = $('#' + fieldId + '_other_wrapper');
+            const $otherInput = $('#' + fieldId + '_other');
+            
+            console.log('Dropdown changed:', fieldId, 'Value:', $select.val());
+            
+            if ($select.val() === '_other_') {
+                console.log('Other option selected, showing input');
+                $otherWrapper.slideDown(300);
+                $otherInput.prop('disabled', false).prop('required', true);
+                $otherInput.focus();
+            } else {
+                console.log('Regular option selected, hiding input');
+                $otherWrapper.slideUp(300);
+                $otherInput.prop('disabled', true).prop('required', false);
+                $otherInput.val('');
+            }
+        });
+        
+        // For radio buttons
+        $(document).on('change', 'input[type="radio"].has-other-option', function() {
+            const $radio = $(this);
+            const fieldId = $radio.data('field-id');
+            const $otherWrapper = $('#' + fieldId + '_other_wrapper');
+            const $otherInput = $('#' + fieldId + '_other');
+            
+            console.log('Radio changed:', fieldId, 'Value:', $radio.val());
+            
+            if ($radio.val() === '_other_') {
+                console.log('Other radio selected, showing input');
+                $otherWrapper.slideDown(300);
+                $otherInput.prop('disabled', false).prop('required', true);
+                $otherInput.focus();
+            } else {
+                console.log('Regular radio selected, hiding input');
+                $otherWrapper.slideUp(300);
+                $otherInput.prop('disabled', true).prop('required', false);
+                $otherInput.val('');
+            }
+        });
+        
+        // For checkboxes
+        $(document).on('change', 'input[type="checkbox"].has-other-option', function() {
+            const $checkbox = $(this);
+            const fieldId = $checkbox.data('field-id');
+            const $otherWrapper = $('#' + fieldId + '_other_wrapper');
+            const $otherInput = $('#' + fieldId + '_other');
+            
+            console.log('Checkbox changed:', fieldId, 'Value:', $checkbox.val(), 'Checked:', $checkbox.is(':checked'));
+            
+            if ($checkbox.val() === '_other_' && $checkbox.is(':checked')) {
+                console.log('Other checkbox checked, showing input');
+                $otherWrapper.slideDown(300);
+                $otherInput.prop('disabled', false);
+                $otherInput.focus();
+            } else if ($checkbox.val() === '_other_' && !$checkbox.is(':checked')) {
+                console.log('Other checkbox unchecked, hiding input');
+                $otherWrapper.slideUp(300);
+                $otherInput.prop('disabled', true);
+                $otherInput.val('');
+            }
+        });
+        
+        // Initialize on page load
+        console.log('Initializing existing Other options on page load');
+        
+        // Dropdowns
+        $('select.has-other-option').each(function() {
+            const $select = $(this);
+            const fieldId = $select.data('field-id');
+            console.log('Checking dropdown:', fieldId, 'Value:', $select.val());
+            
+            if ($select.val() === '_other_') {
+                $('#' + fieldId + '_other_wrapper').show();
+                $('#' + fieldId + '_other').prop('disabled', false);
+            }
+        });
+        
+        // Radio buttons
+        $('input[type="radio"].has-other-option:checked').each(function() {
+            const $radio = $(this);
+            const fieldId = $radio.data('field-id');
+            console.log('Checking radio:', fieldId, 'Value:', $radio.val());
+            
+            if ($radio.val() === '_other_') {
+                $('#' + fieldId + '_other_wrapper').show();
+                $('#' + fieldId + '_other').prop('disabled', false);
+            }
+        });
+        
+        // Checkboxes
+        $('input[type="checkbox"].has-other-option:checked').each(function() {
+            const $checkbox = $(this);
+            const fieldId = $checkbox.data('field-id');
+            console.log('Checking checkbox:', fieldId, 'Value:', $checkbox.val());
+            
+            if ($checkbox.val() === '_other_') {
+                $('#' + fieldId + '_other_wrapper').show();
+                $('#' + fieldId + '_other').prop('disabled', false);
+            }
+        });
+        
+        console.log('Other option handlers initialized successfully');
+    }
+    
+    // Call this function when the form is loaded
+    initializeOtherOptionHandlers();
+    
+    // Also re-initialize when the user form is shown (in case it's loaded dynamically)
+    $(document).on('click', '.userform, .instruction, .disclaimer', function() {
+        console.log('Form shown, re-initializing Other option handlers');
+        setTimeout(initializeOtherOptionHandlers, 500);
+    });
+    
+    // Debug function to check Other option state
+    window.debugOtherOptions = function() {
+        console.log('=== DEBUG OTHER OPTIONS ===');
+        
+        $('.has-other-option').each(function() {
+            const $el = $(this);
+            const fieldId = $el.data('field-id');
+            const $otherWrapper = $('#' + fieldId + '_other_wrapper');
+            const $otherInput = $('#' + fieldId + '_other');
+            
+            console.log('Element:', $el.attr('id') || $el.attr('name'), 
+                'Type:', $el.attr('type') || 'select',
+                'Value:', $el.val(),
+                'Checked:', $el.is(':checked'),
+                'Other wrapper exists:', $otherWrapper.length > 0,
+                'Other wrapper visible:', $otherWrapper.is(':visible'),
+                'Other input disabled:', $otherInput.prop('disabled'));
+        });
+    };
+    
+    // Test function to manually show Other inputs
+    window.showAllOtherInputs = function() {
+        $('.other-input-wrapper').show();
+        $('.other-text-input').prop('disabled', false);
+        console.log('All Other inputs shown and enabled');
+    };
+});
+</script>

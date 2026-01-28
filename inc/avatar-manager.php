@@ -529,6 +529,7 @@ class avatarManager
             }
         }
         
+        
         // Convert to JSON
         $headers_json = !empty($headers_array) ? wp_json_encode($headers_array) : null;
 
@@ -561,6 +562,84 @@ class avatarManager
         // Convert to JSON
         $toast_messages_json = !empty($toast_messages_array) ? wp_json_encode($toast_messages_array) : null;
 
+        // Process styles array
+        $styles_array = [];
+        if (isset($_POST['styles']) && is_array($_POST['styles'])) {
+            // Process chat box and other existing styles
+            foreach ($_POST['styles'] as $key => $style) {
+                if ($key === 'disclaimer') {
+                    // Process disclaimer styling
+                    $disclaimer_styles = [];
+                    if (isset($style['background'])) {
+                        $disclaimer_styles['background'] = sanitize_text_field($style['background']);
+                    }
+                    if (isset($style['opacity'])) {
+                        $disclaimer_styles['opacity'] = floatval($style['opacity']);
+                    }
+                    if (isset($style['content_background'])) {
+                        $disclaimer_styles['content_background'] = sanitize_text_field($style['content_background']);
+                    }
+                    if (isset($style['border_radius'])) {
+                        $disclaimer_styles['border_radius'] = intval($style['border_radius']);
+                    }
+                    if (isset($style['heading_color'])) {
+                        $disclaimer_styles['heading_color'] = sanitize_text_field($style['heading_color']);
+                    }
+                    if (isset($style['content_color'])) {
+                        $disclaimer_styles['content_color'] = sanitize_text_field($style['content_color']);
+                    }
+                    if (isset($style['heading_size'])) {
+                        $disclaimer_styles['heading_size'] = intval($style['heading_size']);
+                    }
+                    if (isset($style['content_size'])) {
+                        $disclaimer_styles['content_size'] = intval($style['content_size']);
+                    }
+                    $styles_array['disclaimer'] = $disclaimer_styles;
+                } elseif ($key === 'instruction') {
+                    // Process instruction styling
+                    $instruction_styles = [];
+                    if (isset($style['background'])) {
+                        $instruction_styles['background'] = sanitize_text_field($style['background']);
+                    }
+                    if (isset($style['opacity'])) {
+                        $instruction_styles['opacity'] = floatval($style['opacity']);
+                    }
+                    if (isset($style['content_background'])) {
+                        $instruction_styles['content_background'] = sanitize_text_field($style['content_background']);
+                    }
+                    if (isset($style['border_radius'])) {
+                        $instruction_styles['border_radius'] = intval($style['border_radius']);
+                    }
+                    if (isset($style['heading_color'])) {
+                        $instruction_styles['heading_color'] = sanitize_text_field($style['heading_color']);
+                    }
+                    if (isset($style['content_color'])) {
+                        $instruction_styles['content_color'] = sanitize_text_field($style['content_color']);
+                    }
+                    if (isset($style['heading_size'])) {
+                        $instruction_styles['heading_size'] = intval($style['heading_size']);
+                    }
+                    if (isset($style['content_size'])) {
+                        $instruction_styles['content_size'] = intval($style['content_size']);
+                    }
+                    $styles_array['instruction'] = $instruction_styles;
+                    } elseif ($key === 'userform') {
+                        $userform_styles = [];
+                        if (isset($style['width'])) {
+                            $userform_styles['width'] = sanitize_text_field($style['width']);
+                        }
+                        $styles_array['userform'] = $userform_styles;
+                    }
+                    else {
+                    // Process other existing styles (chatBox, thumbnail, buttons, etc.)
+                    $styles_array[$key] = $style;
+                }
+            }
+        }
+        
+        // Convert to JSON
+        $styles_json = !empty($styles_array) ? wp_json_encode($styles_array) : null;
+
         $result = $wpdb->update("{$wpdb->prefix}avatar_studio_avatars", [
             'api_key' => sanitize_text_field($_POST['api_key']),
             'vendor' => sanitize_text_field($_POST['vendor']),
@@ -585,17 +664,18 @@ class avatarManager
             'livekit_enable' => isset($_POST['livekit_enable']) ? intval($_POST['livekit_enable']) : 0,
             'video_enable' => isset($_POST['video_enable']) ? intval($_POST['video_enable']) : 0,
             'chat_only' => isset($_POST['chat_only']) ? intval($_POST['chat_only']) : 0,
-            'disclaimer_title' => isset($_POST['disclaimer_title']) ? $_POST['disclaimer_title'] : '',
-            'disclaimer' => isset($_POST['disclaimer']) ? $_POST['disclaimer'] : '',
+            'disclaimer_title' => isset($_POST['disclaimer_title']) ? sanitize_text_field($_POST['disclaimer_title']) : '',
+            'disclaimer' => isset($_POST['disclaimer']) ? wp_kses_post($_POST['disclaimer']) : '',
             'disclaimer_enable' => isset($_POST['disclaimer_enable']) ? intval($_POST['disclaimer_enable']) : 0,
             'user_form_enable' => isset($_POST['user_form_enable']) ? intval($_POST['user_form_enable']) : 0,
             'selected_form_id' => isset($_POST['selected_form_id']) ? intval($_POST['selected_form_id']) : 0,
-            'instruction_title' => isset($_POST['instruction_title']) ? $_POST['instruction_title'] : '',
+            'instruction_title' => isset($_POST['instruction_title']) ? sanitize_text_field($_POST['instruction_title']) : '',
             'instruction' => isset($_POST['instruction']) ? wp_kses_post($_POST['instruction']) : '',
             'skip_instruction_video' => isset($_POST['skip_instruction_video']) ? intval($_POST['skip_instruction_video']) : 0,
             'instruction_enable' => isset($_POST['instruction_enable']) ? intval($_POST['instruction_enable']) : 0,
             'pages' => isset($_POST['pages']) ? wp_json_encode($_POST['pages']) : null,
-            'styles' => isset($_POST['styles']) ? wp_json_encode($_POST['styles']) : null,
+            'styles' => $styles_json,
+            'welcome_message_enable' => isset($_POST['welcome_message_enable']) ? intval($_POST['welcome_message_enable']) : 0,
             'welcome_message' => isset($_POST['welcome_message']) ? wp_json_encode($_POST['welcome_message']) : null,
             'start_button_label' => isset($_POST['start_button_label']) ? sanitize_text_field($_POST['start_button_label']) : 'Chat',
         ], ['id' => $id]);
@@ -677,6 +757,77 @@ class avatarManager
         // Convert to JSON
         $toast_messages_json = !empty($toast_messages_array) ? wp_json_encode($toast_messages_array) : null;
 
+        // Process styles array
+        $styles_array = [];
+        if (isset($_POST['styles']) && is_array($_POST['styles'])) {
+            // Process chat box and other existing styles
+            foreach ($_POST['styles'] as $key => $style) {
+                if ($key === 'disclaimer') {
+                    // Process disclaimer styling
+                    $disclaimer_styles = [];
+                    if (isset($style['background'])) {
+                        $disclaimer_styles['background'] = sanitize_text_field($style['background']);
+                    }
+                    if (isset($style['opacity'])) {
+                        $disclaimer_styles['opacity'] = floatval($style['opacity']);
+                    }
+                    if (isset($style['content_background'])) {
+                        $disclaimer_styles['content_background'] = sanitize_text_field($style['content_background']);
+                    }
+                    if (isset($style['border_radius'])) {
+                        $disclaimer_styles['border_radius'] = intval($style['border_radius']);
+                    }
+                    if (isset($style['heading_color'])) {
+                        $disclaimer_styles['heading_color'] = sanitize_text_field($style['heading_color']);
+                    }
+                    if (isset($style['content_color'])) {
+                        $disclaimer_styles['content_color'] = sanitize_text_field($style['content_color']);
+                    }
+                    if (isset($style['heading_size'])) {
+                        $disclaimer_styles['heading_size'] = intval($style['heading_size']);
+                    }
+                    if (isset($style['content_size'])) {
+                        $disclaimer_styles['content_size'] = intval($style['content_size']);
+                    }
+                    $styles_array['disclaimer'] = $disclaimer_styles;
+                } elseif ($key === 'instruction') {
+                    // Process instruction styling
+                    $instruction_styles = [];
+                    if (isset($style['background'])) {
+                        $instruction_styles['background'] = sanitize_text_field($style['background']);
+                    }
+                    if (isset($style['opacity'])) {
+                        $instruction_styles['opacity'] = floatval($style['opacity']);
+                    }
+                    if (isset($style['content_background'])) {
+                        $instruction_styles['content_background'] = sanitize_text_field($style['content_background']);
+                    }
+                    if (isset($style['border_radius'])) {
+                        $instruction_styles['border_radius'] = intval($style['border_radius']);
+                    }
+                    if (isset($style['heading_color'])) {
+                        $instruction_styles['heading_color'] = sanitize_text_field($style['heading_color']);
+                    }
+                    if (isset($style['content_color'])) {
+                        $instruction_styles['content_color'] = sanitize_text_field($style['content_color']);
+                    }
+                    if (isset($style['heading_size'])) {
+                        $instruction_styles['heading_size'] = intval($style['heading_size']);
+                    }
+                    if (isset($style['content_size'])) {
+                        $instruction_styles['content_size'] = intval($style['content_size']);
+                    }
+                    $styles_array['instruction'] = $instruction_styles;
+                } else {
+                    // Process other existing styles (chatBox, thumbnail, buttons, etc.)
+                    $styles_array[$key] = $style;
+                }
+            }
+        }
+        
+        // Convert to JSON
+        $styles_json = !empty($styles_array) ? wp_json_encode($styles_array) : null;
+
         $data = [
             'api_key' => sanitize_text_field($_POST['api_key']),
             'vendor' => sanitize_text_field($_POST['vendor']),
@@ -701,17 +852,18 @@ class avatarManager
             'livekit_enable' => isset($_POST['livekit_enable']) ? intval($_POST['livekit_enable']) : 0,
             'video_enable' => isset($_POST['video_enable']) ? intval($_POST['video_enable']) : 0,
             'chat_only' => isset($_POST['chat_only']) ? intval($_POST['chat_only']) : 0,
-            'disclaimer_title' => isset($_POST['disclaimer_title']) ? $_POST['disclaimer_title'] : '',
-            'disclaimer' => isset($_POST['disclaimer']) ? $_POST['disclaimer'] : '',
+            'disclaimer_title' => isset($_POST['disclaimer_title']) ? sanitize_text_field($_POST['disclaimer_title']) : '',
+            'disclaimer' => isset($_POST['disclaimer']) ? wp_kses_post($_POST['disclaimer']) : '',
             'disclaimer_enable' => isset($_POST['disclaimer_enable']) ? intval($_POST['disclaimer_enable']) : 0,
             'user_form_enable' => isset($_POST['user_form_enable']) ? intval($_POST['user_form_enable']) : 0,
             'selected_form_id' => isset($_POST['selected_form_id']) ? intval($_POST['selected_form_id']) : 0,
-            'instruction_title' => isset($_POST['instruction_title']) ? $_POST['instruction_title'] : '',
+            'instruction_title' => isset($_POST['instruction_title']) ? sanitize_text_field($_POST['instruction_title']) : '',
             'instruction' => isset($_POST['instruction']) ? wp_kses_post($_POST['instruction']) : '',
             'skip_instruction_video' => isset($_POST['skip_instruction_video']) ? intval($_POST['skip_instruction_video']) : 0,
             'instruction_enable' => isset($_POST['instruction_enable']) ? intval($_POST['instruction_enable']) : 0,
             'pages' => isset($_POST['pages']) ? wp_json_encode($_POST['pages']) : null,
-            'styles' => isset($_POST['styles']) ? wp_json_encode($_POST['styles']) : null,
+            'styles' => $styles_json,
+            'welcome_message_enable' => isset($_POST['welcome_message_enable']) ? intval($_POST['welcome_message_enable']) : 0,
             'welcome_message' => isset($_POST['welcome_message']) ? wp_json_encode($_POST['welcome_message']) : null,
             'start_button_label' => isset($_POST['start_button_label']) ? sanitize_text_field($_POST['start_button_label']) : 'Chat',
         ];

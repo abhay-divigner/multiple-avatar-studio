@@ -65,7 +65,7 @@
 }
 
 .gap-10 {
-  gap: 10px;
+  gap: 8px;
 }
 
 .editor-wrapper {
@@ -838,6 +838,16 @@ button.exportTranscript {
   border-radius: 5px;
   cursor: pointer;
   gap: 5px;
+  width: 140px;
+}
+@media (max-width: 1024px) {
+  #transcriptContainer .transcript-heading button {
+    font-size: 10px;
+    padding: 4px;
+    margin: 0 0 0 10px;
+    border-radius: 3px;
+    width: 140px;
+  }
 }
 
 #transcriptContainer .transcript-heading button:hover {
@@ -1077,7 +1087,7 @@ button#cameraToggler {
   transform: translate(-50%, -50%);
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  /* background-color: rgba(0, 0, 0, 0.5); */
   display: none;
   justify-content: center;
   align-items: center;
@@ -1090,7 +1100,7 @@ button#cameraToggler {
 }
 
 .disclaimer-content {
-  background-color: rgba(0, 0, 0, 0.6);
+  /* background-color: rgba(0, 0, 0, 0.6); */
   width: 90%;
   max-width: 800px;
   border-radius: 8px;
@@ -1108,9 +1118,9 @@ button#cameraToggler {
 
 .disclaimer-title {
   margin: 0;
-  font-size: 18px;
+  /* font-size: 18px; */
   font-weight: 600;
-  color: #fff;
+  /* color: #fff; */
 }
 
 .closeDisclaimer {
@@ -1171,7 +1181,21 @@ button#cameraToggler {
   transform: translate(-50%, -50%);
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9996;
+  color: #fff;
+}
+.form-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
   display: none;
   justify-content: center;
   align-items: center;
@@ -1180,6 +1204,9 @@ button#cameraToggler {
 }
 
 .instruction-container.show {
+  display: flex !important;
+}
+.form-container.show {
   display: flex !important;
 }
 
@@ -1191,7 +1218,71 @@ button#cameraToggler {
   box-shadow: 0 20px 40px rgba(255, 255, 255, 0.7);
   animation: fadeInUp 0.3s ease-out;
 }
+/* Style for #userDetailsForm */
+#userDetailsForm {
+  /* Width will be set by JavaScript */
+  max-width: 95%; /* Fallback for mobile */
+  max-height: 80vh; /* Limit height */
+  overflow-y: auto; /* Make scrollable */
+  overflow-x: hidden;
+  margin: 0 auto; /* Center it */
+  padding: 25px 25px 0 25px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(56, 177, 197, 0.1);
 
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #38b1c5 #f1f1f1;
+}
+
+/* Webkit scrollbar styling */
+#userDetailsForm::-webkit-scrollbar {
+  width: 8px;
+}
+
+#userDetailsForm::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+#userDetailsForm::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #38b1c5 0%, #da922c 100%);
+  border-radius: 4px;
+}
+
+#userDetailsForm::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2c8fa0 0%, #c47a24 100%);
+}
+
+/* Keep form fields properly spaced */
+#userDetailsForm .user-form-fields {
+  margin-bottom: 25px;
+}
+
+/* Keep buttons sticky at bottom */
+#userDetailsForm #buttons {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 20px 0;
+  margin-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  #userDetailsForm {
+    width: 95% !important; /* Force mobile width */
+    max-height: 85vh !important;
+    padding: 20px;
+  }
+
+  #userDetailsForm #buttons {
+    position: relative;
+    bottom: auto;
+  }
+}
 .instruction-header {
   padding: 15px 20px;
   display: flex;

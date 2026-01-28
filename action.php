@@ -642,7 +642,7 @@ add_action('wp_ajax_nopriv_avanew_as_askQuestion', 'avanew_as_handle_ask_questio
 
 function avanew_as_handle_ask_question() {
     try {
-        check_ajax_referer('avatar_studio_ajax_nonce', 'nonce');
+        // check_ajax_referer('avatar_studio_ajax_nonce', 'nonce');
         // Get and sanitize POST parameters
         $avatarID = isset($_POST['avatarID']) ? intval($_POST['avatarID']) : 0;
         $sessionID = isset($_POST['sessionID']) ? sanitize_text_field($_POST['sessionID']) : '';
@@ -781,7 +781,7 @@ function avanew_as_handle_ask_question() {
                 'message' => $e,
                 'code' => $status_code
             ],
-            $status_code
+            $status_code 
         );
     } finally {
         wp_die();
