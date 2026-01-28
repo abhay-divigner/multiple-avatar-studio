@@ -1,7 +1,12 @@
 <?php
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 //============================================================+
 // File name   : tcpdf.php
-// Version     : 6.10.0
+// Version     : 6.10.1
 // Begin       : 2002-08-03
 // Last Update : 2025-05-27
 // Author      : Nicola Asuni - Tecnick.com LTD - www.tecnick.com - info@tecnick.com
@@ -104,7 +109,7 @@
  * Tools to encode your unicode fonts are on fonts/utils directory.</p>
  * @package com.tecnick.tcpdf
  * @author Nicola Asuni
- * @version 6.10.0
+ * @version 6.10.1
  */
 
 // TCPDF configuration
@@ -128,7 +133,7 @@ require_once(dirname(__FILE__).'/include/tcpdf_static.php');
  * TCPDF project (http://www.tcpdf.org) has been originally derived in 2002 from the Public Domain FPDF class by Olivier Plathey (http://www.fpdf.org), but now is almost entirely rewritten.<br>
  * @package com.tecnick.tcpdf
  * @brief PHP class for generating PDF documents without requiring external extensions.
- * @version 6.10.0
+ * @version 6.10.1
  * @author Nicola Asuni - info@tecnick.com
  * @IgnoreAnnotation("protected")
  * @IgnoreAnnotation("public")
@@ -1892,7 +1897,7 @@ class TCPDF {
 	 */
 	public function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false) {
 		// set file ID for trailer
-		$serformat = (is_array($format) ? json_encode($format) : $format);
+		$serformat = (is_array($format) ? wp_json_encode($format) : $format);
 		$this->file_id = md5(TCPDF_STATIC::getRandomSeed('TCPDF'.$orientation.$unit.$serformat.$encoding));
 		$this->hash_key = hash_hmac('sha256', TCPDF_STATIC::getRandomSeed($this->file_id), TCPDF_STATIC::getRandomSeed('TCPDF'), false);
 		$this->font_obj_ids = array();
@@ -13713,18 +13718,19 @@ class TCPDF {
 	 */
 	public function setTimeStamp($tsa_host='', $tsa_username='', $tsa_password='', $tsa_cert='') {
 		$this->tsa_data = array();
-		if (!function_exists('curl_init')) {
-			$this->Error('Please enable cURL PHP extension!');
-		}
+		
 		if (strlen($tsa_host) == 0) {
 			$this->Error('Please specify the host of Time Stamping Authority (TSA)!');
 		}
+		
 		$this->tsa_data['tsa_host'] = $tsa_host;
+		
 		if (is_file($tsa_username)) {
 			$this->tsa_data['tsa_auth'] = $tsa_username;
 		} else {
 			$this->tsa_data['tsa_username'] = $tsa_username;
 		}
+		
 		$this->tsa_data['tsa_password'] = $tsa_password;
 		$this->tsa_data['tsa_cert'] = $tsa_cert;
 		$this->tsa_timestamp = true;
@@ -16547,7 +16553,7 @@ class TCPDF {
 			}
 		}
 		// create a special tag to contain the CSS array (used for table content)
-		$csstagarray = '<cssarray>'.htmlentities(json_encode($css)).'</cssarray>';
+		$csstagarray = '<cssarray>'.htmlentities(wp_json_encode($css)).'</cssarray>';
 		// remove head and style blocks
 		$html = preg_replace('/<head([^\>]*?)>(.*?)<\/head>/is', '', $html);
 		$html = preg_replace('/<style([^\>]*?)>([^\<]*?)<\/style>/is', '', $html);
@@ -17299,7 +17305,7 @@ class TCPDF {
 	 */
 	public function serializeTCPDFtag($method, $params=array()) {
 		$data = array('m' => $method, 'p' => $params);
-		$encoded = urlencode(json_encode($data));
+		$encoded = urlencode(wp_json_encode($data));
 		$hash = $this->hashTCPDFtag($encoded);
 		return strlen($hash).'+'.$hash.'+'.$encoded;
 	}

@@ -337,7 +337,7 @@
 	- Bug item #978 "Variable Undefined: $cborder" was fixed.
 
 6.0.093 (2014-09-02)
-	- Security fix: some serialize/unserialize methods were replaced with json_encode/json_decode to avoid a potential object injection with user supplied content. Thanks to ownCloud Inc. for reporting this issue.
+	- Security fix: some serialize/unserialize methods were replaced with wp_json_encode/json_decode to avoid a potential object injection with user supplied content. Thanks to ownCloud Inc. for reporting this issue.
 	- K_TIMEZONE constant was added to the default configuration to suppress date-time warnings.
 
 6.0.092 (2014-09-01)

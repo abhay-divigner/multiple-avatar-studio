@@ -43,6 +43,10 @@
 * @version 1.0.008
 */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // custom definitions
 if (!defined('DATAMATRIXDEFS')) {
 
