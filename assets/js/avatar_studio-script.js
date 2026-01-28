@@ -762,7 +762,7 @@ async function sendPDFEmail(email = "") {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
-      action: "send_pdf_email",
+      action: "avanew_as_send_pdf_email",
       transcript_data: JSON.stringify(transcripts),
       to_email: email,
     }),
